@@ -1,0 +1,37 @@
+[
+  {
+    "name": "untitled",
+    "preset": {
+      "amp": {
+        "value": 0.5
+      },
+      "attack": {
+        "value": 10
+      },
+      "attenuation": {
+        "value": 1
+      },
+      "cutoffOvertone": {
+        "value": 2
+      },
+      "decay": {
+        "value": 100
+      },
+      "filterOnOff": {
+        "value": 0
+      },
+      "ocillator": {
+        "value": 1
+      },
+      "release": {
+        "value": 1000
+      },
+      "sustain": {
+        "value": 80
+      },
+      "terms": {
+        "value": 1
+      }
+    }
+  }
+]
