@@ -6,31 +6,31 @@
         "value": 0.5
       },
       "attack": {
-        "value": 134
+        "value": 10
       },
       "attenuation": {
-        "value": 1
+        "value": 100
       },
       "cutoffOvertone": {
-        "value": 2
+        "value": 40
       },
       "decay": {
         "value": 100
       },
       "filterOnOff": {
-        "value": 0
-      },
-      "ocillator": {
         "value": 1
       },
+      "ocillator": {
+        "value": 3
+      },
       "release": {
-        "value": 873
+        "value": 1000
       },
       "sustain": {
         "value": 80
       },
       "terms": {
-        "value": 1
+        "value": 20
       }
     }
   }
