@@ -14,6 +14,10 @@ public:
    
 private:
 ///コンストラクタでプロセッサ側から受け取るAPVTSの参照を格納するメンバを定義,パラメータとUIを紐づけるため。
+
+    // LookAndFeel クラス
+    juce::LookAndFeel_V4 midnightLookAndFeel;
+    
     juce::AudioProcessorValueTreeState& valueTreeState; // ✅ 参照で保持
     juce::Slider dial1Slider;
     juce::Slider dial2Slider;

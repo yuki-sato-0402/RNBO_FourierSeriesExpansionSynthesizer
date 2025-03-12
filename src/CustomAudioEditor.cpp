@@ -6,6 +6,9 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
 , _audioProcessor(p) // 参照メンバーを初期化（必須）
 , _rnboObject(rnboObject)
 {
+    // ルック＆フィールの設定
+    midnightLookAndFeel.setColourScheme(juce::LookAndFeel_V4::getMidnightColourScheme());
+
     //terms
     addAndMakeVisible(dial1Slider);
     // デバッグ: vts の state を確認
@@ -16,6 +19,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     dial1Attachment.reset (new SliderAttachment (valueTreeState, "terms", dial1Slider));
     dial1Slider.setSliderStyle(juce::Slider::IncDecButtons);
     dial1Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial1Slider.getTextBoxWidth(), dial1Slider.getTextBoxHeight());
+    dial1Slider.setLookAndFeel(&midnightLookAndFeel);
 
     addAndMakeVisible(label1);
     label1.setText ("terms", juce::dontSendNotification);
@@ -26,6 +30,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     std::cout << "filterOnOff" << std::endl;
     filterButton.setButtonText("filter On Off");
     button1Attachment.reset (new ButtonAttachment (valueTreeState, "filterOnOff", filterButton));
+    filterButton.setLookAndFeel(&midnightLookAndFeel);
     
     //cutoffOvertone
     addAndMakeVisible(dial2Slider);
@@ -33,6 +38,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     dial2Attachment.reset (new SliderAttachment (valueTreeState, "cutoffOvertone", dial2Slider));
     dial2Slider.setSliderStyle(juce::Slider::IncDecButtons);  
     dial2Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial2Slider.getTextBoxWidth(), dial2Slider.getTextBoxHeight());
+    dial2Slider.setLookAndFeel(&midnightLookAndFeel);
 
     addAndMakeVisible(label2);
     label2.setText ("cutoffOvertone", juce::dontSendNotification);
@@ -45,6 +51,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     dial3Attachment.reset (new SliderAttachment (valueTreeState, "attenuation", dial3Slider));
     dial3Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial3Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial3Slider.getTextBoxWidth(), dial3Slider.getTextBoxHeight());
+    dial3Slider.setLookAndFeel(&midnightLookAndFeel);
 
     addAndMakeVisible(label3);
     label3.setText ("attenuation", juce::dontSendNotification);
@@ -56,7 +63,8 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     selectComboBox.addItem("Triangle", 2);
     selectComboBox.addItem("Sawtooth", 3); 
     selectComboBox.setSelectedItemIndex(0);
-    comboBoxAttachment.reset (new juce::AudioProcessorValueTreeState::ComboBoxAttachment (valueTreeState, "ocillator", selectComboBox));    
+    comboBoxAttachment.reset (new juce::AudioProcessorValueTreeState::ComboBoxAttachment (valueTreeState, "ocillator", selectComboBox));
+    selectComboBox.setLookAndFeel(&midnightLookAndFeel);    
     addAndMakeVisible(label0);
     label0.setText ("ocillator", juce::dontSendNotification);
     label0.setJustificationType(juce::Justification::centred);
@@ -67,6 +75,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     dial4Attachment.reset (new SliderAttachment (valueTreeState, "attack", dial4Slider));
     dial4Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial4Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial4Slider.getTextBoxWidth(), dial7Slider.getTextBoxHeight());
+    dial4Slider.setLookAndFeel(&midnightLookAndFeel);    
 
     addAndMakeVisible(label4);
     label4.setText ("attack", juce::dontSendNotification);
@@ -79,6 +88,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     dial5Attachment.reset (new SliderAttachment (valueTreeState, "decay", dial5Slider));
     dial5Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial5Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial5Slider.getTextBoxWidth(), dial7Slider.getTextBoxHeight());
+    dial5Slider.setLookAndFeel(&midnightLookAndFeel);    
 
     addAndMakeVisible(label5);
     label5.setText ("decay", juce::dontSendNotification);
@@ -91,6 +101,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     dial6Attachment.reset (new SliderAttachment (valueTreeState, "sustain", dial6Slider));
     dial6Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial6Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial6Slider.getTextBoxWidth(), dial7Slider.getTextBoxHeight());
+    dial6Slider.setLookAndFeel(&midnightLookAndFeel);    
 
     addAndMakeVisible(label6);
     label6.setText ("sustain", juce::dontSendNotification);
@@ -103,6 +114,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     dial7Attachment.reset (new SliderAttachment (valueTreeState, "release", dial7Slider));
     dial7Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial7Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial7Slider.getTextBoxWidth(), dial7Slider.getTextBoxHeight());
+    dial7Slider.setLookAndFeel(&midnightLookAndFeel);    
 
     addAndMakeVisible(label7);
     label7.setText ("release", juce::dontSendNotification);
@@ -114,6 +126,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
     dial8Attachment.reset (new SliderAttachment (valueTreeState, "amp", dial8Slider));
     dial8Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial8Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial7Slider.getTextBoxWidth(), dial8Slider.getTextBoxHeight());
+    dial8Slider.setLookAndFeel(&midnightLookAndFeel);    
 
     addAndMakeVisible(label8);
     label8.setText ("amp", juce::dontSendNotification);
@@ -133,7 +146,14 @@ CustomAudioEditor::~CustomAudioEditor()
 
 void CustomAudioEditor::paint (Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    // Get the background color from the midnight scheme
+    auto backgroundColour = juce::LookAndFeel_V4::getMidnightColourScheme().getUIColour(juce::LookAndFeel_V4::ColourScheme::UIColour::windowBackground);
+
+    // Fill the entire component with this color
+    g.fillAll(backgroundColour);
+    
+    // Any additional painting code goes here
+
 }
 
 void CustomAudioEditor::resized()
