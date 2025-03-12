@@ -1,6 +1,7 @@
 #include "RNBO_Utils.h"
 #include "RNBO.h"
 #include "RNBO_JuceAudioProcessor.h"
+#include "RNBO_TimeConverter.h"
 #include "RNBO_BinaryData.h"
 #include <json/json.hpp>
 
@@ -21,12 +22,11 @@ public:
     void parameterChanged(const juce::String& parameterID, float newValue) override;
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-
+    
 private:
  //AudioProcessorValueTreeStateクラスとパラメータ値を格納するポインタを準備します。
     std::unique_ptr<juce::AudioProcessorValueTreeState> parameters;  // ✅ ポインタにする
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomAudioProcessor)
-    RNBO::CoreObject rnboObject;
     std::atomic<float>* termsParameter  = nullptr;
     std::atomic<float>* filterOnOffParameter  = nullptr;
     std::atomic<float>* cutoffOvertoneParameter  = nullptr;
@@ -38,7 +38,17 @@ private:
     std::atomic<float>* releaseParameter  = nullptr;
     std::atomic<float>* ampParameter  = nullptr;
 
-   
+    double _lastBPM = -1.0;
+    int _lastTimeSigNumerator = 0;
+    int _lastTimeSigDenominator = 0;
+    double _lastPpqPosition = -1.0;
+    bool _lastIsPlaying = false;
+    
+    RNBO::TimeConverter preProcess(juce::MidiBuffer& midiMessages);
+    void postProcess(RNBO::TimeConverter& timeConverter, juce::MidiBuffer& midiMessages);
+    
+
+    RNBO::CoreObject rnboObject;
     RNBO::MidiEventList						_midiInput;
     RNBO::MidiEventList						_midiOutput;
 };

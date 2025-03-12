@@ -185,7 +185,7 @@
 						}
 ,
 						"classnamespace" : "rnbo",
-						"rect" : [ 533.0, 87.0, 867.0, 779.0 ],
+						"rect" : [ 533.0, 87.0, 284.0, 779.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -5449,6 +5449,13 @@
 								"vst-au-export-ins" : 								{
 									"plugin_manufacturer_name" : "Your Company",
 									"plugin_manufacturer_code" : "Your"
+								}
+
+							}
+,
+							"cpp-export" : 							{
+								"cpp-code-export" : 								{
+									"polyphony" : "disabled"
 								}
 
 							}

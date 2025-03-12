@@ -122,7 +122,7 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
 
     
     _audioProcessor->addListener(this);
-    setSize(900, 500);
+    setSize(900, 400);
 }
 
 CustomAudioEditor::~CustomAudioEditor()
@@ -139,21 +139,21 @@ void CustomAudioEditor::paint (Graphics& g)
 void CustomAudioEditor::resized()
 {// Define some constants for consistent sizing and spacing
     auto area = getLocalBounds();
-    const int componentWidth1 = (area.getWidth() - 30)/4;
-    const int componentWidth2 = (area.getWidth() - 40)/4;
-    const int componentWidth3 = (area.getWidth() - 50)/4;
-    const int componentHeight = area.getHeight() / 4;
+    const int componentWidth1 = (area.getWidth() - 80)/4;
+    const int componentWidth2 = (area.getWidth() - 80)/4;
+    const int componentWidth3 = (area.getWidth() - 100)/4;
+    const int componentHeight = area.getHeight() / 3;
     const int padding = 20;            // Space between components
 
     // Top row: dial1 and ToggleButton1
     selectComboBox.setBounds(padding,  padding + 10, componentWidth2 ,  componentHeight / 2);
     dial1Slider.setBounds(selectComboBox.getRight() + padding, padding + 20,  componentWidth2 * 2, componentHeight / 2);
-    dial8Slider.setBounds(dial1Slider.getRight() + padding, padding ,  componentWidth2 , componentHeight / 1.5 );
+    dial8Slider.setBounds(dial1Slider.getRight() + padding, padding ,  componentWidth2 , componentHeight / 1.5  );
 
     // Second row: ToggleButton2, dial2, dial3
     filterButton.setBounds(padding, dial1Slider.getBottom() + padding + 10, componentWidth2, componentHeight);
     dial2Slider.setBounds( filterButton.getRight() + padding, dial1Slider.getBottom() + padding + 40 , componentWidth2 * 2, componentHeight / 2);
-    dial3Slider.setBounds(dial2Slider.getRight() + padding, dial1Slider.getBottom() + padding + 10, componentWidth2,  componentHeight / 1.5);
+    dial3Slider.setBounds(dial2Slider.getRight() + padding, dial1Slider.getBottom() + padding + 10, componentWidth2,  componentHeight /1.5 );
 
     // Bottom row: dial4, dial5, dial6, dial7, dial8
     int bottomRowY = dial3Slider.getBottom() + padding;

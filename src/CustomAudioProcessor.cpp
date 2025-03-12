@@ -163,20 +163,29 @@ void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
            DBG("CC: " << message.getControllerNumber() << " Value: " << message.getControllerValue());
        }
    }
-    auto samples = static_cast<RNBO::Index>(buffer.getNumSamples());
+    //auto samples = static_cast<RNBO::Index>(buffer.getNumSamples());
     //preProcess() と postProcess() は、JUCE の MIDI データを RNBOとやり取りするための処理
     //preProcess(): JUCE の MidiBuffer を RNBO 用のフォーマットに変換し、タイミング情報（BPM、拍子、PPQ 位置、再生状態など）を RNBO に送信
     //postProcess(): RNBO から出力された MIDI データを JUCE の MidiBuffer に戻す
-	  auto tc = preProcess(midiMessages);
-	  _rnboObject.process(
+	  // MIDI入力とタイミング情報の処理
+        
+    //RNBO::TimeConverter timeConverter = preProcess(midiMessages);
+    auto tc = preProcess(midiMessages);
+    auto bufferSize = buffer.getNumSamples();
+    rnboObject.prepareToProcess (getSampleRate(),static_cast<size_t> (bufferSize));
+
+	  rnboObject.process(
                         buffer.getArrayOfReadPointers(), static_cast<RNBO::Index>(buffer.getNumChannels()),
                         buffer.getArrayOfWritePointers(), static_cast<RNBO::Index>(buffer.getNumChannels()),
-			  samples,
+                        static_cast<RNBO::Index> (bufferSize),
 			  &_midiInput, &_midiOutput
 			  );
-	  postProcess(tc, midiMessages);
+       // DBG("_midiInput size: " << _midiInput.size());
+      
+	  // MIDI出力の処理
+    //postProcess(timeConverter, midiMessages);
+    postProcess(tc, midiMessages);
 }
-
 
 //このコールバック メソッドは、パラメータが変更されたときに AudioProcessorValueTreeStateによって呼び出されます。
 void CustomAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
@@ -251,15 +260,79 @@ void CustomAudioProcessor::setStateInformation (const void* data, int sizeInByte
             parameters->replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
+RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessages) {
+	RNBO::MillisecondTime time = _rnboObject.getCurrentTime();
 
+	//transport
+	{
+		AudioPlayHead* playhead = getPlayHead();
+		if (playhead) {
+			auto info = playhead->getPosition();
+			if (info) {
+				auto bpm = info->getBpm();
+				if (bpm && *bpm != _lastBPM) {
+					_lastBPM = *bpm;
+					RNBO::TempoEvent event(time, _lastBPM);
+					_rnboObject.scheduleEvent(event);
+				}
+
+				auto timesig = info->getTimeSignature();
+				if (timesig && (timesig->numerator != _lastTimeSigNumerator || timesig->denominator != _lastTimeSigDenominator)) {
+					_lastTimeSigNumerator = timesig->numerator;
+					_lastTimeSigDenominator = timesig->denominator;
+					RNBO::TimeSignatureEvent event(time, _lastTimeSigNumerator, _lastTimeSigDenominator);
+					_rnboObject.scheduleEvent(event);
+				}
+
+				auto ppqPos = info->getPpqPosition();
+				if (ppqPos && *ppqPos != _lastPpqPosition) {
+					_lastPpqPosition = *ppqPos;
+					RNBO::BeatTimeEvent event(time, _lastPpqPosition);
+					_rnboObject.scheduleEvent(event);
+				}
+
+				auto playing = info->getIsPlaying();
+				if (playing != _lastIsPlaying) {
+					_lastIsPlaying = playing;
+					RNBO::TransportEvent event(time, _lastIsPlaying ? RNBO::TransportState::RUNNING : RNBO::TransportState::STOPPED);
+					_rnboObject.scheduleEvent(event);
+				}
+			}
+		}
+	}
+
+    RNBO::TimeConverter timeConverter(_rnboObject.getSampleRate(), time);
+
+	// fill midi input
+	_midiInput.clear();  // make sure midi input starts clear
+	for (auto meta: midiMessages)
+	{
+        RNBO::MillisecondTime t = timeConverter.convertSampleOffsetToMilliseconds(meta.samplePosition);
+		_midiInput.addEvent(RNBO::MidiEvent(t, 0, meta.data, (RNBO::Index)meta.numBytes));
+	}
+	midiMessages.clear();		// clear the input that we consumed above so juce doesn't get confused
+	return timeConverter;
+}
+
+void CustomAudioProcessor::postProcess(RNBO::TimeConverter& timeConverter, juce::MidiBuffer& midiMessages) {
+	// consume midi output
+	if (!_midiOutput.empty()) {
+		for (const auto& ev: _midiOutput) {
+			int sampleNumber = static_cast<int>(timeConverter.convertMillisecondsToSampleOffset(ev.getTime()));
+			auto midiMessage = MidiMessage(ev.getData(), (int)ev.getLength());
+			midiMessages.addEvent(midiMessage, sampleNumber);
+		}
+		_midiOutput.clear();
+	}
+}
 AudioProcessorEditor* CustomAudioProcessor::createEditor()
 {
 
     //AudioProcessorEditor側でAudioProcessorValueTreeStateにアクセスするための方法が必要です。
     //一般的なアプローチは、AudioProcessorからAudioProcessorValueTreeStateへの参照またはポインタを取得できるようにすること
-    return new CustomAudioEditor (this, this->_rnboObject, *parameters);
+   return new CustomAudioEditor (this, this->_rnboObject, *parameters);
     //RNBOのデフォルトエディター, 標準的なパラメータ表示, 追加のカスタマイズが限定的
-   // return RNBO::JuceAudioProcessor::createEditor();
+  // return RNBO::JuceAudioProcessor::createEditor();
 }
 
 
