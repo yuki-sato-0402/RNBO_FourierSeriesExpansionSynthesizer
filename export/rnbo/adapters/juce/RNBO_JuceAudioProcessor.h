@@ -139,14 +139,13 @@ namespace RNBO {
 
 		juce::String loadedDataRefFile(const juce::String refName);
 		void loadDataRef(const juce::String refName, const juce::File file);
-		
-
 
 	private:
 		void loadDataRef(const juce::String refName, const juce::String fileName, std::unique_ptr<juce::AudioFormatReader> reader);
 
 		TimeConverter preProcess(juce::MidiBuffer& midiMessages);
 		void postProcess(TimeConverter& timeConverter, juce::MidiBuffer& midiMessages);
+
 		//==============================================================================
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JuceAudioProcessor)
 

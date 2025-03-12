@@ -205,6 +205,10 @@ number samplerate() {
     return this->sr;
 }
 
+Index vectorsize() {
+    return this->vs;
+}
+
 number mstosamps(MillisecondTime ms) {
     return ms * this->sr * 0.001;
 }
@@ -267,14 +271,20 @@ void process(
         n
     );
 
-    this->ip_01_perform(this->signals[1], n);
-
     this->adsr_01_perform(
         this->adsr_01_attack,
         this->adsr_01_decay,
         this->adsr_01_sustain,
         this->adsr_01_release,
+        this->zeroBuffer,
         this->signals[1],
+        n
+    );
+
+    this->rampsmooth_tilde_01_perform(
+        this->signals[1],
+        this->rampsmooth_tilde_01_up,
+        this->rampsmooth_tilde_01_down,
         this->signals[2],
         n
     );
@@ -297,7 +307,6 @@ void prepareToProcess(number sampleRate, Index maxBlockSize, bool force) {
 
         this->adsr_01_triggerBuf = resizeSignal(this->adsr_01_triggerBuf, this->maxvs, maxBlockSize);
         this->adsr_01_triggerValueBuf = resizeSignal(this->adsr_01_triggerValueBuf, this->maxvs, maxBlockSize);
-        this->ip_01_sigbuf = resizeSignal(this->ip_01_sigbuf, this->maxvs, maxBlockSize);
         this->globaltransport_tempo = resizeSignal(this->globaltransport_tempo, this->maxvs, maxBlockSize);
         this->globaltransport_state = resizeSignal(this->globaltransport_state, this->maxvs, maxBlockSize);
         this->zeroBuffer = resizeSignal(this->zeroBuffer, this->maxvs, maxBlockSize);
@@ -317,8 +326,8 @@ void prepareToProcess(number sampleRate, Index maxBlockSize, bool force) {
     }
 
     this->gen_01_dspsetup(forceDSPSetup);
-    this->ip_01_dspsetup(forceDSPSetup);
     this->adsr_01_dspsetup(forceDSPSetup);
+    this->rampsmooth_tilde_01_dspsetup(forceDSPSetup);
     this->globaltransport_dspsetup(forceDSPSetup);
 
     if (sampleRateChanged)
@@ -1433,7 +1442,6 @@ void allocateDataRefs() {
 
 void initializeObjects() {
     this->numberobj_01_init();
-    this->ip_01_init();
 }
 
 void sendOutlet(OutletIndex index, ParameterValue value) {
@@ -1614,15 +1622,20 @@ void notein_01_outchannel_set(number ) {}
 
 void notein_01_releasevelocity_set(number ) {}
 
-void ip_01_value_set(number v) {
-    this->ip_01_value = v;
-    this->ip_01_fillSigBuf();
-    this->ip_01_lastValue = v;
+void adsr_01_trigger_number_set(number v) {
+    this->adsr_01_trigger_number = v;
+
+    if (v != 0)
+        this->adsr_01_triggerBuf[(Index)this->sampleOffsetIntoNextAudioBuffer] = 1;
+
+    for (number i = this->sampleOffsetIntoNextAudioBuffer; i < this->vectorsize(); i++) {
+        this->adsr_01_triggerValueBuf[(Index)i] = v;
+    }
 }
 
 void expr_01_out1_set(number v) {
     this->expr_01_out1 = v;
-    this->ip_01_value_set(this->expr_01_out1);
+    this->adsr_01_trigger_number_set(this->expr_01_out1);
 }
 
 void expr_01_in1_set(number in1) {
@@ -1745,18 +1758,6 @@ void gen_01_perform(
     }
 }
 
-void ip_01_perform(SampleValue * out, Index n) {
-    auto __ip_01_lastValue = this->ip_01_lastValue;
-    auto __ip_01_lastIndex = this->ip_01_lastIndex;
-
-    for (Index i = 0; i < n; i++) {
-        out[(Index)i] = ((SampleIndex)(i) >= __ip_01_lastIndex ? __ip_01_lastValue : this->ip_01_sigbuf[(Index)i]);
-    }
-
-    __ip_01_lastIndex = 0;
-    this->ip_01_lastIndex = __ip_01_lastIndex;
-}
-
 void adsr_01_perform(
     number attack,
     number decay,
@@ -1766,6 +1767,7 @@ void adsr_01_perform(
     SampleValue * out,
     Index n
 ) {
+    RNBO_UNUSED(trigger_signal);
     auto __adsr_01_trigger_number = this->adsr_01_trigger_number;
     auto __adsr_01_time = this->adsr_01_time;
     auto __adsr_01_amplitude = this->adsr_01_amplitude;
@@ -1781,7 +1783,7 @@ void adsr_01_perform(
         number clampedattack = (attack > __adsr_01_mspersamp ? attack : __adsr_01_mspersamp);
         number clampeddecay = (decay > __adsr_01_mspersamp ? decay : __adsr_01_mspersamp);
         number clampedrelease = (release > __adsr_01_mspersamp ? release : __adsr_01_mspersamp);
-        number currentTriggerVal = trigger_signal[(Index)i];
+        number currentTriggerVal = this->adsr_01_triggerValueBuf[(Index)i];
 
         if ((__adsr_01_lastTriggerVal == 0.0 && currentTriggerVal != 0.0) || this->adsr_01_triggerBuf[(Index)i] == 1) {
             if ((bool)(__adsr_01_legato)) {
@@ -1861,6 +1863,50 @@ void adsr_01_perform(
     this->adsr_01_outval = __adsr_01_outval;
     this->adsr_01_amplitude = __adsr_01_amplitude;
     this->adsr_01_time = __adsr_01_time;
+}
+
+void rampsmooth_tilde_01_perform(const Sample * x, number up, number down, SampleValue * out1, Index n) {
+    RNBO_UNUSED(down);
+    RNBO_UNUSED(up);
+    auto __rampsmooth_tilde_01_increment = this->rampsmooth_tilde_01_increment;
+    auto __rampsmooth_tilde_01_index = this->rampsmooth_tilde_01_index;
+    auto __rampsmooth_tilde_01_prev = this->rampsmooth_tilde_01_prev;
+    Index i;
+
+    for (i = 0; i < n; i++) {
+        if (this->rampsmooth_tilde_01_d_next(x[(Index)i]) != 0.) {
+            if (x[(Index)i] > __rampsmooth_tilde_01_prev) {
+                number _up = 100;
+
+                if (_up < 1)
+                    _up = 1;
+
+                __rampsmooth_tilde_01_index = _up;
+                __rampsmooth_tilde_01_increment = (x[(Index)i] - __rampsmooth_tilde_01_prev) / _up;
+            } else if (x[(Index)i] < __rampsmooth_tilde_01_prev) {
+                number _down = 100;
+
+                if (_down < 1)
+                    _down = 1;
+
+                __rampsmooth_tilde_01_index = _down;
+                __rampsmooth_tilde_01_increment = (x[(Index)i] - __rampsmooth_tilde_01_prev) / _down;
+            }
+        }
+
+        if (__rampsmooth_tilde_01_index > 0) {
+            __rampsmooth_tilde_01_prev += __rampsmooth_tilde_01_increment;
+            __rampsmooth_tilde_01_index -= 1;
+        } else {
+            __rampsmooth_tilde_01_prev = x[(Index)i];
+        }
+
+        out1[(Index)i] = __rampsmooth_tilde_01_prev;
+    }
+
+    this->rampsmooth_tilde_01_prev = __rampsmooth_tilde_01_prev;
+    this->rampsmooth_tilde_01_index = __rampsmooth_tilde_01_index;
+    this->rampsmooth_tilde_01_increment = __rampsmooth_tilde_01_increment;
 }
 
 void dspexpr_02_perform(const Sample * in1, const Sample * in2, SampleValue * out1, Index n) {
@@ -1997,44 +2043,34 @@ void gen_01_dspsetup(bool force) {
     this->gen_01_phasor_1_dspsetup();
 }
 
+number rampsmooth_tilde_01_d_next(number x) {
+    number temp = (number)(x - this->rampsmooth_tilde_01_d_prev);
+    this->rampsmooth_tilde_01_d_prev = x;
+    return temp;
+}
+
+void rampsmooth_tilde_01_d_dspsetup() {
+    this->rampsmooth_tilde_01_d_reset();
+}
+
+void rampsmooth_tilde_01_d_reset() {
+    this->rampsmooth_tilde_01_d_prev = 0;
+}
+
+void rampsmooth_tilde_01_dspsetup(bool force) {
+    if ((bool)(this->rampsmooth_tilde_01_setupDone) && (bool)(!(bool)(force)))
+        return;
+
+    this->rampsmooth_tilde_01_setupDone = true;
+    this->rampsmooth_tilde_01_d_dspsetup();
+}
+
 void adsr_01_dspsetup(bool force) {
     if ((bool)(this->adsr_01_setupDone) && (bool)(!(bool)(force)))
         return;
 
     this->adsr_01_mspersamp = (number)1000 / this->sr;
     this->adsr_01_setupDone = true;
-}
-
-void ip_01_init() {
-    this->ip_01_lastValue = this->ip_01_value;
-}
-
-void ip_01_fillSigBuf() {
-    if ((bool)(this->ip_01_sigbuf)) {
-        SampleIndex k = (SampleIndex)(this->sampleOffsetIntoNextAudioBuffer);
-
-        if (k >= (SampleIndex)(this->vs))
-            k = (SampleIndex)(this->vs) - 1;
-
-        for (SampleIndex i = (SampleIndex)(this->ip_01_lastIndex); i < k; i++) {
-            if (this->ip_01_resetCount > 0) {
-                this->ip_01_sigbuf[(Index)i] = 1;
-                this->ip_01_resetCount--;
-            } else {
-                this->ip_01_sigbuf[(Index)i] = this->ip_01_lastValue;
-            }
-        }
-
-        this->ip_01_lastIndex = k;
-    }
-}
-
-void ip_01_dspsetup(bool force) {
-    if ((bool)(this->ip_01_setupDone) && (bool)(!(bool)(force)))
-        return;
-
-    this->ip_01_lastIndex = 0;
-    this->ip_01_setupDone = true;
 }
 
 void param_01_getPresetValue(PatcherStateInterface& preset) {
@@ -2386,14 +2422,15 @@ void assign_defaults()
     gen_01_cutoffOvertone = 0;
     gen_01_filterOnOff = 0;
     gen_01_terms = 0;
+    rampsmooth_tilde_01_x = 0;
+    rampsmooth_tilde_01_up = 100;
+    rampsmooth_tilde_01_down = 100;
     adsr_01_trigger_number = 0;
     adsr_01_attack = 0;
     adsr_01_decay = 0;
     adsr_01_sustain = 0;
     adsr_01_release = 0;
     adsr_01_legato = 0;
-    ip_01_value = 0;
-    ip_01_impulse = 0;
     expr_01_in1 = 0;
     expr_01_in2 = 127;
     expr_01_out1 = 0;
@@ -2437,6 +2474,11 @@ void assign_defaults()
     gen_01_mtof_20_lastOutValue = 0;
     gen_01_mtof_20_lastTuning = 0;
     gen_01_setupDone = false;
+    rampsmooth_tilde_01_prev = 0;
+    rampsmooth_tilde_01_index = 0;
+    rampsmooth_tilde_01_increment = 0;
+    rampsmooth_tilde_01_d_prev = 0;
+    rampsmooth_tilde_01_setupDone = false;
     adsr_01_phase = 3;
     adsr_01_mspersamp = 0;
     adsr_01_time = 0;
@@ -2447,11 +2489,6 @@ void assign_defaults()
     adsr_01_triggerBuf = nullptr;
     adsr_01_triggerValueBuf = nullptr;
     adsr_01_setupDone = false;
-    ip_01_lastIndex = 0;
-    ip_01_lastValue = 0;
-    ip_01_resetCount = 0;
-    ip_01_sigbuf = nullptr;
-    ip_01_setupDone = false;
     param_01_lastValue = 0;
     param_02_lastValue = 0;
     param_03_lastValue = 0;
@@ -2492,14 +2529,15 @@ void assign_defaults()
     number gen_01_cutoffOvertone;
     number gen_01_filterOnOff;
     number gen_01_terms;
+    number rampsmooth_tilde_01_x;
+    number rampsmooth_tilde_01_up;
+    number rampsmooth_tilde_01_down;
     number adsr_01_trigger_number;
     number adsr_01_attack;
     number adsr_01_decay;
     number adsr_01_sustain;
     number adsr_01_release;
     number adsr_01_legato;
-    number ip_01_value;
-    number ip_01_impulse;
     number expr_01_in1;
     number expr_01_in2;
     number expr_01_out1;
@@ -2543,6 +2581,11 @@ void assign_defaults()
     number gen_01_mtof_20_lastTuning;
     Float64BufferRef gen_01_mtof_20_buffer;
     bool gen_01_setupDone;
+    number rampsmooth_tilde_01_prev;
+    number rampsmooth_tilde_01_index;
+    number rampsmooth_tilde_01_increment;
+    number rampsmooth_tilde_01_d_prev;
+    bool rampsmooth_tilde_01_setupDone;
     Int adsr_01_phase;
     number adsr_01_mspersamp;
     number adsr_01_time;
@@ -2553,11 +2596,6 @@ void assign_defaults()
     signal adsr_01_triggerBuf;
     signal adsr_01_triggerValueBuf;
     bool adsr_01_setupDone;
-    SampleIndex ip_01_lastIndex;
-    number ip_01_lastValue;
-    SampleIndex ip_01_resetCount;
-    signal ip_01_sigbuf;
-    bool ip_01_setupDone;
     number param_01_lastValue;
     number param_02_lastValue;
     number param_03_lastValue;
