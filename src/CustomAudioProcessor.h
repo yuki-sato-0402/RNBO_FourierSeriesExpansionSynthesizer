@@ -27,16 +27,7 @@ private:
  //AudioProcessorValueTreeStateクラスとパラメータ値を格納するポインタを準備します。
     std::unique_ptr<juce::AudioProcessorValueTreeState> parameters;  // ✅ ポインタにする
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomAudioProcessor)
-    std::atomic<float>* termsParameter  = nullptr;
-    std::atomic<float>* filterOnOffParameter  = nullptr;
-    std::atomic<float>* cutoffOvertoneParameter  = nullptr;
-    std::atomic<float>* attenuationParameter  = nullptr;
-    std::atomic<float>* ocillatorParameter  = nullptr;
-    std::atomic<float>* attackParameter  = nullptr;
-    std::atomic<float>* decayParameter  = nullptr;
-    std::atomic<float>* sustainParameter  = nullptr;
-    std::atomic<float>* releaseParameter  = nullptr;
-    std::atomic<float>* ampParameter  = nullptr;
+    std::atomic<float>* Parameter1  = nullptr;
 
     double _lastBPM = -1.0;
     int _lastTimeSigNumerator = 0;
@@ -46,7 +37,7 @@ private:
     
     RNBO::TimeConverter preProcess(juce::MidiBuffer& midiMessages);
     void postProcess(RNBO::TimeConverter& timeConverter, juce::MidiBuffer& midiMessages);
-    
+    std::unordered_map<juce::String, RNBO::ParameterIndex> apvtsParamIdToRnboParamIndex;
 
     RNBO::CoreObject rnboObject;
     RNBO::MidiEventList						_midiInput;

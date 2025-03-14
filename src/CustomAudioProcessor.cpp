@@ -84,59 +84,15 @@ CustomAudioProcessor::CustomAudioProcessor(
       // parameter range in createParameterLayout().
       jassert (info.min == parameters->getParameterRange (paramID).start);
       jassert (info.max == parameters->getParameterRange (paramID).end);
+
+      apvtsParamIdToRnboParamIndex[paramID] = i;
     
-      if (paramID == "terms") {
+     
           // パラメータのポインタを取得
-        termsParameter = parameters->getRawParameterValue("terms");
-        parameters->addParameterListener("terms", this);
-        rnboObject.setParameterValue(i, *termsParameter);  // RNBO に適用
-      }else if(paramID == "filterOnOff") {
-        // パラメータのポインタを取得
-        filterOnOffParameter = parameters->getRawParameterValue("filterOnOff");
-        parameters->addParameterListener("filterOnOff", this);
-        rnboObject.setParameterValue(i, *filterOnOffParameter);  // RNBO に適用
-      }else if(paramID == "cutoffOvertone") {
-        // パラメータのポインタを取得
-        cutoffOvertoneParameter = parameters->getRawParameterValue("cutoffOvertone");
-        parameters->addParameterListener("cutoffOvertone", this);
-        rnboObject.setParameterValue(i, *cutoffOvertoneParameter);  // RNBO に適用
-      }else if(paramID == "attenuation") {
-        // パラメータのポインタを取得
-        attenuationParameter = parameters->getRawParameterValue("attenuation");
-        parameters->addParameterListener("attenuation", this);
-        rnboObject.setParameterValue(i, *attenuationParameter);  // RNBO に適用
-      }else if(paramID == "ocillator") {
-        // パラメータのポインタを取得
-        ocillatorParameter = parameters->getRawParameterValue("ocillator");
-        parameters->addParameterListener("ocillator", this);
-        rnboObject.setParameterValue(i, *ocillatorParameter);  // RNBO に適用
-      }else if(paramID == "attack") {
-        // パラメータのポインタを取得
-        attackParameter = parameters->getRawParameterValue("attack");
-        parameters->addParameterListener("attack", this);
-        rnboObject.setParameterValue(i, *attackParameter);  // RNBO に適用
-      }else if(paramID == "decay") {
-        // パラメータのポインタを取得
-        decayParameter = parameters->getRawParameterValue("decay");
-        parameters->addParameterListener("decay", this);
-        rnboObject.setParameterValue(i, *decayParameter);  // RNBO に適用
-      }else if(paramID == "sustain") {
-        // パラメータのポインタを取得
-        sustainParameter  = parameters->getRawParameterValue("sustain");
-        parameters->addParameterListener("sustain", this);
-        rnboObject.setParameterValue(i, *sustainParameter );  // RNBO に適用
-      }else if(paramID == "release") {
-        // パラメータのポインタを取得
-        releaseParameter  = parameters->getRawParameterValue("release");
-        parameters->addParameterListener("release", this);
-        rnboObject.setParameterValue(i, *releaseParameter );  // RNBO に適用
-      }else{
-        ampParameter = parameters->getRawParameterValue("amp");
-        parameters->addParameterListener("amp", this);
-        rnboObject.setParameterValue(i, *ampParameter);  // RNBO に適用
-      }
-
-
+      Parameter1 = parameters->getRawParameterValue(paramID);
+      parameters->addParameterListener(paramID, this);
+      rnboObject.setParameterValue(i, *Parameter1);  // RNBO に適用
+      
     } 
   }
   
@@ -168,8 +124,6 @@ void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     //preProcess(): JUCE の MidiBuffer を RNBO 用のフォーマットに変換し、タイミング情報（BPM、拍子、PPQ 位置、再生状態など）を RNBO に送信
     //postProcess(): RNBO から出力された MIDI データを JUCE の MidiBuffer に戻す
 	  // MIDI入力とタイミング情報の処理
-        
-    //RNBO::TimeConverter timeConverter = preProcess(midiMessages);
     auto tc = preProcess(midiMessages);
     auto bufferSize = buffer.getNumSamples();
     rnboObject.prepareToProcess (getSampleRate(),static_cast<size_t> (bufferSize));
@@ -191,37 +145,7 @@ void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 void CustomAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
   DBG("parameterChanged: " << parameterID << " = " << newValue);
-    if (parameterID == "terms"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("terms");
-      rnboObject.setParameterValue(index, newValue);
-    }else if(parameterID == "filterOnOff"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("filterOnOff");
-      rnboObject.setParameterValue(index, newValue);
-    }else if(parameterID == "cutoffOvertone"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("cutoffOvertone");
-      rnboObject.setParameterValue(index, newValue);
-    }else if(parameterID == "attenuation"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("attenuation");
-      rnboObject.setParameterValue(index, newValue);
-    }else if(parameterID == "ocillator"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("ocillator");
-      rnboObject.setParameterValue(index, newValue);
-    }else if(parameterID == "attack"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("attack");
-      rnboObject.setParameterValue(index, newValue);
-    }else if(parameterID == "decay"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("decay");
-      rnboObject.setParameterValue(index, newValue);
-    }else if(parameterID == "sustain"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("sustain");
-      rnboObject.setParameterValue(index, newValue);
-    }else if(parameterID == "release"){
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("release");
-      rnboObject.setParameterValue(index, newValue);
-    }else{
-      RNBO::ParameterIndex index = rnboObject.getParameterIndexForID("amp");
-      rnboObject.setParameterValue(index, newValue);
-    }
+  rnboObject.setParameterValue (apvtsParamIdToRnboParamIndex[parameterID], newValue);
 }
 
 
@@ -261,7 +185,7 @@ void CustomAudioProcessor::setStateInformation (const void* data, int sizeInByte
 }
 
 RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessages) {
-	RNBO::MillisecondTime time = _rnboObject.getCurrentTime();
+	RNBO::MillisecondTime time = rnboObject.getCurrentTime();
 
 	//transport
 	{
@@ -273,7 +197,7 @@ RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessa
 				if (bpm && *bpm != _lastBPM) {
 					_lastBPM = *bpm;
 					RNBO::TempoEvent event(time, _lastBPM);
-					_rnboObject.scheduleEvent(event);
+					rnboObject.scheduleEvent(event);
 				}
 
 				auto timesig = info->getTimeSignature();
@@ -281,29 +205,29 @@ RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessa
 					_lastTimeSigNumerator = timesig->numerator;
 					_lastTimeSigDenominator = timesig->denominator;
 					RNBO::TimeSignatureEvent event(time, _lastTimeSigNumerator, _lastTimeSigDenominator);
-					_rnboObject.scheduleEvent(event);
+					rnboObject.scheduleEvent(event);
 				}
 
 				auto ppqPos = info->getPpqPosition();
 				if (ppqPos && *ppqPos != _lastPpqPosition) {
 					_lastPpqPosition = *ppqPos;
 					RNBO::BeatTimeEvent event(time, _lastPpqPosition);
-					_rnboObject.scheduleEvent(event);
+					rnboObject.scheduleEvent(event);
 				}
 
 				auto playing = info->getIsPlaying();
 				if (playing != _lastIsPlaying) {
 					_lastIsPlaying = playing;
 					RNBO::TransportEvent event(time, _lastIsPlaying ? RNBO::TransportState::RUNNING : RNBO::TransportState::STOPPED);
-					_rnboObject.scheduleEvent(event);
+					rnboObject.scheduleEvent(event);
 				}
 			}
 		}
 	}
 
-    RNBO::TimeConverter timeConverter(_rnboObject.getSampleRate(), time);
+    RNBO::TimeConverter timeConverter(rnboObject.getSampleRate(), time);
 
-	// fill midi input
+	// fill midi input 
 	_midiInput.clear();  // make sure midi input starts clear
 	for (auto meta: midiMessages)
 	{
@@ -330,7 +254,7 @@ AudioProcessorEditor* CustomAudioProcessor::createEditor()
 
     //AudioProcessorEditor側でAudioProcessorValueTreeStateにアクセスするための方法が必要です。
     //一般的なアプローチは、AudioProcessorからAudioProcessorValueTreeStateへの参照またはポインタを取得できるようにすること
-   return new CustomAudioEditor (this, this->_rnboObject, *parameters);
+   return new CustomAudioEditor (this, this->rnboObject, *parameters);
     //RNBOのデフォルトエディター, 標準的なパラメータ表示, 追加のカスタマイズが限定的
   // return RNBO::JuceAudioProcessor::createEditor();
 }

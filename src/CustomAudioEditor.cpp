@@ -159,7 +159,7 @@ void CustomAudioEditor::paint (Graphics& g)
 void CustomAudioEditor::resized()
 {// Define some constants for consistent sizing and spacing
     auto area = getLocalBounds();
-    const int componentWidth1 = (area.getWidth() - 80)/4;
+
     const int componentWidth2 = (area.getWidth() - 80)/4;
     const int componentWidth3 = (area.getWidth() - 100)/4;
     const int componentHeight = area.getHeight() / 3;
