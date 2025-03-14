@@ -5,12 +5,13 @@
 #include "RNBO_BinaryData.h"
 #include <json/json.hpp>
 
-class CustomAudioProcessor : public RNBO::JuceAudioProcessor ,public juce::AudioProcessorValueTreeState::Listener{
+class CustomAudioProcessor :public juce::AudioProcessor ,public juce::AudioProcessorValueTreeState::Listener{
 public:
-    static CustomAudioProcessor* CreateDefault();
-    CustomAudioProcessor(const nlohmann::json& patcher_desc, const nlohmann::json& presets, const RNBO::BinaryData& data);
+    //static CustomAudioProcessor* CreateDefault();
+    CustomAudioProcessor();
     ~CustomAudioProcessor()override;
     juce::AudioProcessorEditor* createEditor() override;
+    bool hasEditor() const override;
     // APVTS の参照を取得する関数を追加
     juce::AudioProcessorValueTreeState& getValueTreeState() 
     { 
@@ -22,6 +23,22 @@ public:
     void parameterChanged(const juce::String& parameterID, float newValue) override;
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+
+    // 必須の純粋仮想関数
+    const juce::String getName() const override;
+    bool acceptsMidi() const override;
+    bool producesMidi() const override;
+    bool isMidiEffect() const override;
+    double getTailLengthSeconds() const override;
+    
+    int getNumPrograms() override;
+    int getCurrentProgram() override;
+    void setCurrentProgram(int index) override;
+    const juce::String getProgramName(int index) override;
+    void changeProgramName(int index, const juce::String& newName) override;
+
+    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void releaseResources() override;
     
 private:
  //AudioProcessorValueTreeStateクラスとパラメータ値を格納するポインタを準備します。

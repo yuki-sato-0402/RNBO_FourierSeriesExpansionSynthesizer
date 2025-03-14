@@ -2,35 +2,31 @@
 #include "CustomAudioEditor.h"
 #include <json/json.hpp>
 
-#ifdef RNBO_INCLUDE_DESCRIPTION_FILE
-#include <rnbo_description.h>
-#endif
+//#ifdef RNBO_INCLUDE_DESCRIPTION_FILE
+//#include <rnbo_description.h>
+//#endif
 
 //create an instance of our custom plugin, optionally set description, presets and binary data (datarefs)
-CustomAudioProcessor* CustomAudioProcessor::CreateDefault() {
-	nlohmann::json patcher_desc, presets;
+//CustomAudioProcessor* CustomAudioProcessor::CreateDefault() {
+//	nlohmann::json patcher_desc, presets;
 
-#ifdef RNBO_BINARY_DATA_STORAGE_NAME
-	extern RNBO::BinaryDataImpl::Storage RNBO_BINARY_DATA_STORAGE_NAME;
-	RNBO::BinaryDataImpl::Storage dataStorage = RNBO_BINARY_DATA_STORAGE_NAME;
-#else
-	RNBO::BinaryDataImpl::Storage dataStorage;
-#endif
-	RNBO::BinaryDataImpl data(dataStorage);
+//#ifdef RNBO_BINARY_DATA_STORAGE_NAME
+//	extern RNBO::BinaryDataImpl::Storage RNBO_BINARY_DATA_STORAGE_NAME;
+//	RNBO::BinaryDataImpl::Storage dataStorage = RNBO_BINARY_DATA_STORAGE_NAME;
+//#else
+//	RNBO::BinaryDataImpl::Storage dataStorage;
+//#endif
+//	RNBO::BinaryDataImpl data(dataStorage);
 
-#ifdef RNBO_INCLUDE_DESCRIPTION_FILE
-	patcher_desc = RNBO::patcher_description;
-	presets = RNBO::patcher_presets;
-#endif
-  return new CustomAudioProcessor(patcher_desc, presets, data);
-}
+//#ifdef RNBO_INCLUDE_DESCRIPTION_FILE
+//	patcher_desc = RNBO::patcher_description;
+//	presets = RNBO::patcher_presets;
+//#endif
+//  return new CustomAudioProcessor(patcher_desc, presets, data);
+//}
 
-CustomAudioProcessor::CustomAudioProcessor(
-    const nlohmann::json& patcher_desc,
-    const nlohmann::json& presets,
-    const RNBO::BinaryData& data
-    ) 
-  : RNBO::JuceAudioProcessor(patcher_desc, presets, data) 
+CustomAudioProcessor::CustomAudioProcessor() 
+  : rnboObject()  
 {
   
   parameters = std::make_unique<juce::AudioProcessorValueTreeState>(
@@ -97,6 +93,82 @@ CustomAudioProcessor::CustomAudioProcessor(
   }
   
 }
+
+const juce::String CustomAudioProcessor::getName() const
+{
+    return JucePlugin_Name;
+}
+
+bool CustomAudioProcessor::acceptsMidi() const
+{
+   #if JucePlugin_WantsMidiInput
+    return true;
+   #else
+    return false;
+   #endif
+}
+
+bool CustomAudioProcessor::producesMidi() const
+{
+   #if JucePlugin_ProducesMidiOutput
+    return true;
+   #else
+    return false;
+   #endif
+}
+ 
+bool CustomAudioProcessor::isMidiEffect() const
+{
+   #if JucePlugin_IsMidiEffect
+    return true;
+   #else
+    return false;
+   #endif
+}
+
+double CustomAudioProcessor::getTailLengthSeconds() const
+{
+    return 0.0;
+}
+ 
+int CustomAudioProcessor::getNumPrograms()
+{
+    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
+                // so this should be at least 1, even if you're not really implementing programs.
+}
+ 
+int CustomAudioProcessor::getCurrentProgram()
+{
+    return 0;
+}
+ 
+void CustomAudioProcessor::setCurrentProgram (int index)
+{
+    juce::ignoreUnused (index);
+}
+ 
+const juce::String CustomAudioProcessor::getProgramName (int index)
+{
+    juce::ignoreUnused (index);
+    return {};
+}
+ 
+void CustomAudioProcessor::changeProgramName (int index, const juce::String& newName)
+{
+    juce::ignoreUnused (index, newName);
+}
+
+void CustomAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+{
+    rnboObject.prepareToProcess (sampleRate, static_cast<size_t> (samplesPerBlock));
+}
+ 
+void CustomAudioProcessor::releaseResources()
+{
+    // When playback stops, you can use this as an opportunity to free up any
+    // spare memory, etc.
+}
+ 
 
 void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
@@ -254,9 +326,14 @@ AudioProcessorEditor* CustomAudioProcessor::createEditor()
 
     //AudioProcessorEditor側でAudioProcessorValueTreeStateにアクセスするための方法が必要です。
     //一般的なアプローチは、AudioProcessorからAudioProcessorValueTreeStateへの参照またはポインタを取得できるようにすること
-   return new CustomAudioEditor (this, this->rnboObject, *parameters);
+   return new CustomAudioEditor (*this,  *parameters);
     //RNBOのデフォルトエディター, 標準的なパラメータ表示, 追加のカスタマイズが限定的
   // return RNBO::JuceAudioProcessor::createEditor();
+}
+
+bool CustomAudioProcessor::hasEditor() const
+{
+    return true; // (change this to false if you choose to not supply an editor)
 }
 
 

@@ -5,7 +5,7 @@
 class CustomAudioEditor : public AudioProcessorEditor, private AudioProcessorListener
 {
 public:
-    CustomAudioEditor(RNBO::JuceAudioProcessor* const p, RNBO::CoreObject& rnboObject,juce::AudioProcessorValueTreeState& vts);
+    CustomAudioEditor(CustomAudioProcessor& p,juce::AudioProcessorValueTreeState& vts);
     ~CustomAudioEditor() override;
     void paint (Graphics& g) override;
     void resized() override; 
@@ -62,9 +62,10 @@ private:
     void audioProcessorChanged (AudioProcessor*, const ChangeDetails&) override { }
     void audioProcessorParameterChanged(AudioProcessor*, int parameterIndex, float) override;
 
-protected:
-    AudioProcessor                              *_audioProcessor;
-    RNBO::CoreObject&                           _rnboObject;  
+    CustomAudioProcessor& audioProcessor;
+
+    //AudioProcessor                              *_audioProcessor;
+    //RNBO::CoreObject&                           _rnboObject;  
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomAudioEditor)
 };

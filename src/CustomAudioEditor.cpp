@@ -1,10 +1,10 @@
+#include "CustomAudioProcessor.h"
 #include "CustomAudioEditor.h"
 
-CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::CoreObject& rnboObject, juce::AudioProcessorValueTreeState& vts)
+CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
     : AudioProcessorEditor (p)
 , valueTreeState(vts)
-, _audioProcessor(p) // 参照メンバーを初期化（必須）
-, _rnboObject(rnboObject)
+, audioProcessor(p) // 参照メンバーを初期化（必須）
 {
     // ルック＆フィールの設定
     midnightLookAndFeel.setColourScheme(juce::LookAndFeel_V4::getMidnightColourScheme());
@@ -134,13 +134,13 @@ CustomAudioEditor::CustomAudioEditor (RNBO::JuceAudioProcessor* const p, RNBO::C
 
 
     
-    _audioProcessor->addListener(this);
+    audioProcessor.addListener(this);
     setSize(900, 400);
 }
 
 CustomAudioEditor::~CustomAudioEditor()
 {
-    _audioProcessor->removeListener(this);
+    audioProcessor.removeListener(this);
     
 }
 
