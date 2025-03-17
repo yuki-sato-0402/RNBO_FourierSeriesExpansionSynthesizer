@@ -2,9 +2,8 @@
 #include "CustomAudioEditor.h"
 
 CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
-    : AudioProcessorEditor (p)
-, valueTreeState(vts)
-, audioProcessor(p) // 参照メンバーを初期化（必須）
+    : AudioProcessorEditor (&p)
+, valueTreeState(vts)// 参照メンバーを初期化（必須）
 {
     // ルック＆フィールの設定
     midnightLookAndFeel.setColourScheme(juce::LookAndFeel_V4::getMidnightColourScheme());
@@ -132,17 +131,9 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label8.setText ("amp", juce::dontSendNotification);
     label8.setJustificationType(juce::Justification::centred);
 
-
-    
-    audioProcessor.addListener(this);
     setSize(900, 400);
 }
 
-CustomAudioEditor::~CustomAudioEditor()
-{
-    audioProcessor.removeListener(this);
-    
-}
 
 void CustomAudioEditor::paint (Graphics& g)
 {
@@ -195,7 +186,7 @@ void CustomAudioEditor::resized()
 }
 
 
-void CustomAudioEditor::audioProcessorParameterChanged (AudioProcessor*, int parameterIndex, float value)
-{
+//void CustomAudioEditor::audioProcessorParameterChanged (AudioProcessor*, int parameterIndex, float value)
+//{
    
-}
+//}

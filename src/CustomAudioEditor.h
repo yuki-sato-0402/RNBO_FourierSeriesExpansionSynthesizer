@@ -2,11 +2,11 @@
 #include "RNBO.h"
 #include "RNBO_JuceAudioProcessor.h"
 
-class CustomAudioEditor : public AudioProcessorEditor, private AudioProcessorListener
+class CustomAudioEditor : public juce::AudioProcessorEditor
 {
 public:
     CustomAudioEditor(CustomAudioProcessor& p,juce::AudioProcessorValueTreeState& vts);
-    ~CustomAudioEditor() override;
+    ~CustomAudioEditor() override = default;
     void paint (Graphics& g) override;
     void resized() override; 
     typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
@@ -59,10 +59,9 @@ private:
 
     //JUCEの AudioProcessorListener インターフェースのメソッドをオーバーライドしたもので、
     //オーディオプロセッサーに関する変更を通知するために使用されるもの
-    void audioProcessorChanged (AudioProcessor*, const ChangeDetails&) override { }
-    void audioProcessorParameterChanged(AudioProcessor*, int parameterIndex, float) override;
+    //void audioProcessorChanged (AudioProcessor*, const ChangeDetails&) override { }
+    //void audioProcessorParameterChanged(AudioProcessor*, int parameterIndex, float) override;
 
-    CustomAudioProcessor& audioProcessor;
 
     //AudioProcessor                              *_audioProcessor;
     //RNBO::CoreObject&                           _rnboObject;  
