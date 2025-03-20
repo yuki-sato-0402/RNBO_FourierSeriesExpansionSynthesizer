@@ -2,29 +2,30 @@
 #include "CustomAudioEditor.h"
 
 CustomAudioProcessor::CustomAudioProcessor() 
-: AudioProcessor (BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+: AudioProcessor (BusesProperties()
+    .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
 //コンストラクタの イニシャライザリスト で初期化
 parameters(*this, nullptr, juce::Identifier("APVTSTutorial"),
     juce::AudioProcessorValueTreeState::ParameterLayout {
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "terms",  1}, "terms",
-        juce::NormalisableRange<float>(1, 40, 1), 1),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "filterOnOff",  1}, "filterOnOff",
-        juce::NormalisableRange<float>(0, 1, 1), 0),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "cutoffOvertone",  1}, "cutoffOvertone",
-        juce::NormalisableRange<float>(2, 40, 1), 2),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "attenuation",  1}, "attenuation",
-        juce::NormalisableRange<float>(1.f, 100.f, 0.01f),1.f),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "ocillator",  1}, "ocillator",
-        juce::NormalisableRange<float>(1, 3, 1), 1),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "attack",  1}, "attack",
-        juce::NormalisableRange<float>(1.f, 1000.f, 0.01f), 10.f),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "decay",  1}, "decay",
-        juce::NormalisableRange<float>(1.f, 1000.f, 0.01f), 100.f),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "sustain",  1}, "sustain",
-        juce::NormalisableRange<float>(0.f, 100.f, 0.01f), 80.f),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "release",  1}, "release",
-        juce::NormalisableRange<float>(0.f, 5000.f, 0.01f),1000.f),
-        std::make_unique<juce::AudioParameterFloat>(ParameterID { "amp",  1}, "amp",
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "terms",  1}, "terms",
+        juce::NormalisableRange<float>(1, 40, 1, 1), 1),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "filterOnOff",  1}, "filterOnOff",
+        juce::NormalisableRange<float>(0, 1, 1, 1), 0),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "cutoffOvertone",  1}, "cutoffOvertone",
+        juce::NormalisableRange<float>(2, 40, 1, 1), 2),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "attenuation",  1}, "attenuation",
+        juce::NormalisableRange<float>(1.f, 100.f, 0.01f, 1.f),1.f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "ocillator",  1}, "ocillator",
+        juce::NormalisableRange<float>(1, 3, 1, 1), 1),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "attack",  1}, "attack",
+        juce::NormalisableRange<float>(1.f, 1000.f, 0.01f, 1.f), 10.f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "decay",  1}, "decay",
+        juce::NormalisableRange<float>(1.f, 1000.f, 0.01f, 1.f), 100.f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "sustain",  1}, "sustain",
+        juce::NormalisableRange<float>(0.f, 100.f, 0.01f, 1.f), 80.f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "release",  1}, "release",
+        juce::NormalisableRange<float>(0.f, 5000.f, 0.01f, 1.f),1000.f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "amp",  1}, "amp",
         juce::NormalisableRange<float>(0.f, 1.f, 0.01f),0.5f)
     }
   )
@@ -52,89 +53,21 @@ parameters(*this, nullptr, juce::Identifier("APVTSTutorial"),
 
       apvtsParamIdToRnboParamIndex[paramID] = i;
     
-     
-          // パラメータのポインタを取得
+
       parameters.addParameterListener(paramID, this);
       rnboObject.setParameterValue(i, parameters.getRawParameterValue(paramID)->load());  // RNBO に適用
       
     } 
   }
-  
-}
-
-const juce::String CustomAudioProcessor::getName() const
-{
-    return "Rnbo_FourierSeriesExpansionSynthesizer";;
-}
-
-bool CustomAudioProcessor::acceptsMidi() const
-{
-   #if JucePlugin_WantsMidiInput
-    return true;
-   #else
-    return false;
-   #endif
-}
-
-bool CustomAudioProcessor::producesMidi() const
-{
-   #if JucePlugin_ProducesMidiOutput
-    return true;
-   #else
-    return false;
-   #endif
-}
- 
-bool CustomAudioProcessor::isMidiEffect() const
-{
-   #if JucePlugin_IsMidiEffect
-    return true;
-   #else
-    return false;
-   #endif
-}
-
-double CustomAudioProcessor::getTailLengthSeconds() const
-{
-    return 0.0;
-}
- 
-int CustomAudioProcessor::getNumPrograms()
-{
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
-}
- 
-int CustomAudioProcessor::getCurrentProgram()
-{
-    return 0;
-}
- 
-void CustomAudioProcessor::setCurrentProgram (int index)
-{
-    juce::ignoreUnused (index);
-}
- 
-const juce::String CustomAudioProcessor::getProgramName (int index)
-{
-    juce::ignoreUnused (index);
-    return {};
-}
- 
-void CustomAudioProcessor::changeProgramName (int index, const juce::String& newName)
-{
-    juce::ignoreUnused (index, newName);
 }
 
 void CustomAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    rnboObject.prepareToProcess (sampleRate, static_cast<size_t> (samplesPerBlock));
+    //rnboObject.prepareToProcess (sampleRate, static_cast<size_t> (samplesPerBlock));
 }
  
 void CustomAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
 }
  
 
@@ -166,26 +99,13 @@ void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 //このコールバック メソッドは、パラメータが変更されたときに AudioProcessorValueTreeStateによって呼び出されます。
 void CustomAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
-  
   rnboObject.setParameterValue (apvtsParamIdToRnboParamIndex[parameterID], newValue);
+    //auto index = static_cast<RNBO::ParameterIndex>(apvtsParamIdToRnboParamIndex[parameterID]);
+    //auto range = parameters.getParameterRange(parameterID);  // パラメータ範囲の取得関数が必要
+    //float normalizedValue = juce::jmap(newValue, range.start, range.end, 0.0f, 1.0f);
+    //rnboObject.setParameterValueNormalized(index, normalizedValue, RNBO::RNBOTimeNow);
 }
 
-
-void CustomAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
-{
-    auto state = parameters.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
-    copyXmlToBinary(*xml, destData);
-}
-
-void CustomAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
-{
-    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName(parameters.state.getType()))
-            parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
-}
 
 RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessages) {
 	RNBO::MillisecondTime time = rnboObject.getCurrentTime();
@@ -252,10 +172,10 @@ void CustomAudioProcessor::postProcess(RNBO::TimeConverter& timeConverter, juce:
 		_midiOutput.clear();
 	}
 }
-AudioProcessorEditor* CustomAudioProcessor::createEditor()
+
+juce::AudioProcessorEditor* CustomAudioProcessor::createEditor()
 {
-    //AudioProcessorEditor側でAudioProcessorValueTreeStateにアクセスするための方法が必要です。
-    //一般的なアプローチは、AudioProcessorからAudioProcessorValueTreeStateへの参照またはポインタを取得できるようにすること
+    //AudioProcessorEditor側でAudioProcessorValueTreeStateにアクセスするための方法が必要。
    return new CustomAudioEditor (*this,  parameters);
     //RNBOのデフォルトエディター, 標準的なパラメータ表示, 追加のカスタマイズが限定的
   // return RNBO::JuceAudioProcessor::createEditor();
@@ -266,5 +186,71 @@ bool CustomAudioProcessor::hasEditor() const
     return true; // (change this to false if you choose to not supply an editor)
 }
 
+
+const juce::String CustomAudioProcessor::getName() const{
+    return "Rnbo_FourierSeriesExpansionSynthesizer";
+}
+
+bool CustomAudioProcessor::acceptsMidi() const
+{
+    return true;
+}
+
+bool CustomAudioProcessor::producesMidi() const 
+{
+    return false;
+}   
+ 
+bool CustomAudioProcessor::isMidiEffect() const
+{
+    return false;
+}
+
+double CustomAudioProcessor::getTailLengthSeconds() const
+{
+    return 0.0;
+}
+ 
+int CustomAudioProcessor::getNumPrograms()
+{
+    return 1;   
+}
+ 
+int CustomAudioProcessor::getCurrentProgram()
+{
+    return 0;
+}
+ 
+void CustomAudioProcessor::setCurrentProgram (int index)
+{
+    juce::ignoreUnused (index);
+}
+ 
+const juce::String CustomAudioProcessor::getProgramName (int index)
+{
+    juce::ignoreUnused (index);
+    return {};
+}
+ 
+void CustomAudioProcessor::changeProgramName (int index, const juce::String& newName)
+{
+    juce::ignoreUnused (index, newName);
+}
+
+
+void CustomAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+{
+    auto state = parameters.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
+}
+
+void CustomAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+{
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(parameters.state.getType()))
+            parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+}
 
 

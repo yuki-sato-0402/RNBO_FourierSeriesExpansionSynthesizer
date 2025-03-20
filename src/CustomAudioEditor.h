@@ -1,6 +1,5 @@
 #include "JuceHeader.h"
 #include "RNBO.h"
-#include "RNBO_JuceAudioProcessor.h"
 
 class CustomAudioEditor : public juce::AudioProcessorEditor
 {
@@ -56,15 +55,5 @@ private:
     std::unique_ptr<ButtonAttachment> button1Attachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> comboBoxAttachment;
 
-
-    //JUCEの AudioProcessorListener インターフェースのメソッドをオーバーライドしたもので、
-    //オーディオプロセッサーに関する変更を通知するために使用されるもの
-    //void audioProcessorChanged (AudioProcessor*, const ChangeDetails&) override { }
-    //void audioProcessorParameterChanged(AudioProcessor*, int parameterIndex, float) override;
-
-
-    //AudioProcessor                              *_audioProcessor;
-    //RNBO::CoreObject&                           _rnboObject;  
-    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomAudioEditor)
 };

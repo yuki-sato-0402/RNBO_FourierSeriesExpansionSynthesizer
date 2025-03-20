@@ -2,24 +2,26 @@
 #include "RNBO.h"
 #include "RNBO_TimeConverter.h"
 #include "RNBO_BinaryData.h"
-#include <json/json.hpp>
 #include <juce_audio_processors/juce_audio_processors.h>
-#include <juce_audio_formats/juce_audio_formats.h>
-
+#include <juce_dsp/juce_dsp.h>
 
 class CustomAudioProcessor :public juce::AudioProcessor ,public juce::AudioProcessorValueTreeState::Listener{
 public:
     //static CustomAudioProcessor* CreateDefault();
     CustomAudioProcessor();
     ~CustomAudioProcessor() override = default;
+    // 必須の純粋仮想関数
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
    
+    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void releaseResources() override;
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     void parameterChanged(const juce::String& parameterID, float newValue) override;
+    
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    // 必須の純粋仮想関数
+  
     const juce::String getName() const override;
     bool acceptsMidi() const override;
     bool producesMidi() const override;
@@ -32,15 +34,10 @@ public:
     const juce::String getProgramName(int index) override;
     void changeProgramName(int index, const juce::String& newName) override;
 
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
-    void releaseResources() override;
     RNBO::CoreObject& getRnboObject() { return rnboObject; }
-    
 private:
- //AudioProcessorValueTreeStateクラスとパラメータ値を格納するポインタを準備します。
     juce::AudioProcessorValueTreeState parameters;  
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomAudioProcessor)
-    float Parameter1;
 
     double _lastBPM = -1.0;
     int _lastTimeSigNumerator = 0;

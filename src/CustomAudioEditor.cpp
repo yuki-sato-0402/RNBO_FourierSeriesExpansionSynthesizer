@@ -151,15 +151,15 @@ void CustomAudioEditor::resized()
 {// Define some constants for consistent sizing and spacing
     auto area = getLocalBounds();
 
-    const int componentWidth2 = (area.getWidth() - 80)/4;
-    const int componentWidth3 = (area.getWidth() - 100)/4;
-    const int componentHeight = area.getHeight() / 3;
-    const int padding = 20;            // Space between components
+    auto componentWidth2 = (area.getWidth() - 80)/4;
+    auto componentWidth3 = (area.getWidth() - 100)/4;
+    auto componentHeight = area.getHeight() / 3;
+    auto padding = 20;            // Space between components
 
     // Top row: dial1 and ToggleButton1
     selectComboBox.setBounds(padding,  padding + 10, componentWidth2 ,  componentHeight / 2);
     dial1Slider.setBounds(selectComboBox.getRight() + padding, padding + 20,  componentWidth2 * 2, componentHeight / 2);
-    dial8Slider.setBounds(dial1Slider.getRight() + padding, padding ,  componentWidth2 , componentHeight / 1.5  );
+    dial8Slider.setBounds(dial1Slider.getRight() + padding, padding ,  componentWidth2 , componentHeight  / 1.5  );
 
     // Second row: ToggleButton2, dial2, dial3
     filterButton.setBounds(padding, dial1Slider.getBottom() + padding + 10, componentWidth2, componentHeight);
@@ -184,9 +184,3 @@ void CustomAudioEditor::resized()
     label7.setBounds(dial7Slider.getX(), dial7Slider.getY()-10, dial7Slider.getWidth(),dial7Slider.getTextBoxHeight() );
     label8.setBounds(dial8Slider.getX(), dial8Slider.getY()-10, dial8Slider.getWidth(),dial8Slider.getTextBoxHeight() );
 }
-
-
-//void CustomAudioEditor::audioProcessorParameterChanged (AudioProcessor*, int parameterIndex, float value)
-//{
-   
-//}
