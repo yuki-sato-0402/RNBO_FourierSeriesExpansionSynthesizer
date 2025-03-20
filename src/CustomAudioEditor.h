@@ -16,7 +16,6 @@ private:
 
     // LookAndFeel クラス
     juce::LookAndFeel_V4 midnightLookAndFeel;
-    
     juce::AudioProcessorValueTreeState& valueTreeState; // ✅ 参照で保持
     juce::Slider dial1Slider;
     juce::Slider dial2Slider;

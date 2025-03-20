@@ -89,8 +89,8 @@ rnbomatic* getTopLevelPatcher() {
 
 void cancelClockEvents()
 {
-    getEngine()->flushClockEvents(this, -62043057, false);
     getEngine()->flushClockEvents(this, -1468824490, false);
+    getEngine()->flushClockEvents(this, -62043057, false);
 }
 
 template <typename T> void listquicksort(T& arr, T& sortindices, Int l, Int h, bool ascending) {
@@ -206,16 +206,16 @@ number samplerate() {
     return this->sr;
 }
 
+Index vectorsize() {
+    return this->vs;
+}
+
 SampleIndex currentsampletime() {
     return this->audioProcessSampleCount + this->sampleOffsetIntoNextAudioBuffer;
 }
 
 number mstosamps(MillisecondTime ms) {
     return ms * this->sr * 0.001;
-}
-
-Index vectorsize() {
-    return this->vs;
 }
 
 number maximum(number x, number y) {
@@ -276,28 +276,27 @@ void process(
         n
     );
 
-    this->linetilde_01_perform(this->signals[1], n);
-
     this->adsr_01_perform(
         this->adsr_01_attack,
         this->adsr_01_decay,
         this->adsr_01_sustain,
         this->adsr_01_release,
         this->zeroBuffer,
-        this->signals[2],
+        this->signals[1],
         n
     );
 
     this->rampsmooth_tilde_01_perform(
-        this->signals[2],
+        this->signals[1],
         this->rampsmooth_tilde_01_up,
         this->rampsmooth_tilde_01_down,
-        this->signals[3],
+        this->signals[2],
         n
     );
 
-    this->dspexpr_02_perform(this->signals[0], this->signals[3], this->signals[2], n);
-    this->dspexpr_01_perform(this->signals[2], this->signals[1], out2, n);
+    this->dspexpr_02_perform(this->signals[0], this->signals[2], this->signals[1], n);
+    this->linetilde_01_perform(this->signals[2], n);
+    this->dspexpr_01_perform(this->signals[1], this->signals[2], out2, n);
     this->signalforwarder_01_perform(out2, out1, n);
     this->stackprotect_perform(n);
     this->globaltransport_advance();
@@ -308,7 +307,7 @@ void prepareToProcess(number sampleRate, Index maxBlockSize, bool force) {
     if (this->maxvs < maxBlockSize || !this->didAllocateSignals) {
         Index i;
 
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < 3; i++) {
             this->signals[i] = resizeSignal(this->signals[i], this->maxvs, maxBlockSize);
         }
 
@@ -1177,14 +1176,14 @@ void processClockEvent(MillisecondTime time, ClockId index, bool hasValue, Param
     this->updateTime(time);
 
     switch (index) {
-    case -62043057:
-        {
-        this->linetilde_01_target_bang();
-        break;
-        }
     case -1468824490:
         {
         this->adsr_01_mute_bang();
+        break;
+        }
+    case -62043057:
+        {
+        this->linetilde_01_target_bang();
         break;
         }
     }
@@ -1409,9 +1408,9 @@ void numberobj_01_format_set(number v) {
     this->numberobj_01_currentFormat = trunc((v > 6 ? 6 : (v < 0 ? 0 : v)));
 }
 
-void linetilde_01_target_bang() {}
-
 void adsr_01_mute_bang() {}
+
+void linetilde_01_target_bang() {}
 
 number msToSamps(MillisecondTime ms, number sampleRate) {
     return ms * sampleRate * 0.001;
@@ -1655,7 +1654,7 @@ void expr_04_in1_set(number in1) {
     this->expr_04_out1_set(fixnan(rnbo_pow(this->expr_04_in1, this->expr_04_in2)));//#map:pow_obj-31:1
 }
 
-static number param_06_value_constrain(number v) { 
+static number param_06_value_constrain(number v) {
     v = (v > 40 ? 40 : (v < 2 ? 2 : v));
     return v;
 }
@@ -1874,57 +1873,6 @@ void gen_01_perform(
     }
 }
 
-void linetilde_01_perform(SampleValue * out, Index n) {
-    auto __linetilde_01_time = this->linetilde_01_time;
-    auto __linetilde_01_keepramp = this->linetilde_01_keepramp;
-    auto __linetilde_01_currentValue = this->linetilde_01_currentValue;
-    Index i = 0;
-
-    if ((bool)(this->linetilde_01_activeRamps->length)) {
-        while ((bool)(this->linetilde_01_activeRamps->length) && i < n) {
-            number destinationValue = this->linetilde_01_activeRamps[0];
-            number inc = this->linetilde_01_activeRamps[1];
-            number rampTimeInSamples = this->linetilde_01_activeRamps[2] - this->audioProcessSampleCount - i;
-            number val = __linetilde_01_currentValue;
-
-            while (rampTimeInSamples > 0 && i < n) {
-                out[(Index)i] = val;
-                val += inc;
-                i++;
-                rampTimeInSamples--;
-            }
-
-            if (rampTimeInSamples <= 0) {
-                val = destinationValue;
-                this->linetilde_01_activeRamps->splice(0, 3);
-
-                if ((bool)(!(bool)(this->linetilde_01_activeRamps->length))) {
-                    this->getEngine()->scheduleClockEventWithValue(
-                        this,
-                        -62043057,
-                        this->sampsToMs((SampleIndex)(this->vs)) + this->_currentTime,
-                        0
-                    );;
-
-                    if ((bool)(!(bool)(__linetilde_01_keepramp))) {
-                        __linetilde_01_time = 0;
-                    }
-                }
-            }
-
-            __linetilde_01_currentValue = val;
-        }
-    }
-
-    while (i < n) {
-        out[(Index)i] = __linetilde_01_currentValue;
-        i++;
-    }
-
-    this->linetilde_01_currentValue = __linetilde_01_currentValue;
-    this->linetilde_01_time = __linetilde_01_time;
-}
-
 void adsr_01_perform(
     number attack,
     number decay,
@@ -2082,6 +2030,57 @@ void dspexpr_02_perform(const Sample * in1, const Sample * in2, SampleValue * ou
     for (i = 0; i < n; i++) {
         out1[(Index)i] = in1[(Index)i] * in2[(Index)i];//#map:_###_obj_###_:1
     }
+}
+
+void linetilde_01_perform(SampleValue * out, Index n) {
+    auto __linetilde_01_time = this->linetilde_01_time;
+    auto __linetilde_01_keepramp = this->linetilde_01_keepramp;
+    auto __linetilde_01_currentValue = this->linetilde_01_currentValue;
+    Index i = 0;
+
+    if ((bool)(this->linetilde_01_activeRamps->length)) {
+        while ((bool)(this->linetilde_01_activeRamps->length) && i < n) {
+            number destinationValue = this->linetilde_01_activeRamps[0];
+            number inc = this->linetilde_01_activeRamps[1];
+            number rampTimeInSamples = this->linetilde_01_activeRamps[2] - this->audioProcessSampleCount - i;
+            number val = __linetilde_01_currentValue;
+
+            while (rampTimeInSamples > 0 && i < n) {
+                out[(Index)i] = val;
+                val += inc;
+                i++;
+                rampTimeInSamples--;
+            }
+
+            if (rampTimeInSamples <= 0) {
+                val = destinationValue;
+                this->linetilde_01_activeRamps->splice(0, 3);
+
+                if ((bool)(!(bool)(this->linetilde_01_activeRamps->length))) {
+                    this->getEngine()->scheduleClockEventWithValue(
+                        this,
+                        -62043057,
+                        this->sampsToMs((SampleIndex)(this->vs)) + this->_currentTime,
+                        0
+                    );;
+
+                    if ((bool)(!(bool)(__linetilde_01_keepramp))) {
+                        __linetilde_01_time = 0;
+                    }
+                }
+            }
+
+            __linetilde_01_currentValue = val;
+        }
+    }
+
+    while (i < n) {
+        out[(Index)i] = __linetilde_01_currentValue;
+        i++;
+    }
+
+    this->linetilde_01_currentValue = __linetilde_01_currentValue;
+    this->linetilde_01_time = __linetilde_01_time;
 }
 
 void dspexpr_01_perform(const Sample * in1, const Sample * in2, SampleValue * out1, Index n) {
@@ -2589,8 +2588,6 @@ void assign_defaults()
     gen_01_cutoffOvertone = 0;
     gen_01_filterOnOff = 0;
     gen_01_terms = 0;
-    linetilde_01_time = 10;
-    linetilde_01_keepramp = 1;
     rampsmooth_tilde_01_x = 0;
     rampsmooth_tilde_01_up = 100;
     rampsmooth_tilde_01_down = 100;
@@ -2603,6 +2600,8 @@ void assign_defaults()
     expr_01_in1 = 0;
     expr_01_in2 = 127;
     expr_01_out1 = 0;
+    linetilde_01_time = 10;
+    linetilde_01_keepramp = 1;
     param_01_value = 100;
     param_02_value = 10;
     param_03_value = 1;
@@ -2633,7 +2632,6 @@ void assign_defaults()
     signals[0] = nullptr;
     signals[1] = nullptr;
     signals[2] = nullptr;
-    signals[3] = nullptr;
     didAllocateSignals = 0;
     vs = 0;
     maxvs = 0;
@@ -2653,7 +2651,6 @@ void assign_defaults()
     gen_01_mtof_20_lastOutValue = 0;
     gen_01_mtof_20_lastTuning = 0;
     gen_01_setupDone = false;
-    linetilde_01_currentValue = 0;
     rampsmooth_tilde_01_prev = 0;
     rampsmooth_tilde_01_index = 0;
     rampsmooth_tilde_01_increment = 0;
@@ -2669,6 +2666,7 @@ void assign_defaults()
     adsr_01_triggerBuf = nullptr;
     adsr_01_triggerValueBuf = nullptr;
     adsr_01_setupDone = false;
+    linetilde_01_currentValue = 1;
     param_01_lastValue = 0;
     param_02_lastValue = 0;
     param_03_lastValue = 0;
@@ -2709,9 +2707,6 @@ void assign_defaults()
     number gen_01_cutoffOvertone;
     number gen_01_filterOnOff;
     number gen_01_terms;
-    list linetilde_01_segments;
-    number linetilde_01_time;
-    number linetilde_01_keepramp;
     number rampsmooth_tilde_01_x;
     number rampsmooth_tilde_01_up;
     number rampsmooth_tilde_01_down;
@@ -2724,6 +2719,9 @@ void assign_defaults()
     number expr_01_in1;
     number expr_01_in2;
     number expr_01_out1;
+    list linetilde_01_segments;
+    number linetilde_01_time;
+    number linetilde_01_keepramp;
     number param_01_value;
     number param_02_value;
     number param_03_value;
@@ -2751,7 +2749,7 @@ void assign_defaults()
     SampleIndex sampleOffsetIntoNextAudioBuffer;
     signal zeroBuffer;
     signal dummyBuffer;
-    SampleValue * signals[4];
+    SampleValue * signals[3];
     bool didAllocateSignals;
     Index vs;
     Index maxvs;
@@ -2773,8 +2771,6 @@ void assign_defaults()
     number gen_01_mtof_20_lastTuning;
     Float64BufferRef gen_01_mtof_20_buffer;
     bool gen_01_setupDone;
-    list linetilde_01_activeRamps;
-    number linetilde_01_currentValue;
     number rampsmooth_tilde_01_prev;
     number rampsmooth_tilde_01_index;
     number rampsmooth_tilde_01_increment;
@@ -2790,6 +2786,8 @@ void assign_defaults()
     signal adsr_01_triggerBuf;
     signal adsr_01_triggerValueBuf;
     bool adsr_01_setupDone;
+    list linetilde_01_activeRamps;
+    number linetilde_01_currentValue;
     number param_01_lastValue;
     number param_02_lastValue;
     number param_03_lastValue;

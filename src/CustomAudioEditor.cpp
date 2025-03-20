@@ -2,8 +2,7 @@
 #include "CustomAudioEditor.h"
 
 CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
-    : AudioProcessorEditor (&p)
-, valueTreeState(vts)// 参照メンバーを初期化（必須）
+    : AudioProcessorEditor (&p), valueTreeState(vts)// 参照メンバーを初期化（必須）
 {
     // ルック＆フィールの設定
     midnightLookAndFeel.setColourScheme(juce::LookAndFeel_V4::getMidnightColourScheme());
