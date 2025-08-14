@@ -1,5 +1,5 @@
-# Rnbo_FourierSeriesExpansionSynthesizer
-This is a Synthesiser based on the approximation to triangular, square and sawtooth waves by Fourier series expansion. by Rnbo (Max Msp).  
+# RNBO_FourierSeriesExpansionSynthesizer
+This is a Synthesiser based on the approximation to triangular, square and sawtooth waves by Fourier series expansion. by RNBO (Max Msp).  
 I have also arranged the code to use the [AudioProcessorValueTreeState](https://docs.juce.com/master/classAudioProcessorValueTreeState.html).
 Built from the [rnbo.example.juce](https://github.com/Cycling74/rnbo.example.juce).  
 
