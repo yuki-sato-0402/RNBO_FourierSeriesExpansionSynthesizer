@@ -12,11 +12,8 @@ public:
     typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
    
 private:
-///コンストラクタでプロセッサ側から受け取るAPVTSの参照を格納するメンバを定義,パラメータとUIを紐づけるため。
-
-    // LookAndFeel クラス
     juce::LookAndFeel_V4 midnightLookAndFeel;
-    juce::AudioProcessorValueTreeState& valueTreeState; // ✅ 参照で保持
+    juce::AudioProcessorValueTreeState& valueTreeState; // ✅ Hold by reference
     juce::Slider dial1Slider;
     juce::Slider dial2Slider;
     juce::Slider dial3Slider;
@@ -39,10 +36,6 @@ private:
     juce::Label  label7;
     juce::Label  label8;
     
-   
-
-
-    //AudioProcessorValueTreeState::SliderAttachmentのスマートポインタ
     std::unique_ptr<SliderAttachment> dial1Attachment;
     std::unique_ptr<SliderAttachment> dial2Attachment;
     std::unique_ptr<SliderAttachment> dial3Attachment;

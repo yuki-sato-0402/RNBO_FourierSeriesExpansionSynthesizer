@@ -7,10 +7,8 @@
 
 class CustomAudioProcessor :public juce::AudioProcessor ,public juce::AudioProcessorValueTreeState::Listener{
 public:
-    //static CustomAudioProcessor* CreateDefault();
     CustomAudioProcessor();
     ~CustomAudioProcessor() override = default;
-    // 必須の純粋仮想関数
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
    
@@ -48,17 +46,6 @@ private:
     RNBO::TimeConverter preProcess(juce::MidiBuffer& midiMessages);
     void postProcess(RNBO::TimeConverter& timeConverter, juce::MidiBuffer& midiMessages);
     std::unordered_map<juce::String, RNBO::ParameterIndex> apvtsParamIdToRnboParamIndex;
-
-    //juce::AudioParameterFloat* termsParam{nullptr};
-    //juce::AudioParameterFloat* filterOnOffParam{nullptr};
-    //juce::AudioParameterFloat* cutoffOvertoneParam{nullptr};
-    //juce::AudioParameterFloat* attenuationParam{nullptr};
-    //juce::AudioParameterFloat* ocillatorParam{nullptr};
-    //juce::AudioParameterFloat* attackParam{nullptr};
-    //juce::AudioParameterFloat* decayParam{nullptr};
-    //juce::AudioParameterFloat* sustainParam{nullptr};
-    //juce::AudioParameterFloat* releaseParam{nullptr};
-    //juce::AudioParameterFloat* ampParam{nullptr};
 
     RNBO::CoreObject rnboObject;
     RNBO::MidiEventList						_midiInput;

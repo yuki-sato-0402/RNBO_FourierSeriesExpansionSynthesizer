@@ -4,16 +4,9 @@
 CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
     : AudioProcessorEditor (&p), valueTreeState(vts)// 参照メンバーを初期化（必須）
 {
-    // ルック＆フィールの設定
     midnightLookAndFeel.setColourScheme(juce::LookAndFeel_V4::getMidnightColourScheme());
 
-    //terms
     addAndMakeVisible(dial1Slider);
-    // デバッグ: vts の state を確認
-    DBG("vts.state: " + valueTreeState.state.toXmlString());
-
-    std::cout << "terms" << std::endl;
-    //スライダーひAPVTSのパラメータを紐づけます。
     dial1Attachment.reset (new SliderAttachment (valueTreeState, "terms", dial1Slider));
     dial1Slider.setSliderStyle(juce::Slider::IncDecButtons);
     dial1Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial1Slider.getTextBoxWidth(), dial1Slider.getTextBoxHeight());
@@ -23,16 +16,12 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label1.setText ("terms", juce::dontSendNotification);
     label1.setJustificationType(juce::Justification::centred);
     
-    //filterOnOff
     addAndMakeVisible(filterButton);
-    std::cout << "filterOnOff" << std::endl;
     filterButton.setButtonText("filter On Off");
     button1Attachment.reset (new ButtonAttachment (valueTreeState, "filterOnOff", filterButton));
     filterButton.setLookAndFeel(&midnightLookAndFeel);
     
-    //cutoffOvertone
     addAndMakeVisible(dial2Slider);
-    std::cout << "cutoffOvertone" << std::endl;
     dial2Attachment.reset (new SliderAttachment (valueTreeState, "cutoffOvertone", dial2Slider));
     dial2Slider.setSliderStyle(juce::Slider::IncDecButtons);  
     dial2Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial2Slider.getTextBoxWidth(), dial2Slider.getTextBoxHeight());
@@ -42,10 +31,7 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label2.setText ("cutoffOvertone", juce::dontSendNotification);
     label2.setJustificationType(juce::Justification::centred);
     
-    
-    //attenuation
     addAndMakeVisible(dial3Slider);
-    std::cout << "attenuation" << std::endl;
     dial3Attachment.reset (new SliderAttachment (valueTreeState, "attenuation", dial3Slider));
     dial3Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial3Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial3Slider.getTextBoxWidth(), dial3Slider.getTextBoxHeight());
@@ -55,7 +41,6 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label3.setText ("attenuation", juce::dontSendNotification);
     label3.setJustificationType(juce::Justification::centred);
 
-    //ocillator
     addAndMakeVisible(selectComboBox);
     selectComboBox.addItem("Square", 1);
     selectComboBox.addItem("Triangle", 2);
@@ -67,9 +52,7 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label0.setText ("ocillator", juce::dontSendNotification);
     label0.setJustificationType(juce::Justification::centred);
 
-    //attack
     addAndMakeVisible(dial4Slider);
-    std::cout << "attack" << std::endl;
     dial4Attachment.reset (new SliderAttachment (valueTreeState, "attack", dial4Slider));
     dial4Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial4Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial4Slider.getTextBoxWidth(), dial7Slider.getTextBoxHeight());
@@ -79,10 +62,7 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label4.setText ("attack", juce::dontSendNotification);
     label4.setJustificationType(juce::Justification::centred);
 
-
-    //decay
     addAndMakeVisible(dial5Slider);
-    std::cout << "decay" << std::endl;
     dial5Attachment.reset (new SliderAttachment (valueTreeState, "decay", dial5Slider));
     dial5Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial5Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial5Slider.getTextBoxWidth(), dial7Slider.getTextBoxHeight());
@@ -92,10 +72,7 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label5.setText ("decay", juce::dontSendNotification);
     label5.setJustificationType(juce::Justification::centred);
 
-
-    //sustain
     addAndMakeVisible(dial6Slider);
-    std::cout << "sustain" << std::endl;
     dial6Attachment.reset (new SliderAttachment (valueTreeState, "sustain", dial6Slider));
     dial6Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial6Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial6Slider.getTextBoxWidth(), dial7Slider.getTextBoxHeight());
@@ -105,10 +82,7 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label6.setText ("sustain", juce::dontSendNotification);
     label6.setJustificationType(juce::Justification::centred);
 
-
-    //release
     addAndMakeVisible(dial7Slider);
-    std::cout << "release" << std::endl;
     dial7Attachment.reset (new SliderAttachment (valueTreeState, "release", dial7Slider));
     dial7Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial7Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial7Slider.getTextBoxWidth(), dial7Slider.getTextBoxHeight());
@@ -118,9 +92,7 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     label7.setText ("release", juce::dontSendNotification);
     label7.setJustificationType(juce::Justification::centred);
 
-    //release
     addAndMakeVisible(dial8Slider);
-    std::cout << "amp" << std::endl;
     dial8Attachment.reset (new SliderAttachment (valueTreeState, "amp", dial8Slider));
     dial8Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dial8Slider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, dial7Slider.getTextBoxWidth(), dial8Slider.getTextBoxHeight());
@@ -141,31 +113,25 @@ void CustomAudioEditor::paint (Graphics& g)
 
     // Fill the entire component with this color
     g.fillAll(backgroundColour);
-    
-    // Any additional painting code goes here
-
 }
 
 void CustomAudioEditor::resized()
-{// Define some constants for consistent sizing and spacing
+{
     auto area = getLocalBounds();
 
     auto componentWidth2 = (area.getWidth() - 80)/4;
     auto componentWidth3 = (area.getWidth() - 100)/4;
     auto componentHeight = area.getHeight() / 3;
-    auto padding = 20;            // Space between components
+    auto padding = 20;           
 
-    // Top row: dial1 and ToggleButton1
     selectComboBox.setBounds(padding,  padding + 10, componentWidth2 ,  componentHeight / 2);
     dial1Slider.setBounds(selectComboBox.getRight() + padding, padding + 20,  componentWidth2 * 2, componentHeight / 2);
-    dial8Slider.setBounds(dial1Slider.getRight() + padding, padding ,  componentWidth2 , componentHeight  / 1.5  );
+    dial8Slider.setBounds(dial1Slider.getRight() + padding, padding ,  componentWidth2 , static_cast<int>(componentHeight  / 1.5)  );
 
-    // Second row: ToggleButton2, dial2, dial3
     filterButton.setBounds(padding, dial1Slider.getBottom() + padding + 10, componentWidth2, componentHeight);
     dial2Slider.setBounds( filterButton.getRight() + padding, dial1Slider.getBottom() + padding + 40 , componentWidth2 * 2, componentHeight / 2);
-    dial3Slider.setBounds(dial2Slider.getRight() + padding, dial1Slider.getBottom() + padding + 10, componentWidth2,  componentHeight /1.5 );
+    dial3Slider.setBounds(dial2Slider.getRight() + padding, dial1Slider.getBottom() + padding + 10, componentWidth2,  static_cast<int>(componentHeight /1.5) );
 
-    // Bottom row: dial4, dial5, dial6, dial7, dial8
     int bottomRowY = dial3Slider.getBottom() + padding;
 
     dial4Slider.setBounds(padding,  bottomRowY + 10, componentWidth3, componentHeight);

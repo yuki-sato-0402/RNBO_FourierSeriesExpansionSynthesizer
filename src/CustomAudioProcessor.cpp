@@ -4,7 +4,6 @@
 CustomAudioProcessor::CustomAudioProcessor() 
 : AudioProcessor (BusesProperties()
     .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-//コンストラクタの イニシャライザリスト で初期化
 parameters(*this, nullptr, juce::Identifier("PARAMETERS"),
     juce::AudioProcessorValueTreeState::ParameterLayout {
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "terms",  1}, "terms",
@@ -72,16 +71,8 @@ void CustomAudioProcessor::releaseResources()
 }
  
 
-
 void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-
-    //auto samples = static_cast<RNBO::Index>(buffer.getNumSamples());
-    //preProcess() と postProcess() は、JUCE の MIDI データを RNBOとやり取りするための処理
-    //preProcess(): JUCE の MidiBuffer を RNBO 用のフォーマットに変換し、タイミング情報（BPM、拍子、PPQ 位置、再生状態など）を RNBO に送信
-    //postProcess(): RNBO から出力された MIDI データを JUCE の MidiBuffer に戻す
-	  // MIDI入力とタイミング情報の処理
-
     auto tc = preProcess(midiMessages);
 	  rnboObject.process(
                         buffer.getArrayOfWritePointers(), static_cast<RNBO::Index>(buffer.getNumChannels()),
@@ -89,29 +80,17 @@ void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
                         static_cast<RNBO::Index> (buffer.getNumSamples()),
 			  &_midiInput, &_midiOutput
 			  );
-       // DBG("_midiInput size: " << _midiInput.size());
-      
-	  // MIDI出力の処理
-    //postProcess(timeConverter, midiMessages);
     postProcess(tc, midiMessages);
 }
 
-////このコールバック メソッドは、パラメータが変更されたときに AudioProcessorValueTreeStateによって呼び出されます。
 void CustomAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
-//  std::cout <<  "parameterID " <<  parameterID <<  " newValue " << newValue <<std::endl;
- rnboObject.setParameterValue (apvtsParamIdToRnboParamIndex[parameterID], newValue);
-//    //auto index = static_cast<RNBO::ParameterIndex>(apvtsParamIdToRnboParamIndex[parameterID]);
-    //auto range = parameters.getParameterRange(parameterID);  // パラメータ範囲の取得関数が必要
-    //float normalizedValue = juce::jmap(newValue, range.start, range.end, 0.0f, 1.0f);
-    //rnboObject.setParameterValueNormalized(index, normalizedValue, RNBO::RNBOTimeNow);
+  rnboObject.setParameterValue (apvtsParamIdToRnboParamIndex[parameterID], newValue);
 }
 
 
 RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessages) {
 	RNBO::MillisecondTime time = rnboObject.getCurrentTime();
-
-	//transport
 	{
 		AudioPlayHead* playhead = getPlayHead();
 		if (playhead) {
@@ -176,10 +155,7 @@ void CustomAudioProcessor::postProcess(RNBO::TimeConverter& timeConverter, juce:
 
 juce::AudioProcessorEditor* CustomAudioProcessor::createEditor()
 {
-    //AudioProcessorEditor側でAudioProcessorValueTreeStateにアクセスするための方法が必要。
    return new CustomAudioEditor (*this,  parameters);
-    //RNBOのデフォルトエディター, 標準的なパラメータ表示, 追加のカスタマイズが限定的
-  // return RNBO::JuceAudioProcessor::createEditor();
 }
 
 bool CustomAudioProcessor::hasEditor() const
