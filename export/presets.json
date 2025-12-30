@@ -21,7 +21,7 @@
         "value": 2
       },
       "cycleCountToAdd": {
-        "value": 3
+        "value": 0
       },
       "cycleCountToSubtract": {
         "value": 3
@@ -42,7 +42,7 @@
         "value": 80
       },
       "terms": {
-        "value": 1
+        "value": 6
       },
       "termsToAddPerCount": {
         "value": 1

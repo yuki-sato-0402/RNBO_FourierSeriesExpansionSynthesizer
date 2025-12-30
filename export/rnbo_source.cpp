@@ -573,11 +573,11 @@ void processDataViewUpdate(DataRefIndex index, MillisecondTime time) {
     }
 
     if (index == 1) {
-        this->gen_01_mtof_17_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_19_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_22_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_56_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_75_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_16_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_18_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_21_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_55_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_74_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
     }
 }
 
@@ -589,11 +589,11 @@ void initialize() {
     this->manageParam->setIndex(0);
     this->gen_01_manageParam = new Float64Buffer(this->manageParam);
     this->RNBODefaultMtofLookupTable256->setIndex(1);
-    this->gen_01_mtof_17_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_19_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_22_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_56_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_75_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_16_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_18_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_21_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_55_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_74_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
     this->initializeObjects();
     this->allocateDataRefs();
     this->startup();
@@ -1942,16 +1942,16 @@ Index getNumOutputChannels() const {
 void allocateDataRefs() {
     this->gen_01_manageParam->requestSize(10, 1);
     this->gen_01_manageParam->setSampleRate(this->sr);
-    this->gen_01_mtof_17_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_17_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_19_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_19_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_22_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_22_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_56_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_56_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_75_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_75_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_16_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_16_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_18_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_18_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_21_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_21_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_55_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_55_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_74_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_74_buffer->setSampleRate(this->sr);
     this->gen_01_manageParam = this->gen_01_manageParam->allocateIfNeeded();
 
     if (this->manageParam->hasRequestedSize()) {
@@ -1961,11 +1961,11 @@ void allocateDataRefs() {
         this->getEngine()->sendDataRefUpdated(0);
     }
 
-    this->gen_01_mtof_17_buffer = this->gen_01_mtof_17_buffer->allocateIfNeeded();
-    this->gen_01_mtof_19_buffer = this->gen_01_mtof_19_buffer->allocateIfNeeded();
-    this->gen_01_mtof_22_buffer = this->gen_01_mtof_22_buffer->allocateIfNeeded();
-    this->gen_01_mtof_56_buffer = this->gen_01_mtof_56_buffer->allocateIfNeeded();
-    this->gen_01_mtof_75_buffer = this->gen_01_mtof_75_buffer->allocateIfNeeded();
+    this->gen_01_mtof_16_buffer = this->gen_01_mtof_16_buffer->allocateIfNeeded();
+    this->gen_01_mtof_18_buffer = this->gen_01_mtof_18_buffer->allocateIfNeeded();
+    this->gen_01_mtof_21_buffer = this->gen_01_mtof_21_buffer->allocateIfNeeded();
+    this->gen_01_mtof_55_buffer = this->gen_01_mtof_55_buffer->allocateIfNeeded();
+    this->gen_01_mtof_74_buffer = this->gen_01_mtof_74_buffer->allocateIfNeeded();
 
     if (this->RNBODefaultMtofLookupTable256->hasRequestedSize()) {
         if (this->RNBODefaultMtofLookupTable256->wantsFill())
@@ -1981,7 +1981,6 @@ void initializeObjects() {
     this->gen_01_change_13_init();
     this->gen_01_change_14_init();
     this->gen_01_change_15_init();
-    this->gen_01_change_16_init();
 }
 
 void sendOutlet(OutletIndex index, ParameterValue value) {
@@ -2459,192 +2458,192 @@ void gen_01_perform(
         number negWave_11 = 0;
         number countReset_12 = 0;
 
-        if (this->gen_01_change_13_next(cycleCountToAdd) != 0 || this->gen_01_change_14_next(cycleCountToSubtract) != 0 || this->gen_01_change_15_next(terms) != 0 || this->gen_01_change_16_next(this->gen_01_mtof_17_next(in1, 440)) != 0) {
+        if (this->gen_01_change_13_next(cycleCountToAdd) != 0 || this->gen_01_change_14_next(cycleCountToSubtract) != 0 || this->gen_01_change_15_next(this->gen_01_mtof_16_next(in1, 440)) != 0) {
             countReset_12 = 1;
             __gen_01_sampleCount_value = 0;
         }
 
-        number wave_gen_20 = this->gen_01_phasor_18_next(this->gen_01_mtof_19_next(in1, 440), countReset_12);
-        auto scaled_wave_21 = this->scale(wave_gen_20, 0, 1, 0, 6.28318530717958647692, 1);
-        number periodSamps_23 = (this->gen_01_mtof_22_next(in1, 440) == 0. ? 0. : this->samplerate() / this->gen_01_mtof_22_next(in1, 440));
+        number wave_gen_19 = this->gen_01_phasor_17_next(this->gen_01_mtof_18_next(in1, 440), countReset_12);
+        auto scaled_wave_20 = this->scale(wave_gen_19, 0, 1, 0, 6.28318530717958647692, 1);
+        number periodSamps_22 = (this->gen_01_mtof_21_next(in1, 440) == 0. ? 0. : this->samplerate() / this->gen_01_mtof_21_next(in1, 440));
         __gen_01_sampleCount_value = __gen_01_sampleCount_value + 1;
 
-        auto cycleCount_24 = this->wrap(
+        auto cycleCount_23 = this->wrap(
             __gen_01_sampleCount_value,
             0,
-            periodSamps_23 * (cycleCountToAdd + cycleCountToSubtract)
+            periodSamps_22 * (cycleCountToAdd + cycleCountToSubtract)
         );
 
-        number cycleCount_1_25 = this->intnum((periodSamps_23 == 0. ? 0. : cycleCount_24 / periodSamps_23)) + 1;
+        number cycleCount_1_24 = this->intnum((periodSamps_22 == 0. ? 0. : cycleCount_23 / periodSamps_22)) + 1;
 
-        if (cycleCountToAdd != 0 && cycleCount_1_25 <= cycleCountToAdd) {
+        if (cycleCountToAdd != 0 && cycleCount_1_24 <= cycleCountToAdd) {
             number peek_2 = 0;
             number peek_3 = 0;
-            auto result_26 = this->peek_default(this->gen_01_manageParam, 0, 0);
-            peek_3 = result_26[1];
-            peek_2 = result_26[0];
-            posTerms = peek_2 + cycleCount_1_25 * termsToAddPerCount;
+            auto result_25 = this->peek_default(this->gen_01_manageParam, 0, 0);
+            peek_3 = result_25[1];
+            peek_2 = result_25[0];
+            posTerms = peek_2 + cycleCount_1_24 * termsToAddPerCount;
             number peek_4 = 0;
             number peek_5 = 0;
-            auto result_27 = this->peek_default(this->gen_01_manageParam, 5, 0);
-            peek_5 = result_27[1];
-            peek_4 = result_27[0];
-            negTerms = peek_4 + cycleCount_1_25 * termsToAddPerCount;
-        } else if (cycleCountToAdd != 0 && cycleCount_1_25 > cycleCountToAdd) {
-            number totalAddedTerms_28 = cycleCountToAdd * termsToAddPerCount;
-            number termsToSubtractPerCount_29 = (cycleCountToSubtract == 0. ? 0. : totalAddedTerms_28 / cycleCountToSubtract);
-            number countForSubtract_30 = cycleCount_1_25 - cycleCountToAdd;
-            auto addedTerms_31 = this->intnum(totalAddedTerms_28 - termsToSubtractPerCount_29 * countForSubtract_30);
+            auto result_26 = this->peek_default(this->gen_01_manageParam, 5, 0);
+            peek_5 = result_26[1];
+            peek_4 = result_26[0];
+            negTerms = peek_4 + cycleCount_1_24 * termsToAddPerCount;
+        } else if (cycleCountToAdd != 0 && cycleCount_1_24 > cycleCountToAdd) {
+            number totalAddedTerms_27 = cycleCountToAdd * termsToAddPerCount;
+            number termsToSubtractPerCount_28 = (cycleCountToSubtract == 0. ? 0. : totalAddedTerms_27 / cycleCountToSubtract);
+            number countForSubtract_29 = cycleCount_1_24 - cycleCountToAdd;
+            auto addedTerms_30 = this->intnum(totalAddedTerms_27 - termsToSubtractPerCount_28 * countForSubtract_29);
             number peek_6 = 0;
             number peek_7 = 0;
-            auto result_32 = this->peek_default(this->gen_01_manageParam, 0, 0);
-            peek_7 = result_32[1];
-            peek_6 = result_32[0];
-            posTerms = peek_6 + addedTerms_31;
+            auto result_31 = this->peek_default(this->gen_01_manageParam, 0, 0);
+            peek_7 = result_31[1];
+            peek_6 = result_31[0];
+            posTerms = peek_6 + addedTerms_30;
             number peek_8 = 0;
             number peek_9 = 0;
-            auto result_33 = this->peek_default(this->gen_01_manageParam, 5, 0);
-            peek_9 = result_33[1];
-            peek_8 = result_33[0];
-            negTerms = peek_8 + addedTerms_31;
+            auto result_32 = this->peek_default(this->gen_01_manageParam, 5, 0);
+            peek_9 = result_32[1];
+            peek_8 = result_32[0];
+            negTerms = peek_8 + addedTerms_30;
         } else {
-            auto result_34 = this->peek_default(this->gen_01_manageParam, 0, 0);
-            posTerms = result_34[0];
-            auto result_35 = this->peek_default(this->gen_01_manageParam, 5, 0);
-            negTerms = result_35[0];
+            auto result_33 = this->peek_default(this->gen_01_manageParam, 0, 0);
+            posTerms = result_33[0];
+            auto result_34 = this->peek_default(this->gen_01_manageParam, 5, 0);
+            negTerms = result_34[0];
         }
 
-        auto maxTerms_36 = this->maximum(posTerms, negTerms);
+        auto maxTerms_35 = this->maximum(posTerms, negTerms);
 
-        for (number i = 1; i <= maxTerms_36; i = i + 1) {
-            number sine_wave1_37 = rnbo_sin(scaled_wave_21 * i);
+        for (number i = 1; i <= maxTerms_35; i = i + 1) {
+            number sine_wave1_36 = rnbo_sin(scaled_wave_20 * i);
 
             if (i <= posTerms) {
-                number processSynthesis_38 = 0;
+                number processSynthesis_37 = 0;
 
                 {
-                    auto Ocillator_44 = posOcillator;
-                    auto Attenuation_43 = posAttenuation;
-                    auto CutoffOvertone_42 = posCutoffOvertone;
-                    auto FilterOnOff_41 = posFilterOnOff;
-                    auto index_40 = i;
-                    auto inputFreq_39 = in1;
-                    number Factors_45 = 1;
-                    number Amp_filter_46 = 1;
+                    auto Ocillator_43 = posOcillator;
+                    auto Attenuation_42 = posAttenuation;
+                    auto CutoffOvertone_41 = posCutoffOvertone;
+                    auto FilterOnOff_40 = posFilterOnOff;
+                    auto index_39 = i;
+                    auto inputFreq_38 = in1;
+                    number Factors_44 = 1;
+                    number Amp_filter_45 = 1;
 
-                    if (Ocillator_44 == 1) {
-                        if (this->safemod(index_40, 2) == 1) {
-                            Factors_45 = (3.14159265358979323846 * index_40 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_40));
+                    if (Ocillator_43 == 1) {
+                        if (this->safemod(index_39, 2) == 1) {
+                            Factors_44 = (3.14159265358979323846 * index_39 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_39));
                         } else {
-                            Factors_45 = 0;
+                            Factors_44 = 0;
                         }
-                    } else if (Ocillator_44 == 2) {
-                        if (this->safemod(index_40, 2) == 1) {
-                            number myTriangle_47 = 0;
+                    } else if (Ocillator_43 == 2) {
+                        if (this->safemod(index_39, 2) == 1) {
+                            number myTriangle_46 = 0;
 
                             {
-                                auto n2_48 = index_40;
-                                number amp_factor2_49 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_48, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_48, 2))));
-                                number phase_factor2_50 = fixnan(rnbo_pow(-1, (n2_48 - 1) / (number)2));
-                                myTriangle_47 = amp_factor2_49 * phase_factor2_50;
+                                auto n2_47 = index_39;
+                                number amp_factor2_48 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_47, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_47, 2))));
+                                number phase_factor2_49 = fixnan(rnbo_pow(-1, (n2_47 - 1) / (number)2));
+                                myTriangle_46 = amp_factor2_48 * phase_factor2_49;
                             }
 
-                            Factors_45 = myTriangle_47;
+                            Factors_44 = myTriangle_46;
                         } else {
-                            Factors_45 = 0;
+                            Factors_44 = 0;
                         }
                     } else {
-                        number mySawtooth_51 = 0;
+                        number mySawtooth_50 = 0;
 
                         {
-                            auto n3_52 = index_40;
-                            number amp_factor3_53 = (3.14159265358979323846 * n3_52 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_52));
-                            number phase_factor3_54 = fixnan(rnbo_pow(-1, n3_52 + 1));
-                            mySawtooth_51 = amp_factor3_53 * phase_factor3_54;
+                            auto n3_51 = index_39;
+                            number amp_factor3_52 = (3.14159265358979323846 * n3_51 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_51));
+                            number phase_factor3_53 = fixnan(rnbo_pow(-1, n3_51 + 1));
+                            mySawtooth_50 = amp_factor3_52 * phase_factor3_53;
                         }
 
-                        Factors_45 = mySawtooth_51;
+                        Factors_44 = mySawtooth_50;
                     }
 
-                    if (FilterOnOff_41 == 1) {
-                        if (index_40 >= CutoffOvertone_42) {
-                            number n_overtone_55 = (index_40 - CutoffOvertone_42 + 1) * Attenuation_43;
-                            Amp_filter_46 = (n_overtone_55 == 0. ? 0. : (number)1 / n_overtone_55);
+                    if (FilterOnOff_40 == 1) {
+                        if (index_39 >= CutoffOvertone_41) {
+                            number n_overtone_54 = (index_39 - CutoffOvertone_41 + 1) * Attenuation_42;
+                            Amp_filter_45 = (n_overtone_54 == 0. ? 0. : (number)1 / n_overtone_54);
                         }
                     }
 
-                    if (this->gen_01_mtof_56_next(inputFreq_39, 440) * index_40 > this->samplerate() / (number)2) {
-                        Factors_45 = 0;
+                    if (this->gen_01_mtof_55_next(inputFreq_38, 440) * index_39 > this->samplerate() / (number)2) {
+                        Factors_44 = 0;
                     }
 
-                    processSynthesis_38 = Factors_45 * Amp_filter_46;
+                    processSynthesis_37 = Factors_44 * Amp_filter_45;
                 }
 
-                posWave_10 = posWave_10 + sine_wave1_37 * processSynthesis_38;
+                posWave_10 = posWave_10 + sine_wave1_36 * processSynthesis_37;
             }
 
             if (i <= negTerms) {
-                number processSynthesis_57 = 0;
+                number processSynthesis_56 = 0;
 
                 {
-                    auto Ocillator_63 = negOcillator;
-                    auto Attenuation_62 = negAttenuation;
-                    auto CutoffOvertone_61 = negCutoffOvertone;
-                    auto FilterOnOff_60 = negFilterOnOff;
-                    auto index_59 = i;
-                    auto inputFreq_58 = in1;
-                    number Factors_64 = 1;
-                    number Amp_filter_65 = 1;
+                    auto Ocillator_62 = negOcillator;
+                    auto Attenuation_61 = negAttenuation;
+                    auto CutoffOvertone_60 = negCutoffOvertone;
+                    auto FilterOnOff_59 = negFilterOnOff;
+                    auto index_58 = i;
+                    auto inputFreq_57 = in1;
+                    number Factors_63 = 1;
+                    number Amp_filter_64 = 1;
 
-                    if (Ocillator_63 == 1) {
-                        if (this->safemod(index_59, 2) == 1) {
-                            Factors_64 = (3.14159265358979323846 * index_59 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_59));
+                    if (Ocillator_62 == 1) {
+                        if (this->safemod(index_58, 2) == 1) {
+                            Factors_63 = (3.14159265358979323846 * index_58 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_58));
                         } else {
-                            Factors_64 = 0;
+                            Factors_63 = 0;
                         }
-                    } else if (Ocillator_63 == 2) {
-                        if (this->safemod(index_59, 2) == 1) {
-                            number myTriangle_66 = 0;
+                    } else if (Ocillator_62 == 2) {
+                        if (this->safemod(index_58, 2) == 1) {
+                            number myTriangle_65 = 0;
 
                             {
-                                auto n2_67 = index_59;
-                                number amp_factor2_68 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_67, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_67, 2))));
-                                number phase_factor2_69 = fixnan(rnbo_pow(-1, (n2_67 - 1) / (number)2));
-                                myTriangle_66 = amp_factor2_68 * phase_factor2_69;
+                                auto n2_66 = index_58;
+                                number amp_factor2_67 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_66, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_66, 2))));
+                                number phase_factor2_68 = fixnan(rnbo_pow(-1, (n2_66 - 1) / (number)2));
+                                myTriangle_65 = amp_factor2_67 * phase_factor2_68;
                             }
 
-                            Factors_64 = myTriangle_66;
+                            Factors_63 = myTriangle_65;
                         } else {
-                            Factors_64 = 0;
+                            Factors_63 = 0;
                         }
                     } else {
-                        number mySawtooth_70 = 0;
+                        number mySawtooth_69 = 0;
 
                         {
-                            auto n3_71 = index_59;
-                            number amp_factor3_72 = (3.14159265358979323846 * n3_71 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_71));
-                            number phase_factor3_73 = fixnan(rnbo_pow(-1, n3_71 + 1));
-                            mySawtooth_70 = amp_factor3_72 * phase_factor3_73;
+                            auto n3_70 = index_58;
+                            number amp_factor3_71 = (3.14159265358979323846 * n3_70 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_70));
+                            number phase_factor3_72 = fixnan(rnbo_pow(-1, n3_70 + 1));
+                            mySawtooth_69 = amp_factor3_71 * phase_factor3_72;
                         }
 
-                        Factors_64 = mySawtooth_70;
+                        Factors_63 = mySawtooth_69;
                     }
 
-                    if (FilterOnOff_60 == 1) {
-                        if (index_59 >= CutoffOvertone_61) {
-                            number n_overtone_74 = (index_59 - CutoffOvertone_61 + 1) * Attenuation_62;
-                            Amp_filter_65 = (n_overtone_74 == 0. ? 0. : (number)1 / n_overtone_74);
+                    if (FilterOnOff_59 == 1) {
+                        if (index_58 >= CutoffOvertone_60) {
+                            number n_overtone_73 = (index_58 - CutoffOvertone_60 + 1) * Attenuation_61;
+                            Amp_filter_64 = (n_overtone_73 == 0. ? 0. : (number)1 / n_overtone_73);
                         }
                     }
 
-                    if (this->gen_01_mtof_75_next(inputFreq_58, 440) * index_59 > this->samplerate() / (number)2) {
-                        Factors_64 = 0;
+                    if (this->gen_01_mtof_74_next(inputFreq_57, 440) * index_58 > this->samplerate() / (number)2) {
+                        Factors_63 = 0;
                     }
 
-                    processSynthesis_57 = Factors_64 * Amp_filter_65;
+                    processSynthesis_56 = Factors_63 * Amp_filter_64;
                 }
 
-                negWave_11 = negWave_11 + sine_wave1_37 * processSynthesis_57;
+                negWave_11 = negWave_11 + sine_wave1_36 * processSynthesis_56;
             }
         }
 
@@ -2654,9 +2653,9 @@ void gen_01_perform(
             posWave_10 = posWave_10 * 0;
         }
 
-        number SynthesizedWave_10_76 = negWave_11 + posWave_10;
-        number expr_11_77 = (SynthesizedWave_10_76 * 0.7 > 1 ? 1 : (SynthesizedWave_10_76 * 0.7 < -1 ? -1 : SynthesizedWave_10_76 * 0.7));
-        out1[(Index)i0] = expr_11_77;
+        number SynthesizedWave_10_75 = negWave_11 + posWave_10;
+        number expr_11_76 = (SynthesizedWave_10_75 * 0.7 > 1 ? 1 : (SynthesizedWave_10_75 * 0.7 < -1 ? -1 : SynthesizedWave_10_75 * 0.7));
+        out1[(Index)i0] = expr_11_76;
     }
 
     this->gen_01_sampleCount_value = __gen_01_sampleCount_value;
@@ -2977,167 +2976,153 @@ void gen_01_change_15_reset() {
     this->gen_01_change_15_prev = 0;
 }
 
-number gen_01_change_16_next(number x) {
-    number temp = x - this->gen_01_change_16_prev;
-    this->gen_01_change_16_prev = x;
-    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
-}
-
-void gen_01_change_16_init() {
-    this->gen_01_change_16_prev = 0;
-}
-
-void gen_01_change_16_reset() {
-    this->gen_01_change_16_prev = 0;
-}
-
-number gen_01_mtof_17_next(number midivalue, number tuning) {
+number gen_01_mtof_16_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_17_lastInValue && 440 == this->gen_01_mtof_17_lastTuning)
-        return this->gen_01_mtof_17_lastOutValue;
+    if (midivalue == this->gen_01_mtof_16_lastInValue && 440 == this->gen_01_mtof_16_lastTuning)
+        return this->gen_01_mtof_16_lastOutValue;
 
-    this->gen_01_mtof_17_lastInValue = midivalue;
-    this->gen_01_mtof_17_lastTuning = 440;
+    this->gen_01_mtof_16_lastInValue = midivalue;
+    this->gen_01_mtof_16_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_17_lastOutValue = 440 * result;
-    return this->gen_01_mtof_17_lastOutValue;
+    this->gen_01_mtof_16_lastOutValue = 440 * result;
+    return this->gen_01_mtof_16_lastOutValue;
 }
 
-void gen_01_mtof_17_reset() {
-    this->gen_01_mtof_17_lastInValue = 0;
-    this->gen_01_mtof_17_lastOutValue = 0;
-    this->gen_01_mtof_17_lastTuning = 0;
+void gen_01_mtof_16_reset() {
+    this->gen_01_mtof_16_lastInValue = 0;
+    this->gen_01_mtof_16_lastOutValue = 0;
+    this->gen_01_mtof_16_lastTuning = 0;
 }
 
-number gen_01_phasor_18_next(number freq, number reset) {
+number gen_01_phasor_17_next(number freq, number reset) {
     {
         {
             if (reset > 0.)
-                this->gen_01_phasor_18_currentPhase = 0;
+                this->gen_01_phasor_17_currentPhase = 0;
         }
     }
 
-    number pincr = freq * this->gen_01_phasor_18_conv;
+    number pincr = freq * this->gen_01_phasor_17_conv;
 
-    if (this->gen_01_phasor_18_currentPhase < 0.)
-        this->gen_01_phasor_18_currentPhase = 1. + this->gen_01_phasor_18_currentPhase;
+    if (this->gen_01_phasor_17_currentPhase < 0.)
+        this->gen_01_phasor_17_currentPhase = 1. + this->gen_01_phasor_17_currentPhase;
 
-    if (this->gen_01_phasor_18_currentPhase > 1.)
-        this->gen_01_phasor_18_currentPhase = this->gen_01_phasor_18_currentPhase - 1.;
+    if (this->gen_01_phasor_17_currentPhase > 1.)
+        this->gen_01_phasor_17_currentPhase = this->gen_01_phasor_17_currentPhase - 1.;
 
-    number tmp = this->gen_01_phasor_18_currentPhase;
-    this->gen_01_phasor_18_currentPhase += pincr;
+    number tmp = this->gen_01_phasor_17_currentPhase;
+    this->gen_01_phasor_17_currentPhase += pincr;
     return tmp;
 }
 
-void gen_01_phasor_18_reset() {
-    this->gen_01_phasor_18_currentPhase = 0;
+void gen_01_phasor_17_reset() {
+    this->gen_01_phasor_17_currentPhase = 0;
 }
 
-void gen_01_phasor_18_dspsetup() {
-    this->gen_01_phasor_18_conv = (this->sr == 0. ? 0. : (number)1 / this->sr);
+void gen_01_phasor_17_dspsetup() {
+    this->gen_01_phasor_17_conv = (this->sr == 0. ? 0. : (number)1 / this->sr);
 }
 
-number gen_01_mtof_19_next(number midivalue, number tuning) {
+number gen_01_mtof_18_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_19_lastInValue && 440 == this->gen_01_mtof_19_lastTuning)
-        return this->gen_01_mtof_19_lastOutValue;
+    if (midivalue == this->gen_01_mtof_18_lastInValue && 440 == this->gen_01_mtof_18_lastTuning)
+        return this->gen_01_mtof_18_lastOutValue;
 
-    this->gen_01_mtof_19_lastInValue = midivalue;
-    this->gen_01_mtof_19_lastTuning = 440;
+    this->gen_01_mtof_18_lastInValue = midivalue;
+    this->gen_01_mtof_18_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_19_lastOutValue = 440 * result;
-    return this->gen_01_mtof_19_lastOutValue;
+    this->gen_01_mtof_18_lastOutValue = 440 * result;
+    return this->gen_01_mtof_18_lastOutValue;
 }
 
-void gen_01_mtof_19_reset() {
-    this->gen_01_mtof_19_lastInValue = 0;
-    this->gen_01_mtof_19_lastOutValue = 0;
-    this->gen_01_mtof_19_lastTuning = 0;
+void gen_01_mtof_18_reset() {
+    this->gen_01_mtof_18_lastInValue = 0;
+    this->gen_01_mtof_18_lastOutValue = 0;
+    this->gen_01_mtof_18_lastTuning = 0;
 }
 
-number gen_01_mtof_22_next(number midivalue, number tuning) {
+number gen_01_mtof_21_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_22_lastInValue && 440 == this->gen_01_mtof_22_lastTuning)
-        return this->gen_01_mtof_22_lastOutValue;
+    if (midivalue == this->gen_01_mtof_21_lastInValue && 440 == this->gen_01_mtof_21_lastTuning)
+        return this->gen_01_mtof_21_lastOutValue;
 
-    this->gen_01_mtof_22_lastInValue = midivalue;
-    this->gen_01_mtof_22_lastTuning = 440;
+    this->gen_01_mtof_21_lastInValue = midivalue;
+    this->gen_01_mtof_21_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_22_lastOutValue = 440 * result;
-    return this->gen_01_mtof_22_lastOutValue;
+    this->gen_01_mtof_21_lastOutValue = 440 * result;
+    return this->gen_01_mtof_21_lastOutValue;
 }
 
-void gen_01_mtof_22_reset() {
-    this->gen_01_mtof_22_lastInValue = 0;
-    this->gen_01_mtof_22_lastOutValue = 0;
-    this->gen_01_mtof_22_lastTuning = 0;
+void gen_01_mtof_21_reset() {
+    this->gen_01_mtof_21_lastInValue = 0;
+    this->gen_01_mtof_21_lastOutValue = 0;
+    this->gen_01_mtof_21_lastTuning = 0;
 }
 
-number gen_01_mtof_56_next(number midivalue, number tuning) {
+number gen_01_mtof_55_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_56_lastInValue && 440 == this->gen_01_mtof_56_lastTuning)
-        return this->gen_01_mtof_56_lastOutValue;
+    if (midivalue == this->gen_01_mtof_55_lastInValue && 440 == this->gen_01_mtof_55_lastTuning)
+        return this->gen_01_mtof_55_lastOutValue;
 
-    this->gen_01_mtof_56_lastInValue = midivalue;
-    this->gen_01_mtof_56_lastTuning = 440;
+    this->gen_01_mtof_55_lastInValue = midivalue;
+    this->gen_01_mtof_55_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_56_lastOutValue = 440 * result;
-    return this->gen_01_mtof_56_lastOutValue;
+    this->gen_01_mtof_55_lastOutValue = 440 * result;
+    return this->gen_01_mtof_55_lastOutValue;
 }
 
-void gen_01_mtof_56_reset() {
-    this->gen_01_mtof_56_lastInValue = 0;
-    this->gen_01_mtof_56_lastOutValue = 0;
-    this->gen_01_mtof_56_lastTuning = 0;
+void gen_01_mtof_55_reset() {
+    this->gen_01_mtof_55_lastInValue = 0;
+    this->gen_01_mtof_55_lastOutValue = 0;
+    this->gen_01_mtof_55_lastTuning = 0;
 }
 
-number gen_01_mtof_75_next(number midivalue, number tuning) {
+number gen_01_mtof_74_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_75_lastInValue && 440 == this->gen_01_mtof_75_lastTuning)
-        return this->gen_01_mtof_75_lastOutValue;
+    if (midivalue == this->gen_01_mtof_74_lastInValue && 440 == this->gen_01_mtof_74_lastTuning)
+        return this->gen_01_mtof_74_lastOutValue;
 
-    this->gen_01_mtof_75_lastInValue = midivalue;
-    this->gen_01_mtof_75_lastTuning = 440;
+    this->gen_01_mtof_74_lastInValue = midivalue;
+    this->gen_01_mtof_74_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_75_lastOutValue = 440 * result;
-    return this->gen_01_mtof_75_lastOutValue;
+    this->gen_01_mtof_74_lastOutValue = 440 * result;
+    return this->gen_01_mtof_74_lastOutValue;
 }
 
-void gen_01_mtof_75_reset() {
-    this->gen_01_mtof_75_lastInValue = 0;
-    this->gen_01_mtof_75_lastOutValue = 0;
-    this->gen_01_mtof_75_lastTuning = 0;
+void gen_01_mtof_74_reset() {
+    this->gen_01_mtof_74_lastInValue = 0;
+    this->gen_01_mtof_74_lastOutValue = 0;
+    this->gen_01_mtof_74_lastTuning = 0;
 }
 
 void gen_01_dspsetup(bool force) {
@@ -3145,7 +3130,7 @@ void gen_01_dspsetup(bool force) {
         return;
 
     this->gen_01_setupDone = true;
-    this->gen_01_phasor_18_dspsetup();
+    this->gen_01_phasor_17_dspsetup();
 }
 
 number rampsmooth_tilde_01_d_next(number x) {
@@ -3650,24 +3635,23 @@ void assign_defaults()
     gen_01_change_13_prev = 0;
     gen_01_change_14_prev = 0;
     gen_01_change_15_prev = 0;
-    gen_01_change_16_prev = 0;
-    gen_01_mtof_17_lastInValue = 0;
-    gen_01_mtof_17_lastOutValue = 0;
-    gen_01_mtof_17_lastTuning = 0;
-    gen_01_phasor_18_currentPhase = 0;
-    gen_01_phasor_18_conv = 0;
-    gen_01_mtof_19_lastInValue = 0;
-    gen_01_mtof_19_lastOutValue = 0;
-    gen_01_mtof_19_lastTuning = 0;
-    gen_01_mtof_22_lastInValue = 0;
-    gen_01_mtof_22_lastOutValue = 0;
-    gen_01_mtof_22_lastTuning = 0;
-    gen_01_mtof_56_lastInValue = 0;
-    gen_01_mtof_56_lastOutValue = 0;
-    gen_01_mtof_56_lastTuning = 0;
-    gen_01_mtof_75_lastInValue = 0;
-    gen_01_mtof_75_lastOutValue = 0;
-    gen_01_mtof_75_lastTuning = 0;
+    gen_01_mtof_16_lastInValue = 0;
+    gen_01_mtof_16_lastOutValue = 0;
+    gen_01_mtof_16_lastTuning = 0;
+    gen_01_phasor_17_currentPhase = 0;
+    gen_01_phasor_17_conv = 0;
+    gen_01_mtof_18_lastInValue = 0;
+    gen_01_mtof_18_lastOutValue = 0;
+    gen_01_mtof_18_lastTuning = 0;
+    gen_01_mtof_21_lastInValue = 0;
+    gen_01_mtof_21_lastOutValue = 0;
+    gen_01_mtof_21_lastTuning = 0;
+    gen_01_mtof_55_lastInValue = 0;
+    gen_01_mtof_55_lastOutValue = 0;
+    gen_01_mtof_55_lastTuning = 0;
+    gen_01_mtof_74_lastInValue = 0;
+    gen_01_mtof_74_lastOutValue = 0;
+    gen_01_mtof_74_lastTuning = 0;
     gen_01_setupDone = false;
     rampsmooth_tilde_01_prev = 0;
     rampsmooth_tilde_01_index = 0;
@@ -3798,29 +3782,28 @@ void assign_defaults()
     number gen_01_change_13_prev;
     number gen_01_change_14_prev;
     number gen_01_change_15_prev;
-    number gen_01_change_16_prev;
-    number gen_01_mtof_17_lastInValue;
-    number gen_01_mtof_17_lastOutValue;
-    number gen_01_mtof_17_lastTuning;
-    Float64BufferRef gen_01_mtof_17_buffer;
-    number gen_01_phasor_18_currentPhase;
-    number gen_01_phasor_18_conv;
-    number gen_01_mtof_19_lastInValue;
-    number gen_01_mtof_19_lastOutValue;
-    number gen_01_mtof_19_lastTuning;
-    Float64BufferRef gen_01_mtof_19_buffer;
-    number gen_01_mtof_22_lastInValue;
-    number gen_01_mtof_22_lastOutValue;
-    number gen_01_mtof_22_lastTuning;
-    Float64BufferRef gen_01_mtof_22_buffer;
-    number gen_01_mtof_56_lastInValue;
-    number gen_01_mtof_56_lastOutValue;
-    number gen_01_mtof_56_lastTuning;
-    Float64BufferRef gen_01_mtof_56_buffer;
-    number gen_01_mtof_75_lastInValue;
-    number gen_01_mtof_75_lastOutValue;
-    number gen_01_mtof_75_lastTuning;
-    Float64BufferRef gen_01_mtof_75_buffer;
+    number gen_01_mtof_16_lastInValue;
+    number gen_01_mtof_16_lastOutValue;
+    number gen_01_mtof_16_lastTuning;
+    Float64BufferRef gen_01_mtof_16_buffer;
+    number gen_01_phasor_17_currentPhase;
+    number gen_01_phasor_17_conv;
+    number gen_01_mtof_18_lastInValue;
+    number gen_01_mtof_18_lastOutValue;
+    number gen_01_mtof_18_lastTuning;
+    Float64BufferRef gen_01_mtof_18_buffer;
+    number gen_01_mtof_21_lastInValue;
+    number gen_01_mtof_21_lastOutValue;
+    number gen_01_mtof_21_lastTuning;
+    Float64BufferRef gen_01_mtof_21_buffer;
+    number gen_01_mtof_55_lastInValue;
+    number gen_01_mtof_55_lastOutValue;
+    number gen_01_mtof_55_lastTuning;
+    Float64BufferRef gen_01_mtof_55_buffer;
+    number gen_01_mtof_74_lastInValue;
+    number gen_01_mtof_74_lastOutValue;
+    number gen_01_mtof_74_lastTuning;
+    Float64BufferRef gen_01_mtof_74_buffer;
     bool gen_01_setupDone;
     number rampsmooth_tilde_01_prev;
     number rampsmooth_tilde_01_index;
