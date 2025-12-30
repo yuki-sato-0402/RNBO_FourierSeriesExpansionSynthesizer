@@ -132,37 +132,6 @@ inline number linearinterp(number frac, number x, number y) {
     return x + (y - x) * frac;
 }
 
-inline number safediv(number num, number denom) {
-    return (denom == 0.0 ? 0.0 : num / denom);
-}
-
-number safepow(number base, number exponent) {
-    return fixnan(rnbo_pow(base, exponent));
-}
-
-number scale(
-    number x,
-    number lowin,
-    number hiin,
-    number lowout,
-    number highout,
-    number pow
-) {
-    auto inscale = this->safediv(1., hiin - lowin);
-    number outdiff = highout - lowout;
-    number value = (x - lowin) * inscale;
-
-    if (pow != 1) {
-        if (value > 0)
-            value = this->safepow(value, pow);
-        else
-            value = -this->safepow(-value, pow);
-    }
-
-    value = value * outdiff + lowout;
-    return value;
-}
-
 inline number safemod(number f, number m) {
     if (m != 0) {
         Int f_trunc = (Int)(trunc(f));
@@ -202,8 +171,198 @@ inline number safemod(number f, number m) {
     return f;
 }
 
+number wrap(number x, number low, number high) {
+    number lo;
+    number hi;
+
+    if (low == high)
+        return low;
+
+    if (low > high) {
+        hi = low;
+        lo = high;
+    } else {
+        lo = low;
+        hi = high;
+    }
+
+    number range = hi - lo;
+
+    if (x >= lo && x < hi)
+        return x;
+
+    if (range <= 0.000000001)
+        return lo;
+
+    long numWraps = (long)(trunc((x - lo) / range));
+    numWraps = numWraps - ((x < lo ? 1 : 0));
+    number result = x - range * numWraps;
+
+    if (result >= hi)
+        return result - range;
+    else
+        return result;
+}
+
+template <typename T> inline void poke_default(
+    T& buffer,
+    SampleValue value,
+    SampleValue sampleIndex,
+    int channel,
+    number overdub
+) {
+    number bufferSize = buffer->getSize();
+    const Index bufferChannels = (const Index)(buffer->getChannels());
+
+    if (bufferSize > 0 && (5 != 5 || (sampleIndex >= 0 && sampleIndex < bufferSize)) && (5 != 5 || (channel >= 0 && channel < bufferChannels))) {
+        if (overdub != 0) {
+            number currentValue = buffer->getSample(channel, sampleIndex);
+
+            {
+                value = value * (1. - overdub) + currentValue * overdub;
+            }
+        }
+
+        buffer->setSample(channel, sampleIndex, value);
+        buffer->setTouched(true);
+    }
+}
+
+inline number cubicinterp(number a, number w, number x, number y, number z) {
+    number a2 = a * a;
+    number f0 = z - y - w + x;
+    number f1 = w - x - f0;
+    number f2 = y - w;
+    number f3 = x;
+    return f0 * a * a2 + f1 * a2 + f2 * a + f3;
+}
+
+inline number splineinterp(number a, number w, number x, number y, number z) {
+    number a2 = a * a;
+    number f0 = -0.5 * w + 1.5 * x - 1.5 * y + 0.5 * z;
+    number f1 = w - 2.5 * x + 2 * y - 0.5 * z;
+    number f2 = -0.5 * w + 0.5 * y;
+    return f0 * a * a2 + f1 * a2 + f2 * a + x;
+}
+
+inline number cosT8(number r) {
+    number t84 = 56.0;
+    number t83 = 1680.0;
+    number t82 = 20160.0;
+    number t81 = 2.4801587302e-05;
+    number t73 = 42.0;
+    number t72 = 840.0;
+    number t71 = 1.9841269841e-04;
+
+    if (r < 0.785398163397448309615660845819875721 && r > -0.785398163397448309615660845819875721) {
+        number rr = r * r;
+        return 1.0 - rr * t81 * (t82 - rr * (t83 - rr * (t84 - rr)));
+    } else if (r > 0.0) {
+        r -= 1.57079632679489661923132169163975144;
+        number rr = r * r;
+        return -r * (1.0 - t71 * rr * (t72 - rr * (t73 - rr)));
+    } else {
+        r += 1.57079632679489661923132169163975144;
+        number rr = r * r;
+        return r * (1.0 - t71 * rr * (t72 - rr * (t73 - rr)));
+    }
+}
+
+inline number cosineinterp(number frac, number x, number y) {
+    number a2 = (1.0 - this->cosT8(frac * 3.14159265358979323846)) / (number)2.0;
+    return x * (1.0 - a2) + y * a2;
+}
+
+template <typename T> inline array<SampleValue, 1 + 1> peek_default(T& buffer, SampleValue sampleIndex, Index channelOffset) {
+    number bufferSize = buffer->getSize();
+    const Index bufferChannels = (const Index)(buffer->getChannels());
+    constexpr int ___N2 = 1 + 1;
+    array<SampleValue, ___N2> out = FIXEDSIZEARRAYINIT(1 + 1);
+
+    if (bufferSize == 0 || (5 == 5 && (sampleIndex < 0 || sampleIndex >= bufferSize))) {
+        return out;
+    } else {
+        for (Index channel = 0; channel < 1; channel++) {
+            Index channelIndex = (Index)(channel + channelOffset);
+
+            {
+                if (channelIndex >= bufferChannels || channelIndex < 0) {
+                    out[(Index)channel] = 0;
+                    continue;
+                }
+            }
+
+            SampleValue bufferreadsample_result;
+
+            {
+                auto& __buffer = buffer;
+
+                if (sampleIndex < 0.0) {
+                    bufferreadsample_result = 0.0;
+                }
+
+                SampleIndex index1 = (SampleIndex)(trunc(sampleIndex));
+
+                {
+                    {
+                        {
+                            {
+                                bufferreadsample_result = __buffer->getSample(channelIndex, index1);
+                            }
+                        }
+                    }
+                }
+            }
+
+            out[(Index)channel] = bufferreadsample_result;
+        }
+
+        out[1] = sampleIndex;
+        return out;
+    }
+}
+
+inline number safediv(number num, number denom) {
+    return (denom == 0.0 ? 0.0 : num / denom);
+}
+
+number safepow(number base, number exponent) {
+    return fixnan(rnbo_pow(base, exponent));
+}
+
+number scale(
+    number x,
+    number lowin,
+    number hiin,
+    number lowout,
+    number highout,
+    number pow
+) {
+    auto inscale = this->safediv(1., hiin - lowin);
+    number outdiff = highout - lowout;
+    number value = (x - lowin) * inscale;
+
+    if (pow != 1) {
+        if (value > 0)
+            value = this->safepow(value, pow);
+        else
+            value = -this->safepow(-value, pow);
+    }
+
+    value = value * outdiff + lowout;
+    return value;
+}
+
 number samplerate() {
     return this->sr;
+}
+
+inline number intnum(const number value) {
+    return trunc(value);
+}
+
+number maximum(number x, number y) {
+    return (x < y ? y : x);
 }
 
 Index vectorsize() {
@@ -216,10 +375,6 @@ SampleIndex currentsampletime() {
 
 number mstosamps(MillisecondTime ms) {
     return ms * this->sr * 0.001;
-}
-
-number maximum(number x, number y) {
-    return (x < y ? y : x);
 }
 
 MillisecondTime currenttime() {
@@ -267,6 +422,11 @@ void process(
 
     this->gen_01_perform(
         this->gen_01_in1,
+        this->gen_01_termsToAddPerCount,
+        this->gen_01_cycleCountToSubtract,
+        this->gen_01_cycleCountToAdd,
+        this->gen_01_PosNegSync,
+        this->gen_01_PosNeg,
         this->gen_01_ocillator,
         this->gen_01_attenuation,
         this->gen_01_cutoffOvertone,
@@ -296,8 +456,8 @@ void process(
 
     this->dspexpr_02_perform(this->signals[0], this->signals[2], this->signals[1], n);
     this->linetilde_01_perform(this->signals[2], n);
-    this->dspexpr_01_perform(this->signals[1], this->signals[2], out2, n);
-    this->signalforwarder_01_perform(out2, out1, n);
+    this->dspexpr_01_perform(this->signals[1], this->signals[2], out1, n);
+    this->signalforwarder_01_perform(out1, out2, n);
     this->stackprotect_perform(n);
     this->globaltransport_advance();
     this->audioProcessSampleCount += this->vs;
@@ -361,6 +521,11 @@ DataRef* getDataRef(DataRefIndex index)  {
     switch (index) {
     case 0:
         {
+        return addressOf(this->manageParam);
+        break;
+        }
+    case 1:
+        {
         return addressOf(this->RNBODefaultMtofLookupTable256);
         break;
         }
@@ -372,7 +537,7 @@ DataRef* getDataRef(DataRefIndex index)  {
 }
 
 DataRefIndex getNumDataRefs() const {
-    return 1;
+    return 2;
 }
 
 void fillRNBODefaultMtofLookupTable256(DataRef& ref) {
@@ -388,7 +553,7 @@ void fillRNBODefaultMtofLookupTable256(DataRef& ref) {
 
 void fillDataRef(DataRefIndex index, DataRef& ref) {
     switch (index) {
-    case 0:
+    case 1:
         {
         this->fillRNBODefaultMtofLookupTable256(ref);
         break;
@@ -396,22 +561,39 @@ void fillDataRef(DataRefIndex index, DataRef& ref) {
     }
 }
 
+void zeroDataRef(DataRef& ref) {
+    ref->setZero();
+}
+
 void processDataViewUpdate(DataRefIndex index, MillisecondTime time) {
     this->updateTime(time);
 
     if (index == 0) {
-        this->gen_01_mtof_2_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_20_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_manageParam = new Float64Buffer(this->manageParam);
+    }
+
+    if (index == 1) {
+        this->gen_01_mtof_17_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_19_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_22_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_56_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_75_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
     }
 }
 
 void initialize() {
+    this->manageParam = initDataRef("manageParam", true, nullptr, "buffer~");
     this->RNBODefaultMtofLookupTable256 = initDataRef("RNBODefaultMtofLookupTable256", true, nullptr, "buffer~");
     this->assign_defaults();
     this->setState();
-    this->RNBODefaultMtofLookupTable256->setIndex(0);
-    this->gen_01_mtof_2_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_20_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->manageParam->setIndex(0);
+    this->gen_01_manageParam = new Float64Buffer(this->manageParam);
+    this->RNBODefaultMtofLookupTable256->setIndex(1);
+    this->gen_01_mtof_17_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_19_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_22_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_56_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_75_buffer = new Float64Buffer(this->RNBODefaultMtofLookupTable256);
     this->initializeObjects();
     this->allocateDataRefs();
     this->startup();
@@ -435,30 +617,40 @@ void setState() {}
 
 void getPreset(PatcherStateInterface& preset) {
     preset["__presetid"] = "rnbo";
-    this->param_01_getPresetValue(getSubState(preset, "decay"));
-    this->param_02_getPresetValue(getSubState(preset, "attack"));
-    this->param_03_getPresetValue(getSubState(preset, "ocillator"));
-    this->param_04_getPresetValue(getSubState(preset, "amp"));
-    this->param_05_getPresetValue(getSubState(preset, "attenuation"));
-    this->param_06_getPresetValue(getSubState(preset, "cutoffOvertone"));
-    this->param_07_getPresetValue(getSubState(preset, "filterOnOff"));
-    this->param_08_getPresetValue(getSubState(preset, "terms"));
-    this->param_09_getPresetValue(getSubState(preset, "sustain"));
+    this->param_01_getPresetValue(getSubState(preset, "PosNeg"));
+    this->param_02_getPresetValue(getSubState(preset, "decay"));
+    this->param_03_getPresetValue(getSubState(preset, "attack"));
+    this->param_04_getPresetValue(getSubState(preset, "ocillator"));
+    this->param_05_getPresetValue(getSubState(preset, "amp"));
+    this->param_06_getPresetValue(getSubState(preset, "attenuation"));
+    this->param_07_getPresetValue(getSubState(preset, "cutoffOvertone"));
+    this->param_08_getPresetValue(getSubState(preset, "filterOnOff"));
+    this->param_09_getPresetValue(getSubState(preset, "terms"));
     this->param_10_getPresetValue(getSubState(preset, "release"));
+    this->param_11_getPresetValue(getSubState(preset, "sustain"));
+    this->param_12_getPresetValue(getSubState(preset, "PosNegSync"));
+    this->param_13_getPresetValue(getSubState(preset, "termsToAddPerCount"));
+    this->param_14_getPresetValue(getSubState(preset, "cycleCountToSubtract"));
+    this->param_15_getPresetValue(getSubState(preset, "cycleCountToAdd"));
 }
 
 void setPreset(MillisecondTime time, PatcherStateInterface& preset) {
     this->updateTime(time);
-    this->param_01_setPresetValue(getSubState(preset, "decay"));
-    this->param_02_setPresetValue(getSubState(preset, "attack"));
-    this->param_03_setPresetValue(getSubState(preset, "ocillator"));
-    this->param_04_setPresetValue(getSubState(preset, "amp"));
-    this->param_05_setPresetValue(getSubState(preset, "attenuation"));
-    this->param_06_setPresetValue(getSubState(preset, "cutoffOvertone"));
-    this->param_07_setPresetValue(getSubState(preset, "filterOnOff"));
-    this->param_08_setPresetValue(getSubState(preset, "terms"));
-    this->param_09_setPresetValue(getSubState(preset, "sustain"));
+    this->param_01_setPresetValue(getSubState(preset, "PosNeg"));
+    this->param_02_setPresetValue(getSubState(preset, "decay"));
+    this->param_03_setPresetValue(getSubState(preset, "attack"));
+    this->param_04_setPresetValue(getSubState(preset, "ocillator"));
+    this->param_05_setPresetValue(getSubState(preset, "amp"));
+    this->param_06_setPresetValue(getSubState(preset, "attenuation"));
+    this->param_07_setPresetValue(getSubState(preset, "cutoffOvertone"));
+    this->param_08_setPresetValue(getSubState(preset, "filterOnOff"));
+    this->param_09_setPresetValue(getSubState(preset, "terms"));
     this->param_10_setPresetValue(getSubState(preset, "release"));
+    this->param_11_setPresetValue(getSubState(preset, "sustain"));
+    this->param_12_setPresetValue(getSubState(preset, "PosNegSync"));
+    this->param_13_setPresetValue(getSubState(preset, "termsToAddPerCount"));
+    this->param_14_setPresetValue(getSubState(preset, "cycleCountToSubtract"));
+    this->param_15_setPresetValue(getSubState(preset, "cycleCountToAdd"));
 }
 
 void processTempoEvent(MillisecondTime time, Tempo tempo) {
@@ -545,6 +737,31 @@ void setParameterValue(ParameterIndex index, ParameterValue v, MillisecondTime t
         this->param_10_value_set(v);
         break;
         }
+    case 10:
+        {
+        this->param_11_value_set(v);
+        break;
+        }
+    case 11:
+        {
+        this->param_12_value_set(v);
+        break;
+        }
+    case 12:
+        {
+        this->param_13_value_set(v);
+        break;
+        }
+    case 13:
+        {
+        this->param_14_value_set(v);
+        break;
+        }
+    case 14:
+        {
+        this->param_15_value_set(v);
+        break;
+        }
     }
 }
 
@@ -602,6 +819,26 @@ ParameterValue getParameterValue(ParameterIndex index)  {
         {
         return this->param_10_value;
         }
+    case 10:
+        {
+        return this->param_11_value;
+        }
+    case 11:
+        {
+        return this->param_12_value;
+        }
+    case 12:
+        {
+        return this->param_13_value;
+        }
+    case 13:
+        {
+        return this->param_14_value;
+        }
+    case 14:
+        {
+        return this->param_15_value;
+        }
     default:
         {
         return 0;
@@ -618,50 +855,70 @@ ParameterIndex getNumSignalOutParameters() const {
 }
 
 ParameterIndex getNumParameters() const {
-    return 10;
+    return 15;
 }
 
 ConstCharPointer getParameterName(ParameterIndex index) const {
     switch (index) {
     case 0:
         {
-        return "decay";
+        return "PosNeg";
         }
     case 1:
         {
-        return "attack";
+        return "decay";
         }
     case 2:
         {
-        return "ocillator";
+        return "attack";
         }
     case 3:
         {
-        return "amp";
+        return "ocillator";
         }
     case 4:
         {
-        return "attenuation";
+        return "amp";
         }
     case 5:
         {
-        return "cutoffOvertone";
+        return "attenuation";
         }
     case 6:
         {
-        return "filterOnOff";
+        return "cutoffOvertone";
         }
     case 7:
         {
-        return "terms";
+        return "filterOnOff";
         }
     case 8:
         {
-        return "sustain";
+        return "terms";
         }
     case 9:
         {
         return "release";
+        }
+    case 10:
+        {
+        return "sustain";
+        }
+    case 11:
+        {
+        return "PosNegSync";
+        }
+    case 12:
+        {
+        return "termsToAddPerCount";
+        }
+    case 13:
+        {
+        return "cycleCountToSubtract";
+        }
+    case 14:
+        {
+        return "cycleCountToAdd";
         }
     default:
         {
@@ -674,43 +931,63 @@ ConstCharPointer getParameterId(ParameterIndex index) const {
     switch (index) {
     case 0:
         {
-        return "decay";
+        return "PosNeg";
         }
     case 1:
         {
-        return "attack";
+        return "decay";
         }
     case 2:
         {
-        return "ocillator";
+        return "attack";
         }
     case 3:
         {
-        return "amp";
+        return "ocillator";
         }
     case 4:
         {
-        return "attenuation";
+        return "amp";
         }
     case 5:
         {
-        return "cutoffOvertone";
+        return "attenuation";
         }
     case 6:
         {
-        return "filterOnOff";
+        return "cutoffOvertone";
         }
     case 7:
         {
-        return "terms";
+        return "filterOnOff";
         }
     case 8:
         {
-        return "sustain";
+        return "terms";
         }
     case 9:
         {
         return "release";
+        }
+    case 10:
+        {
+        return "sustain";
+        }
+    case 11:
+        {
+        return "PosNegSync";
+        }
+    case 12:
+        {
+        return "termsToAddPerCount";
+        }
+    case 13:
+        {
+        return "cycleCountToSubtract";
+        }
+    case 14:
+        {
+        return "cycleCountToAdd";
         }
     default:
         {
@@ -723,120 +1000,6 @@ void getParameterInfo(ParameterIndex index, ParameterInfo * info) const {
     {
         switch (index) {
         case 0:
-            {
-            info->type = ParameterTypeNumber;
-            info->initialValue = 100;
-            info->min = 1;
-            info->max = 1000;
-            info->exponent = 1;
-            info->steps = 0;
-            info->debug = false;
-            info->saveable = true;
-            info->transmittable = true;
-            info->initialized = true;
-            info->visible = true;
-            info->displayName = "";
-            info->unit = "";
-            info->ioType = IOTypeUndefined;
-            info->signalIndex = INVALID_INDEX;
-            break;
-            }
-        case 1:
-            {
-            info->type = ParameterTypeNumber;
-            info->initialValue = 10;
-            info->min = 1;
-            info->max = 1000;
-            info->exponent = 1;
-            info->steps = 0;
-            info->debug = false;
-            info->saveable = true;
-            info->transmittable = true;
-            info->initialized = true;
-            info->visible = true;
-            info->displayName = "";
-            info->unit = "";
-            info->ioType = IOTypeUndefined;
-            info->signalIndex = INVALID_INDEX;
-            break;
-            }
-        case 2:
-            {
-            info->type = ParameterTypeNumber;
-            info->initialValue = 1;
-            info->min = 1;
-            info->max = 3;
-            info->exponent = 1;
-            info->steps = 0;
-            info->debug = false;
-            info->saveable = true;
-            info->transmittable = true;
-            info->initialized = true;
-            info->visible = true;
-            info->displayName = "";
-            info->unit = "";
-            info->ioType = IOTypeUndefined;
-            info->signalIndex = INVALID_INDEX;
-            break;
-            }
-        case 3:
-            {
-            info->type = ParameterTypeNumber;
-            info->initialValue = 0.5;
-            info->min = 0;
-            info->max = 1;
-            info->exponent = 1;
-            info->steps = 0;
-            info->debug = false;
-            info->saveable = true;
-            info->transmittable = true;
-            info->initialized = true;
-            info->visible = true;
-            info->displayName = "";
-            info->unit = "";
-            info->ioType = IOTypeUndefined;
-            info->signalIndex = INVALID_INDEX;
-            break;
-            }
-        case 4:
-            {
-            info->type = ParameterTypeNumber;
-            info->initialValue = 1;
-            info->min = 1;
-            info->max = 100;
-            info->exponent = 1;
-            info->steps = 0;
-            info->debug = false;
-            info->saveable = true;
-            info->transmittable = true;
-            info->initialized = true;
-            info->visible = true;
-            info->displayName = "";
-            info->unit = "";
-            info->ioType = IOTypeUndefined;
-            info->signalIndex = INVALID_INDEX;
-            break;
-            }
-        case 5:
-            {
-            info->type = ParameterTypeNumber;
-            info->initialValue = 2;
-            info->min = 2;
-            info->max = 40;
-            info->exponent = 1;
-            info->steps = 0;
-            info->debug = false;
-            info->saveable = true;
-            info->transmittable = true;
-            info->initialized = true;
-            info->visible = true;
-            info->displayName = "";
-            info->unit = "";
-            info->ioType = IOTypeUndefined;
-            info->signalIndex = INVALID_INDEX;
-            break;
-            }
-        case 6:
             {
             info->type = ParameterTypeNumber;
             info->initialValue = 0;
@@ -855,12 +1018,126 @@ void getParameterInfo(ParameterIndex index, ParameterInfo * info) const {
             info->signalIndex = INVALID_INDEX;
             break;
             }
-        case 7:
+        case 1:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 100;
+            info->min = 1;
+            info->max = 1000;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 2:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 10;
+            info->min = 1;
+            info->max = 1000;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 3:
             {
             info->type = ParameterTypeNumber;
             info->initialValue = 1;
             info->min = 1;
+            info->max = 3;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 4:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 0.5;
+            info->min = 0;
+            info->max = 1;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 5:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 1;
+            info->min = 1;
+            info->max = 100;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 6:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 2;
+            info->min = 2;
             info->max = 40;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 7:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 0;
+            info->min = 0;
+            info->max = 1;
             info->exponent = 1;
             info->steps = 0;
             info->debug = false;
@@ -877,9 +1154,9 @@ void getParameterInfo(ParameterIndex index, ParameterInfo * info) const {
         case 8:
             {
             info->type = ParameterTypeNumber;
-            info->initialValue = 80;
-            info->min = 0;
-            info->max = 100;
+            info->initialValue = 1;
+            info->min = 1;
+            info->max = 40;
             info->exponent = 1;
             info->steps = 0;
             info->debug = false;
@@ -899,6 +1176,101 @@ void getParameterInfo(ParameterIndex index, ParameterInfo * info) const {
             info->initialValue = 1000;
             info->min = 0;
             info->max = 5000;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 10:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 80;
+            info->min = 0;
+            info->max = 100;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 11:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 1;
+            info->min = 0;
+            info->max = 1;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 12:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 1;
+            info->min = 1;
+            info->max = 20;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 13:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 1;
+            info->min = 0;
+            info->max = 20;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 14:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 1;
+            info->min = 0;
+            info->max = 20;
             info->exponent = 1;
             info->steps = 0;
             info->debug = false;
@@ -936,8 +1308,10 @@ ParameterValue applyStepsToNormalizedParameterValue(ParameterValue normalizedVal
 
 ParameterValue convertToNormalizedParameterValue(ParameterIndex index, ParameterValue value) const {
     switch (index) {
-    case 3:
-    case 6:
+    case 0:
+    case 4:
+    case 7:
+    case 11:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -945,7 +1319,16 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
-    case 8:
+    case 13:
+    case 14:
+        {
+        {
+            value = (value < 0 ? 0 : (value > 20 ? 20 : value));
+            ParameterValue normalizedValue = (value - 0) / (20 - 0);
+            return normalizedValue;
+        }
+        }
+    case 10:
         {
         {
             value = (value < 0 ? 0 : (value > 100 ? 100 : value));
@@ -961,7 +1344,7 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
-    case 2:
+    case 3:
         {
         {
             value = (value < 1 ? 1 : (value > 3 ? 3 : value));
@@ -969,7 +1352,15 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
-    case 7:
+    case 12:
+        {
+        {
+            value = (value < 1 ? 1 : (value > 20 ? 20 : value));
+            ParameterValue normalizedValue = (value - 1) / (20 - 1);
+            return normalizedValue;
+        }
+        }
+    case 8:
         {
         {
             value = (value < 1 ? 1 : (value > 40 ? 40 : value));
@@ -977,7 +1368,7 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
-    case 4:
+    case 5:
         {
         {
             value = (value < 1 ? 1 : (value > 100 ? 100 : value));
@@ -985,8 +1376,8 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
-    case 0:
     case 1:
+    case 2:
         {
         {
             value = (value < 1 ? 1 : (value > 1000 ? 1000 : value));
@@ -994,7 +1385,7 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
-    case 5:
+    case 6:
         {
         {
             value = (value < 2 ? 2 : (value > 40 ? 40 : value));
@@ -1013,8 +1404,10 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
     value = (value < 0 ? 0 : (value > 1 ? 1 : value));
 
     switch (index) {
-    case 3:
-    case 6:
+    case 0:
+    case 4:
+    case 7:
+    case 11:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -1024,7 +1417,18 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
             }
         }
         }
-    case 8:
+    case 13:
+    case 14:
+        {
+        {
+            value = (value < 0 ? 0 : (value > 1 ? 1 : value));
+
+            {
+                return 0 + value * (20 - 0);
+            }
+        }
+        }
+    case 10:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -1044,7 +1448,7 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
             }
         }
         }
-    case 2:
+    case 3:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -1054,7 +1458,17 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
             }
         }
         }
-    case 7:
+    case 12:
+        {
+        {
+            value = (value < 0 ? 0 : (value > 1 ? 1 : value));
+
+            {
+                return 1 + value * (20 - 1);
+            }
+        }
+        }
+    case 8:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -1064,7 +1478,7 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
             }
         }
         }
-    case 4:
+    case 5:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -1074,8 +1488,8 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
             }
         }
         }
-    case 0:
     case 1:
+    case 2:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -1085,7 +1499,7 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
             }
         }
         }
-    case 5:
+    case 6:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -1143,6 +1557,26 @@ ParameterValue constrainParameterValue(ParameterIndex index, ParameterValue valu
     case 9:
         {
         return this->param_10_value_constrain(value);
+        }
+    case 10:
+        {
+        return this->param_11_value_constrain(value);
+        }
+    case 11:
+        {
+        return this->param_12_value_constrain(value);
+        }
+    case 12:
+        {
+        return this->param_13_value_constrain(value);
+        }
+    case 13:
+        {
+        return this->param_14_value_constrain(value);
+        }
+    case 14:
+        {
+        return this->param_15_value_constrain(value);
         }
     default:
         {
@@ -1207,14 +1641,14 @@ void processNumMessage(MessageTag tag, MessageTag objectId, MillisecondTime time
     switch (tag) {
     case TAG("valin"):
         {
-        if (TAG("number_obj-6") == objectId)
+        if (TAG("number_obj-26") == objectId)
             this->numberobj_01_valin_set(payload);
 
         break;
         }
     case TAG("format"):
         {
-        if (TAG("number_obj-6") == objectId)
+        if (TAG("number_obj-26") == objectId)
             this->numberobj_01_format_set(payload);
 
         break;
@@ -1232,9 +1666,9 @@ MessageTagInfo resolveTag(MessageTag tag) const {
         {
         return "valout";
         }
-    case TAG("number_obj-6"):
+    case TAG("number_obj-26"):
         {
-        return "number_obj-6";
+        return "number_obj-26";
         }
     case TAG("setup"):
         {
@@ -1277,7 +1711,7 @@ void param_01_value_set(number v) {
         this->param_01_lastValue = this->param_01_value;
     }
 
-    this->adsr_01_decay_set(v);
+    this->gen_01_PosNeg_set(v);
 }
 
 void param_02_value_set(number v) {
@@ -1290,7 +1724,7 @@ void param_02_value_set(number v) {
         this->param_02_lastValue = this->param_02_value;
     }
 
-    this->adsr_01_attack_set(v);
+    this->adsr_01_decay_set(v);
 }
 
 void param_03_value_set(number v) {
@@ -1303,7 +1737,7 @@ void param_03_value_set(number v) {
         this->param_03_lastValue = this->param_03_value;
     }
 
-    this->gen_01_ocillator_set(v);
+    this->adsr_01_attack_set(v);
 }
 
 void param_04_value_set(number v) {
@@ -1316,10 +1750,7 @@ void param_04_value_set(number v) {
         this->param_04_lastValue = this->param_04_value;
     }
 
-    {
-        list converted = {v};
-        this->linetilde_01_segments_set(converted);
-    }
+    this->gen_01_ocillator_set(v);
 }
 
 void param_05_value_set(number v) {
@@ -1332,7 +1763,10 @@ void param_05_value_set(number v) {
         this->param_05_lastValue = this->param_05_value;
     }
 
-    this->expr_04_in1_set(v);
+    {
+        list converted = {v};
+        this->linetilde_01_segments_set(converted);
+    }
 }
 
 void param_06_value_set(number v) {
@@ -1345,7 +1779,7 @@ void param_06_value_set(number v) {
         this->param_06_lastValue = this->param_06_value;
     }
 
-    this->gen_01_cutoffOvertone_set(v);
+    this->expr_04_in1_set(v);
 }
 
 void param_07_value_set(number v) {
@@ -1358,7 +1792,7 @@ void param_07_value_set(number v) {
         this->param_07_lastValue = this->param_07_value;
     }
 
-    this->gen_01_filterOnOff_set(v);
+    this->gen_01_cutoffOvertone_set(v);
 }
 
 void param_08_value_set(number v) {
@@ -1371,7 +1805,7 @@ void param_08_value_set(number v) {
         this->param_08_lastValue = this->param_08_value;
     }
 
-    this->gen_01_terms_set(v);
+    this->gen_01_filterOnOff_set(v);
 }
 
 void param_09_value_set(number v) {
@@ -1384,7 +1818,7 @@ void param_09_value_set(number v) {
         this->param_09_lastValue = this->param_09_value;
     }
 
-    this->expr_05_in1_set(v);
+    this->gen_01_terms_set(v);
 }
 
 void param_10_value_set(number v) {
@@ -1398,6 +1832,71 @@ void param_10_value_set(number v) {
     }
 
     this->adsr_01_release_set(v);
+}
+
+void param_11_value_set(number v) {
+    v = this->param_11_value_constrain(v);
+    this->param_11_value = v;
+    this->sendParameter(10, false);
+
+    if (this->param_11_value != this->param_11_lastValue) {
+        this->getEngine()->presetTouched();
+        this->param_11_lastValue = this->param_11_value;
+    }
+
+    this->expr_05_in1_set(v);
+}
+
+void param_12_value_set(number v) {
+    v = this->param_12_value_constrain(v);
+    this->param_12_value = v;
+    this->sendParameter(11, false);
+
+    if (this->param_12_value != this->param_12_lastValue) {
+        this->getEngine()->presetTouched();
+        this->param_12_lastValue = this->param_12_value;
+    }
+
+    this->gen_01_PosNegSync_set(v);
+}
+
+void param_13_value_set(number v) {
+    v = this->param_13_value_constrain(v);
+    this->param_13_value = v;
+    this->sendParameter(12, false);
+
+    if (this->param_13_value != this->param_13_lastValue) {
+        this->getEngine()->presetTouched();
+        this->param_13_lastValue = this->param_13_value;
+    }
+
+    this->gen_01_termsToAddPerCount_set(v);
+}
+
+void param_14_value_set(number v) {
+    v = this->param_14_value_constrain(v);
+    this->param_14_value = v;
+    this->sendParameter(13, false);
+
+    if (this->param_14_value != this->param_14_lastValue) {
+        this->getEngine()->presetTouched();
+        this->param_14_lastValue = this->param_14_value;
+    }
+
+    this->gen_01_cycleCountToSubtract_set(v);
+}
+
+void param_15_value_set(number v) {
+    v = this->param_15_value_constrain(v);
+    this->param_15_value = v;
+    this->sendParameter(14, false);
+
+    if (this->param_15_value != this->param_15_lastValue) {
+        this->getEngine()->presetTouched();
+        this->param_15_lastValue = this->param_15_value;
+    }
+
+    this->gen_01_cycleCountToAdd_set(v);
 }
 
 void numberobj_01_valin_set(number v) {
@@ -1441,23 +1940,48 @@ Index getNumOutputChannels() const {
 }
 
 void allocateDataRefs() {
-    this->gen_01_mtof_2_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_2_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_20_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_20_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_2_buffer = this->gen_01_mtof_2_buffer->allocateIfNeeded();
-    this->gen_01_mtof_20_buffer = this->gen_01_mtof_20_buffer->allocateIfNeeded();
+    this->gen_01_manageParam->requestSize(10, 1);
+    this->gen_01_manageParam->setSampleRate(this->sr);
+    this->gen_01_mtof_17_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_17_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_19_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_19_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_22_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_22_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_56_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_56_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_75_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_75_buffer->setSampleRate(this->sr);
+    this->gen_01_manageParam = this->gen_01_manageParam->allocateIfNeeded();
+
+    if (this->manageParam->hasRequestedSize()) {
+        if (this->manageParam->wantsFill())
+            this->zeroDataRef(this->manageParam);
+
+        this->getEngine()->sendDataRefUpdated(0);
+    }
+
+    this->gen_01_mtof_17_buffer = this->gen_01_mtof_17_buffer->allocateIfNeeded();
+    this->gen_01_mtof_19_buffer = this->gen_01_mtof_19_buffer->allocateIfNeeded();
+    this->gen_01_mtof_22_buffer = this->gen_01_mtof_22_buffer->allocateIfNeeded();
+    this->gen_01_mtof_56_buffer = this->gen_01_mtof_56_buffer->allocateIfNeeded();
+    this->gen_01_mtof_75_buffer = this->gen_01_mtof_75_buffer->allocateIfNeeded();
 
     if (this->RNBODefaultMtofLookupTable256->hasRequestedSize()) {
         if (this->RNBODefaultMtofLookupTable256->wantsFill())
             this->fillRNBODefaultMtofLookupTable256(this->RNBODefaultMtofLookupTable256);
 
-        this->getEngine()->sendDataRefUpdated(0);
+        this->getEngine()->sendDataRefUpdated(1);
     }
 }
 
 void initializeObjects() {
     this->numberobj_01_init();
+    this->gen_01_sampleCount_init();
+    this->gen_01_change_13_init();
+    this->gen_01_change_14_init();
+    this->gen_01_change_15_init();
+    this->gen_01_change_16_init();
 }
 
 void sendOutlet(OutletIndex index, ParameterValue value) {
@@ -1507,10 +2031,39 @@ void startup() {
         this->scheduleParamInit(9, 0);
     }
 
+    {
+        this->scheduleParamInit(10, 0);
+    }
+
+    {
+        this->scheduleParamInit(11, 0);
+    }
+
+    {
+        this->scheduleParamInit(12, 0);
+    }
+
+    {
+        this->scheduleParamInit(13, 0);
+    }
+
+    {
+        this->scheduleParamInit(14, 0);
+    }
+
     this->processParamInitEvents();
 }
 
 static number param_01_value_constrain(number v) {
+    v = (v > 1 ? 1 : (v < 0 ? 0 : v));
+    return v;
+}
+
+void gen_01_PosNeg_set(number v) {
+    this->gen_01_PosNeg = v;
+}
+
+static number param_02_value_constrain(number v) {
     v = (v > 1000 ? 1000 : (v < 1 ? 1 : v));
     return v;
 }
@@ -1519,7 +2072,7 @@ void adsr_01_decay_set(number v) {
     this->adsr_01_decay = v;
 }
 
-static number param_02_value_constrain(number v) {
+static number param_03_value_constrain(number v) {
     v = (v > 1000 ? 1000 : (v < 1 ? 1 : v));
     return v;
 }
@@ -1528,7 +2081,7 @@ void adsr_01_attack_set(number v) {
     this->adsr_01_attack = v;
 }
 
-static number param_03_value_constrain(number v) {
+static number param_04_value_constrain(number v) {
     v = (v > 3 ? 3 : (v < 1 ? 1 : v));
     return v;
 }
@@ -1537,7 +2090,7 @@ void gen_01_ocillator_set(number v) {
     this->gen_01_ocillator = v;
 }
 
-static number param_04_value_constrain(number v) {
+static number param_05_value_constrain(number v) {
     v = (v > 1 ? 1 : (v < 0 ? 0 : v));
     return v;
 }
@@ -1612,7 +2165,7 @@ void linetilde_01_segments_set(const list& v) {
     }
 }
 
-static number param_05_value_constrain(number v) {
+static number param_06_value_constrain(number v) {
     v = (v > 100 ? 100 : (v < 1 ? 1 : v));
     return v;
 }
@@ -1654,7 +2207,7 @@ void expr_04_in1_set(number in1) {
     this->expr_04_out1_set(fixnan(rnbo_pow(this->expr_04_in1, this->expr_04_in2)));//#map:pow_obj-31:1
 }
 
-static number param_06_value_constrain(number v) {
+static number param_07_value_constrain(number v) {
     v = (v > 40 ? 40 : (v < 2 ? 2 : v));
     return v;
 }
@@ -1663,7 +2216,7 @@ void gen_01_cutoffOvertone_set(number v) {
     this->gen_01_cutoffOvertone = v;
 }
 
-static number param_07_value_constrain(number v) {
+static number param_08_value_constrain(number v) {
     v = (v > 1 ? 1 : (v < 0 ? 0 : v));
     return v;
 }
@@ -1672,7 +2225,7 @@ void gen_01_filterOnOff_set(number v) {
     this->gen_01_filterOnOff = v;
 }
 
-static number param_08_value_constrain(number v) {
+static number param_09_value_constrain(number v) {
     v = (v > 40 ? 40 : (v < 1 ? 1 : v));
     return v;
 }
@@ -1681,7 +2234,16 @@ void gen_01_terms_set(number v) {
     this->gen_01_terms = v;
 }
 
-static number param_09_value_constrain(number v) {
+static number param_10_value_constrain(number v) {
+    v = (v > 5000 ? 5000 : (v < 0 ? 0 : v));
+    return v;
+}
+
+void adsr_01_release_set(number v) {
+    this->adsr_01_release = v;
+}
+
+static number param_11_value_constrain(number v) {
     v = (v > 100 ? 100 : (v < 0 ? 0 : v));
     return v;
 }
@@ -1703,13 +2265,40 @@ void expr_05_in1_set(number in1) {
     );//#map:/_obj-43:1
 }
 
-static number param_10_value_constrain(number v) {
-    v = (v > 5000 ? 5000 : (v < 0 ? 0 : v));
+static number param_12_value_constrain(number v) {
+    v = (v > 1 ? 1 : (v < 0 ? 0 : v));
     return v;
 }
 
-void adsr_01_release_set(number v) {
-    this->adsr_01_release = v;
+void gen_01_PosNegSync_set(number v) {
+    this->gen_01_PosNegSync = v;
+}
+
+static number param_13_value_constrain(number v) {
+    v = (v > 20 ? 20 : (v < 1 ? 1 : v));
+    return v;
+}
+
+void gen_01_termsToAddPerCount_set(number v) {
+    this->gen_01_termsToAddPerCount = v;
+}
+
+static number param_14_value_constrain(number v) {
+    v = (v > 20 ? 20 : (v < 0 ? 0 : v));
+    return v;
+}
+
+void gen_01_cycleCountToSubtract_set(number v) {
+    this->gen_01_cycleCountToSubtract = v;
+}
+
+static number param_15_value_constrain(number v) {
+    v = (v > 20 ? 20 : (v < 0 ? 0 : v));
+    return v;
+}
+
+void gen_01_cycleCountToAdd_set(number v) {
+    this->gen_01_cycleCountToAdd = v;
 }
 
 void gen_01_in1_set(number v) {
@@ -1729,7 +2318,7 @@ void numberobj_01_value_set(number v) {
         localvalue = trunc(localvalue);
     }
 
-    this->getEngine()->sendNumMessage(TAG("valout"), TAG("number_obj-6"), localvalue, this->_currentTime);
+    this->getEngine()->sendNumMessage(TAG("valout"), TAG("number_obj-26"), localvalue, this->_currentTime);
     this->numberobj_01_output_set(localvalue);
 }
 
@@ -1792,6 +2381,11 @@ void notein_01_midihandler(int status, int channel, int port, ConstByteArray dat
 
 void gen_01_perform(
     number in1,
+    number termsToAddPerCount,
+    number cycleCountToSubtract,
+    number cycleCountToAdd,
+    number PosNegSync,
+    number PosNeg,
     number ocillator,
     number attenuation,
     number cutoffOvertone,
@@ -1800,77 +2394,272 @@ void gen_01_perform(
     SampleValue * out1,
     Index n
 ) {
+    auto __gen_01_sampleCount_value = this->gen_01_sampleCount_value;
     Index i0;
 
     for (i0 = 0; i0 < n; i0++) {
-        number wave_0 = 0;
-        number wave_gen_3 = this->gen_01_phasor_1_next(this->gen_01_mtof_2_next(in1, 440), 0);
-        auto scaled_wave_4 = this->scale(wave_gen_3, 0, 1, 0, 6.28318530717958647692, 1);
-        number factors_5 = 1;
-        number amp_filter_6 = 1;
-
-        for (number i = 1; i <= terms; i = i + 1) {
-            if (ocillator == 1) {
-                if (this->safemod(i, 2) == 1) {
-                    number mySquare_7 = 0;
-
-                    {
-                        auto n1_8 = i;
-                        number amp_factor1_9 = (3.14159265358979323846 * n1_8 == 0. ? 0. : (number)4 / (3.14159265358979323846 * n1_8));
-                        mySquare_7 = amp_factor1_9;
-                    }
-
-                    factors_5 = mySquare_7;
-                } else {
-                    factors_5 = 0;
-                }
-            } else if (ocillator == 2) {
-                if (this->safemod(i, 2) == 1) {
-                    number myTriangle_10 = 0;
-
-                    {
-                        auto n2_11 = i;
-                        number amp_factor2_12 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_11, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_11, 2))));
-                        number phase_factor2_13 = fixnan(rnbo_pow(-1, (n2_11 - 1) / (number)2));
-                        myTriangle_10 = amp_factor2_12 * phase_factor2_13;
-                    }
-
-                    factors_5 = myTriangle_10;
-                } else {
-                    factors_5 = 0;
-                }
-            } else {
-                number mySawtooth_14 = 0;
-
-                {
-                    auto n3_15 = i;
-                    number amp_factor3_16 = (3.14159265358979323846 * n3_15 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_15));
-                    number phase_factor3_17 = fixnan(rnbo_pow(-1, n3_15 + 1));
-                    mySawtooth_14 = amp_factor3_16 * phase_factor3_17;
-                }
-
-                factors_5 = mySawtooth_14;
-            }
-
-            number sine_wave1_18 = rnbo_sin(scaled_wave_4 * i);
-
-            if (filterOnOff == 1) {
-                if (i >= cutoffOvertone) {
-                    number n_overtone_19 = (i - cutoffOvertone + 1) * attenuation;
-                    amp_filter_6 = (n_overtone_19 == 0. ? 0. : (number)1 / n_overtone_19);
-                }
-            }
-
-            if (this->gen_01_mtof_20_next(in1, 440) * i > this->samplerate() / (number)2) {
-                factors_5 = 0;
-            }
-
-            wave_0 = wave_0 + sine_wave1_18 * factors_5 * amp_filter_6;
+        if (PosNeg == 1) {
+            this->poke_default(this->gen_01_manageParam, terms, 0, 0, 0);
+            this->poke_default(this->gen_01_manageParam, filterOnOff, 1, 0, 0);
+            this->poke_default(this->gen_01_manageParam, cutoffOvertone, 2, 0, 0);
+            this->poke_default(this->gen_01_manageParam, attenuation, 3, 0, 0);
+            this->poke_default(this->gen_01_manageParam, ocillator, 4, 0, 0);
+        } else {
+            this->poke_default(this->gen_01_manageParam, terms, 5, 0, 0);
+            this->poke_default(this->gen_01_manageParam, filterOnOff, 6, 0, 0);
+            this->poke_default(this->gen_01_manageParam, cutoffOvertone, 7, 0, 0);
+            this->poke_default(this->gen_01_manageParam, attenuation, 8, 0, 0);
+            this->poke_default(this->gen_01_manageParam, ocillator, 9, 0, 0);
         }
 
-        number expr_1_21 = wave_0 * 0.8;
-        out1[(Index)i0] = expr_1_21;
+        if (PosNegSync == 1) {
+            this->poke_default(this->gen_01_manageParam, terms, 0, 0, 0);
+            this->poke_default(this->gen_01_manageParam, terms, 5, 0, 0);
+            this->poke_default(this->gen_01_manageParam, filterOnOff, 1, 0, 0);
+            this->poke_default(this->gen_01_manageParam, filterOnOff, 6, 0, 0);
+            this->poke_default(this->gen_01_manageParam, cutoffOvertone, 2, 0, 0);
+            this->poke_default(this->gen_01_manageParam, cutoffOvertone, 7, 0, 0);
+            this->poke_default(this->gen_01_manageParam, attenuation, 3, 0, 0);
+            this->poke_default(this->gen_01_manageParam, attenuation, 8, 0, 0);
+            this->poke_default(this->gen_01_manageParam, ocillator, 4, 0, 0);
+            this->poke_default(this->gen_01_manageParam, ocillator, 9, 0, 0);
+        }
+
+        number posTerms = 0;
+        auto result_0 = this->peek_default(this->gen_01_manageParam, 0, 0);
+        posTerms = result_0[0];
+        number posFilterOnOff = 0;
+        auto result_1 = this->peek_default(this->gen_01_manageParam, 1, 0);
+        posFilterOnOff = result_1[0];
+        number posCutoffOvertone = 0;
+        auto result_2 = this->peek_default(this->gen_01_manageParam, 2, 0);
+        posCutoffOvertone = result_2[0];
+        number posAttenuation = 0;
+        auto result_3 = this->peek_default(this->gen_01_manageParam, 3, 0);
+        posAttenuation = result_3[0];
+        number posOcillator = 0;
+        auto result_4 = this->peek_default(this->gen_01_manageParam, 4, 0);
+        posOcillator = result_4[0];
+        number negTerms = 0;
+        auto result_5 = this->peek_default(this->gen_01_manageParam, 5, 0);
+        negTerms = result_5[0];
+        number negFilterOnOff = 0;
+        auto result_6 = this->peek_default(this->gen_01_manageParam, 6, 0);
+        negFilterOnOff = result_6[0];
+        number negCutoffOvertone = 0;
+        auto result_7 = this->peek_default(this->gen_01_manageParam, 7, 0);
+        negCutoffOvertone = result_7[0];
+        number negAttenuation = 0;
+        auto result_8 = this->peek_default(this->gen_01_manageParam, 8, 0);
+        negAttenuation = result_8[0];
+        number negOcillator = 0;
+        auto result_9 = this->peek_default(this->gen_01_manageParam, 9, 0);
+        negOcillator = result_9[0];
+        number posWave_10 = 0;
+        number negWave_11 = 0;
+        number countReset_12 = 0;
+
+        if (this->gen_01_change_13_next(cycleCountToAdd) != 0 || this->gen_01_change_14_next(cycleCountToSubtract) != 0 || this->gen_01_change_15_next(terms) != 0 || this->gen_01_change_16_next(this->gen_01_mtof_17_next(in1, 440)) != 0) {
+            countReset_12 = 1;
+            __gen_01_sampleCount_value = 0;
+        }
+
+        number wave_gen_20 = this->gen_01_phasor_18_next(this->gen_01_mtof_19_next(in1, 440), countReset_12);
+        auto scaled_wave_21 = this->scale(wave_gen_20, 0, 1, 0, 6.28318530717958647692, 1);
+        number periodSamps_23 = (this->gen_01_mtof_22_next(in1, 440) == 0. ? 0. : this->samplerate() / this->gen_01_mtof_22_next(in1, 440));
+        __gen_01_sampleCount_value = __gen_01_sampleCount_value + 1;
+
+        auto cycleCount_24 = this->wrap(
+            __gen_01_sampleCount_value,
+            0,
+            periodSamps_23 * (cycleCountToAdd + cycleCountToSubtract)
+        );
+
+        number cycleCount_1_25 = this->intnum((periodSamps_23 == 0. ? 0. : cycleCount_24 / periodSamps_23)) + 1;
+
+        if (cycleCountToAdd != 0 && cycleCount_1_25 <= cycleCountToAdd) {
+            number peek_2 = 0;
+            number peek_3 = 0;
+            auto result_26 = this->peek_default(this->gen_01_manageParam, 0, 0);
+            peek_3 = result_26[1];
+            peek_2 = result_26[0];
+            posTerms = peek_2 + cycleCount_1_25 * termsToAddPerCount;
+            number peek_4 = 0;
+            number peek_5 = 0;
+            auto result_27 = this->peek_default(this->gen_01_manageParam, 5, 0);
+            peek_5 = result_27[1];
+            peek_4 = result_27[0];
+            negTerms = peek_4 + cycleCount_1_25 * termsToAddPerCount;
+        } else if (cycleCountToAdd != 0 && cycleCount_1_25 > cycleCountToAdd) {
+            number totalAddedTerms_28 = cycleCountToAdd * termsToAddPerCount;
+            number termsToSubtractPerCount_29 = (cycleCountToSubtract == 0. ? 0. : totalAddedTerms_28 / cycleCountToSubtract);
+            number countForSubtract_30 = cycleCount_1_25 - cycleCountToAdd;
+            auto addedTerms_31 = this->intnum(totalAddedTerms_28 - termsToSubtractPerCount_29 * countForSubtract_30);
+            number peek_6 = 0;
+            number peek_7 = 0;
+            auto result_32 = this->peek_default(this->gen_01_manageParam, 0, 0);
+            peek_7 = result_32[1];
+            peek_6 = result_32[0];
+            posTerms = peek_6 + addedTerms_31;
+            number peek_8 = 0;
+            number peek_9 = 0;
+            auto result_33 = this->peek_default(this->gen_01_manageParam, 5, 0);
+            peek_9 = result_33[1];
+            peek_8 = result_33[0];
+            negTerms = peek_8 + addedTerms_31;
+        } else {
+            auto result_34 = this->peek_default(this->gen_01_manageParam, 0, 0);
+            posTerms = result_34[0];
+            auto result_35 = this->peek_default(this->gen_01_manageParam, 5, 0);
+            negTerms = result_35[0];
+        }
+
+        auto maxTerms_36 = this->maximum(posTerms, negTerms);
+
+        for (number i = 1; i <= maxTerms_36; i = i + 1) {
+            number sine_wave1_37 = rnbo_sin(scaled_wave_21 * i);
+
+            if (i <= posTerms) {
+                number processSynthesis_38 = 0;
+
+                {
+                    auto Ocillator_44 = posOcillator;
+                    auto Attenuation_43 = posAttenuation;
+                    auto CutoffOvertone_42 = posCutoffOvertone;
+                    auto FilterOnOff_41 = posFilterOnOff;
+                    auto index_40 = i;
+                    auto inputFreq_39 = in1;
+                    number Factors_45 = 1;
+                    number Amp_filter_46 = 1;
+
+                    if (Ocillator_44 == 1) {
+                        if (this->safemod(index_40, 2) == 1) {
+                            Factors_45 = (3.14159265358979323846 * index_40 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_40));
+                        } else {
+                            Factors_45 = 0;
+                        }
+                    } else if (Ocillator_44 == 2) {
+                        if (this->safemod(index_40, 2) == 1) {
+                            number myTriangle_47 = 0;
+
+                            {
+                                auto n2_48 = index_40;
+                                number amp_factor2_49 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_48, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_48, 2))));
+                                number phase_factor2_50 = fixnan(rnbo_pow(-1, (n2_48 - 1) / (number)2));
+                                myTriangle_47 = amp_factor2_49 * phase_factor2_50;
+                            }
+
+                            Factors_45 = myTriangle_47;
+                        } else {
+                            Factors_45 = 0;
+                        }
+                    } else {
+                        number mySawtooth_51 = 0;
+
+                        {
+                            auto n3_52 = index_40;
+                            number amp_factor3_53 = (3.14159265358979323846 * n3_52 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_52));
+                            number phase_factor3_54 = fixnan(rnbo_pow(-1, n3_52 + 1));
+                            mySawtooth_51 = amp_factor3_53 * phase_factor3_54;
+                        }
+
+                        Factors_45 = mySawtooth_51;
+                    }
+
+                    if (FilterOnOff_41 == 1) {
+                        if (index_40 >= CutoffOvertone_42) {
+                            number n_overtone_55 = (index_40 - CutoffOvertone_42 + 1) * Attenuation_43;
+                            Amp_filter_46 = (n_overtone_55 == 0. ? 0. : (number)1 / n_overtone_55);
+                        }
+                    }
+
+                    if (this->gen_01_mtof_56_next(inputFreq_39, 440) * index_40 > this->samplerate() / (number)2) {
+                        Factors_45 = 0;
+                    }
+
+                    processSynthesis_38 = Factors_45 * Amp_filter_46;
+                }
+
+                posWave_10 = posWave_10 + sine_wave1_37 * processSynthesis_38;
+            }
+
+            if (i <= negTerms) {
+                number processSynthesis_57 = 0;
+
+                {
+                    auto Ocillator_63 = negOcillator;
+                    auto Attenuation_62 = negAttenuation;
+                    auto CutoffOvertone_61 = negCutoffOvertone;
+                    auto FilterOnOff_60 = negFilterOnOff;
+                    auto index_59 = i;
+                    auto inputFreq_58 = in1;
+                    number Factors_64 = 1;
+                    number Amp_filter_65 = 1;
+
+                    if (Ocillator_63 == 1) {
+                        if (this->safemod(index_59, 2) == 1) {
+                            Factors_64 = (3.14159265358979323846 * index_59 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_59));
+                        } else {
+                            Factors_64 = 0;
+                        }
+                    } else if (Ocillator_63 == 2) {
+                        if (this->safemod(index_59, 2) == 1) {
+                            number myTriangle_66 = 0;
+
+                            {
+                                auto n2_67 = index_59;
+                                number amp_factor2_68 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_67, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_67, 2))));
+                                number phase_factor2_69 = fixnan(rnbo_pow(-1, (n2_67 - 1) / (number)2));
+                                myTriangle_66 = amp_factor2_68 * phase_factor2_69;
+                            }
+
+                            Factors_64 = myTriangle_66;
+                        } else {
+                            Factors_64 = 0;
+                        }
+                    } else {
+                        number mySawtooth_70 = 0;
+
+                        {
+                            auto n3_71 = index_59;
+                            number amp_factor3_72 = (3.14159265358979323846 * n3_71 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_71));
+                            number phase_factor3_73 = fixnan(rnbo_pow(-1, n3_71 + 1));
+                            mySawtooth_70 = amp_factor3_72 * phase_factor3_73;
+                        }
+
+                        Factors_64 = mySawtooth_70;
+                    }
+
+                    if (FilterOnOff_60 == 1) {
+                        if (index_59 >= CutoffOvertone_61) {
+                            number n_overtone_74 = (index_59 - CutoffOvertone_61 + 1) * Attenuation_62;
+                            Amp_filter_65 = (n_overtone_74 == 0. ? 0. : (number)1 / n_overtone_74);
+                        }
+                    }
+
+                    if (this->gen_01_mtof_75_next(inputFreq_58, 440) * index_59 > this->samplerate() / (number)2) {
+                        Factors_64 = 0;
+                    }
+
+                    processSynthesis_57 = Factors_64 * Amp_filter_65;
+                }
+
+                negWave_11 = negWave_11 + sine_wave1_37 * processSynthesis_57;
+            }
+        }
+
+        if (posWave_10 >= 0) {
+            negWave_11 = negWave_11 * 0;
+        } else {
+            posWave_10 = posWave_10 * 0;
+        }
+
+        number SynthesizedWave_10_76 = negWave_11 + posWave_10;
+        number expr_11_77 = (SynthesizedWave_10_76 * 0.7 > 1 ? 1 : (SynthesizedWave_10_76 * 0.7 < -1 ? -1 : SynthesizedWave_10_76 * 0.7));
+        out1[(Index)i0] = expr_11_77;
     }
+
+    this->gen_01_sampleCount_value = __gen_01_sampleCount_value;
 }
 
 void adsr_01_perform(
@@ -2115,8 +2904,8 @@ void numberobj_01_value_setter(number v) {
 }
 
 void numberobj_01_init() {
-    this->numberobj_01_currentFormat = 0;
-    this->getEngine()->sendNumMessage(TAG("setup"), TAG("number_obj-6"), 1, this->_currentTime);
+    this->numberobj_01_currentFormat = 6;
+    this->getEngine()->sendNumMessage(TAG("setup"), TAG("number_obj-26"), 1, this->_currentTime);
 }
 
 void numberobj_01_getPresetValue(PatcherStateInterface& preset) {
@@ -2130,75 +2919,225 @@ void numberobj_01_setPresetValue(PatcherStateInterface& preset) {
     this->numberobj_01_value_set(preset["value"]);
 }
 
-number gen_01_phasor_1_next(number freq, number reset) {
-    RNBO_UNUSED(reset);
-    number pincr = freq * this->gen_01_phasor_1_conv;
+number gen_01_sampleCount_getvalue() {
+    return this->gen_01_sampleCount_value;
+}
 
-    if (this->gen_01_phasor_1_currentPhase < 0.)
-        this->gen_01_phasor_1_currentPhase = 1. + this->gen_01_phasor_1_currentPhase;
+void gen_01_sampleCount_setvalue(number val) {
+    this->gen_01_sampleCount_value = val;
+}
 
-    if (this->gen_01_phasor_1_currentPhase > 1.)
-        this->gen_01_phasor_1_currentPhase = this->gen_01_phasor_1_currentPhase - 1.;
+void gen_01_sampleCount_reset() {
+    this->gen_01_sampleCount_value = 0;
+}
 
-    number tmp = this->gen_01_phasor_1_currentPhase;
-    this->gen_01_phasor_1_currentPhase += pincr;
+void gen_01_sampleCount_init() {
+    this->gen_01_sampleCount_value = 0;
+}
+
+number gen_01_change_13_next(number x) {
+    number temp = x - this->gen_01_change_13_prev;
+    this->gen_01_change_13_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_13_init() {
+    this->gen_01_change_13_prev = 0;
+}
+
+void gen_01_change_13_reset() {
+    this->gen_01_change_13_prev = 0;
+}
+
+number gen_01_change_14_next(number x) {
+    number temp = x - this->gen_01_change_14_prev;
+    this->gen_01_change_14_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_14_init() {
+    this->gen_01_change_14_prev = 0;
+}
+
+void gen_01_change_14_reset() {
+    this->gen_01_change_14_prev = 0;
+}
+
+number gen_01_change_15_next(number x) {
+    number temp = x - this->gen_01_change_15_prev;
+    this->gen_01_change_15_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_15_init() {
+    this->gen_01_change_15_prev = 0;
+}
+
+void gen_01_change_15_reset() {
+    this->gen_01_change_15_prev = 0;
+}
+
+number gen_01_change_16_next(number x) {
+    number temp = x - this->gen_01_change_16_prev;
+    this->gen_01_change_16_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_16_init() {
+    this->gen_01_change_16_prev = 0;
+}
+
+void gen_01_change_16_reset() {
+    this->gen_01_change_16_prev = 0;
+}
+
+number gen_01_mtof_17_next(number midivalue, number tuning) {
+    RNBO_UNUSED(tuning);
+
+    if (midivalue == this->gen_01_mtof_17_lastInValue && 440 == this->gen_01_mtof_17_lastTuning)
+        return this->gen_01_mtof_17_lastOutValue;
+
+    this->gen_01_mtof_17_lastInValue = midivalue;
+    this->gen_01_mtof_17_lastTuning = 440;
+    number result = 0;
+
+    {
+        result = rnbo_exp(.057762265 * (midivalue - 69.0));
+    }
+
+    this->gen_01_mtof_17_lastOutValue = 440 * result;
+    return this->gen_01_mtof_17_lastOutValue;
+}
+
+void gen_01_mtof_17_reset() {
+    this->gen_01_mtof_17_lastInValue = 0;
+    this->gen_01_mtof_17_lastOutValue = 0;
+    this->gen_01_mtof_17_lastTuning = 0;
+}
+
+number gen_01_phasor_18_next(number freq, number reset) {
+    {
+        {
+            if (reset > 0.)
+                this->gen_01_phasor_18_currentPhase = 0;
+        }
+    }
+
+    number pincr = freq * this->gen_01_phasor_18_conv;
+
+    if (this->gen_01_phasor_18_currentPhase < 0.)
+        this->gen_01_phasor_18_currentPhase = 1. + this->gen_01_phasor_18_currentPhase;
+
+    if (this->gen_01_phasor_18_currentPhase > 1.)
+        this->gen_01_phasor_18_currentPhase = this->gen_01_phasor_18_currentPhase - 1.;
+
+    number tmp = this->gen_01_phasor_18_currentPhase;
+    this->gen_01_phasor_18_currentPhase += pincr;
     return tmp;
 }
 
-void gen_01_phasor_1_reset() {
-    this->gen_01_phasor_1_currentPhase = 0;
+void gen_01_phasor_18_reset() {
+    this->gen_01_phasor_18_currentPhase = 0;
 }
 
-void gen_01_phasor_1_dspsetup() {
-    this->gen_01_phasor_1_conv = (this->sr == 0. ? 0. : (number)1 / this->sr);
+void gen_01_phasor_18_dspsetup() {
+    this->gen_01_phasor_18_conv = (this->sr == 0. ? 0. : (number)1 / this->sr);
 }
 
-number gen_01_mtof_2_next(number midivalue, number tuning) {
+number gen_01_mtof_19_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_2_lastInValue && 440 == this->gen_01_mtof_2_lastTuning)
-        return this->gen_01_mtof_2_lastOutValue;
+    if (midivalue == this->gen_01_mtof_19_lastInValue && 440 == this->gen_01_mtof_19_lastTuning)
+        return this->gen_01_mtof_19_lastOutValue;
 
-    this->gen_01_mtof_2_lastInValue = midivalue;
-    this->gen_01_mtof_2_lastTuning = 440;
+    this->gen_01_mtof_19_lastInValue = midivalue;
+    this->gen_01_mtof_19_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_2_lastOutValue = 440 * result;
-    return this->gen_01_mtof_2_lastOutValue;
+    this->gen_01_mtof_19_lastOutValue = 440 * result;
+    return this->gen_01_mtof_19_lastOutValue;
 }
 
-void gen_01_mtof_2_reset() {
-    this->gen_01_mtof_2_lastInValue = 0;
-    this->gen_01_mtof_2_lastOutValue = 0;
-    this->gen_01_mtof_2_lastTuning = 0;
+void gen_01_mtof_19_reset() {
+    this->gen_01_mtof_19_lastInValue = 0;
+    this->gen_01_mtof_19_lastOutValue = 0;
+    this->gen_01_mtof_19_lastTuning = 0;
 }
 
-number gen_01_mtof_20_next(number midivalue, number tuning) {
+number gen_01_mtof_22_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_20_lastInValue && 440 == this->gen_01_mtof_20_lastTuning)
-        return this->gen_01_mtof_20_lastOutValue;
+    if (midivalue == this->gen_01_mtof_22_lastInValue && 440 == this->gen_01_mtof_22_lastTuning)
+        return this->gen_01_mtof_22_lastOutValue;
 
-    this->gen_01_mtof_20_lastInValue = midivalue;
-    this->gen_01_mtof_20_lastTuning = 440;
+    this->gen_01_mtof_22_lastInValue = midivalue;
+    this->gen_01_mtof_22_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_20_lastOutValue = 440 * result;
-    return this->gen_01_mtof_20_lastOutValue;
+    this->gen_01_mtof_22_lastOutValue = 440 * result;
+    return this->gen_01_mtof_22_lastOutValue;
 }
 
-void gen_01_mtof_20_reset() {
-    this->gen_01_mtof_20_lastInValue = 0;
-    this->gen_01_mtof_20_lastOutValue = 0;
-    this->gen_01_mtof_20_lastTuning = 0;
+void gen_01_mtof_22_reset() {
+    this->gen_01_mtof_22_lastInValue = 0;
+    this->gen_01_mtof_22_lastOutValue = 0;
+    this->gen_01_mtof_22_lastTuning = 0;
+}
+
+number gen_01_mtof_56_next(number midivalue, number tuning) {
+    RNBO_UNUSED(tuning);
+
+    if (midivalue == this->gen_01_mtof_56_lastInValue && 440 == this->gen_01_mtof_56_lastTuning)
+        return this->gen_01_mtof_56_lastOutValue;
+
+    this->gen_01_mtof_56_lastInValue = midivalue;
+    this->gen_01_mtof_56_lastTuning = 440;
+    number result = 0;
+
+    {
+        result = rnbo_exp(.057762265 * (midivalue - 69.0));
+    }
+
+    this->gen_01_mtof_56_lastOutValue = 440 * result;
+    return this->gen_01_mtof_56_lastOutValue;
+}
+
+void gen_01_mtof_56_reset() {
+    this->gen_01_mtof_56_lastInValue = 0;
+    this->gen_01_mtof_56_lastOutValue = 0;
+    this->gen_01_mtof_56_lastTuning = 0;
+}
+
+number gen_01_mtof_75_next(number midivalue, number tuning) {
+    RNBO_UNUSED(tuning);
+
+    if (midivalue == this->gen_01_mtof_75_lastInValue && 440 == this->gen_01_mtof_75_lastTuning)
+        return this->gen_01_mtof_75_lastOutValue;
+
+    this->gen_01_mtof_75_lastInValue = midivalue;
+    this->gen_01_mtof_75_lastTuning = 440;
+    number result = 0;
+
+    {
+        result = rnbo_exp(.057762265 * (midivalue - 69.0));
+    }
+
+    this->gen_01_mtof_75_lastOutValue = 440 * result;
+    return this->gen_01_mtof_75_lastOutValue;
+}
+
+void gen_01_mtof_75_reset() {
+    this->gen_01_mtof_75_lastInValue = 0;
+    this->gen_01_mtof_75_lastOutValue = 0;
+    this->gen_01_mtof_75_lastTuning = 0;
 }
 
 void gen_01_dspsetup(bool force) {
@@ -2206,7 +3145,7 @@ void gen_01_dspsetup(bool force) {
         return;
 
     this->gen_01_setupDone = true;
-    this->gen_01_phasor_1_dspsetup();
+    this->gen_01_phasor_18_dspsetup();
 }
 
 number rampsmooth_tilde_01_d_next(number x) {
@@ -2347,6 +3286,61 @@ void param_10_setPresetValue(PatcherStateInterface& preset) {
         return;
 
     this->param_10_value_set(preset["value"]);
+}
+
+void param_11_getPresetValue(PatcherStateInterface& preset) {
+    preset["value"] = this->param_11_value;
+}
+
+void param_11_setPresetValue(PatcherStateInterface& preset) {
+    if ((bool)(stateIsEmpty(preset)))
+        return;
+
+    this->param_11_value_set(preset["value"]);
+}
+
+void param_12_getPresetValue(PatcherStateInterface& preset) {
+    preset["value"] = this->param_12_value;
+}
+
+void param_12_setPresetValue(PatcherStateInterface& preset) {
+    if ((bool)(stateIsEmpty(preset)))
+        return;
+
+    this->param_12_value_set(preset["value"]);
+}
+
+void param_13_getPresetValue(PatcherStateInterface& preset) {
+    preset["value"] = this->param_13_value;
+}
+
+void param_13_setPresetValue(PatcherStateInterface& preset) {
+    if ((bool)(stateIsEmpty(preset)))
+        return;
+
+    this->param_13_value_set(preset["value"]);
+}
+
+void param_14_getPresetValue(PatcherStateInterface& preset) {
+    preset["value"] = this->param_14_value;
+}
+
+void param_14_setPresetValue(PatcherStateInterface& preset) {
+    if ((bool)(stateIsEmpty(preset)))
+        return;
+
+    this->param_14_value_set(preset["value"]);
+}
+
+void param_15_getPresetValue(PatcherStateInterface& preset) {
+    preset["value"] = this->param_15_value;
+}
+
+void param_15_setPresetValue(PatcherStateInterface& preset) {
+    if ((bool)(stateIsEmpty(preset)))
+        return;
+
+    this->param_15_value_set(preset["value"]);
 }
 
 Index globaltransport_getSampleOffset(MillisecondTime time) {
@@ -2575,14 +3569,19 @@ void updateTime(MillisecondTime time) {
 
 void assign_defaults()
 {
+    numberobj_01_value = 0;
+    numberobj_01_value_setter(numberobj_01_value);
     dspexpr_01_in1 = 0;
     dspexpr_01_in2 = 1;
     dspexpr_02_in1 = 0;
     dspexpr_02_in2 = 1;
-    numberobj_01_value = 0;
-    numberobj_01_value_setter(numberobj_01_value);
     notein_01_channel = 0;
     gen_01_in1 = 0;
+    gen_01_termsToAddPerCount = 0;
+    gen_01_cycleCountToSubtract = 0;
+    gen_01_cycleCountToAdd = 0;
+    gen_01_PosNegSync = 0;
+    gen_01_PosNeg = 0;
     gen_01_ocillator = 0;
     gen_01_attenuation = 0;
     gen_01_cutoffOvertone = 0;
@@ -2602,10 +3601,10 @@ void assign_defaults()
     expr_01_out1 = 0;
     linetilde_01_time = 10;
     linetilde_01_keepramp = 1;
-    param_01_value = 100;
-    param_02_value = 10;
-    param_03_value = 1;
-    param_04_value = 0.5;
+    param_01_value = 0;
+    param_02_value = 100;
+    param_03_value = 10;
+    param_04_value = 1;
     expr_02_in1 = 0;
     expr_02_in2 = 1;
     expr_02_out1 = 0;
@@ -2615,15 +3614,20 @@ void assign_defaults()
     expr_04_in1 = 0;
     expr_04_in2 = 2;
     expr_04_out1 = 0;
-    param_05_value = 1;
-    param_06_value = 2;
-    param_07_value = 0;
-    param_08_value = 1;
+    param_05_value = 0.5;
+    param_06_value = 1;
+    param_07_value = 2;
+    param_08_value = 0;
+    param_09_value = 1;
     expr_05_in1 = 0;
     expr_05_in2 = 100;
     expr_05_out1 = 0;
-    param_09_value = 80;
     param_10_value = 1000;
+    param_11_value = 80;
+    param_12_value = 1;
+    param_13_value = 1;
+    param_14_value = 1;
+    param_15_value = 1;
     _currentTime = 0;
     audioProcessSampleCount = 0;
     sampleOffsetIntoNextAudioBuffer = 0;
@@ -2642,14 +3646,28 @@ void assign_defaults()
     notein_01_status = 0;
     notein_01_byte1 = -1;
     notein_01_inchan = 0;
-    gen_01_phasor_1_currentPhase = 0;
-    gen_01_phasor_1_conv = 0;
-    gen_01_mtof_2_lastInValue = 0;
-    gen_01_mtof_2_lastOutValue = 0;
-    gen_01_mtof_2_lastTuning = 0;
-    gen_01_mtof_20_lastInValue = 0;
-    gen_01_mtof_20_lastOutValue = 0;
-    gen_01_mtof_20_lastTuning = 0;
+    gen_01_sampleCount_value = 0;
+    gen_01_change_13_prev = 0;
+    gen_01_change_14_prev = 0;
+    gen_01_change_15_prev = 0;
+    gen_01_change_16_prev = 0;
+    gen_01_mtof_17_lastInValue = 0;
+    gen_01_mtof_17_lastOutValue = 0;
+    gen_01_mtof_17_lastTuning = 0;
+    gen_01_phasor_18_currentPhase = 0;
+    gen_01_phasor_18_conv = 0;
+    gen_01_mtof_19_lastInValue = 0;
+    gen_01_mtof_19_lastOutValue = 0;
+    gen_01_mtof_19_lastTuning = 0;
+    gen_01_mtof_22_lastInValue = 0;
+    gen_01_mtof_22_lastOutValue = 0;
+    gen_01_mtof_22_lastTuning = 0;
+    gen_01_mtof_56_lastInValue = 0;
+    gen_01_mtof_56_lastOutValue = 0;
+    gen_01_mtof_56_lastTuning = 0;
+    gen_01_mtof_75_lastInValue = 0;
+    gen_01_mtof_75_lastOutValue = 0;
+    gen_01_mtof_75_lastTuning = 0;
     gen_01_setupDone = false;
     rampsmooth_tilde_01_prev = 0;
     rampsmooth_tilde_01_index = 0;
@@ -2677,6 +3695,11 @@ void assign_defaults()
     param_08_lastValue = 0;
     param_09_lastValue = 0;
     param_10_lastValue = 0;
+    param_11_lastValue = 0;
+    param_12_lastValue = 0;
+    param_13_lastValue = 0;
+    param_14_lastValue = 0;
+    param_15_lastValue = 0;
     globaltransport_tempo = nullptr;
     globaltransport_tempoNeedsReset = false;
     globaltransport_lastTempo = 120;
@@ -2695,13 +3718,18 @@ void assign_defaults()
 
 // member variables
 
+    number numberobj_01_value;
     number dspexpr_01_in1;
     number dspexpr_01_in2;
     number dspexpr_02_in1;
     number dspexpr_02_in2;
-    number numberobj_01_value;
     number notein_01_channel;
     number gen_01_in1;
+    number gen_01_termsToAddPerCount;
+    number gen_01_cycleCountToSubtract;
+    number gen_01_cycleCountToAdd;
+    number gen_01_PosNegSync;
+    number gen_01_PosNeg;
     number gen_01_ocillator;
     number gen_01_attenuation;
     number gen_01_cutoffOvertone;
@@ -2739,11 +3767,16 @@ void assign_defaults()
     number param_06_value;
     number param_07_value;
     number param_08_value;
+    number param_09_value;
     number expr_05_in1;
     number expr_05_in2;
     number expr_05_out1;
-    number param_09_value;
     number param_10_value;
+    number param_11_value;
+    number param_12_value;
+    number param_13_value;
+    number param_14_value;
+    number param_15_value;
     MillisecondTime _currentTime;
     SampleIndex audioProcessSampleCount;
     SampleIndex sampleOffsetIntoNextAudioBuffer;
@@ -2760,16 +3793,34 @@ void assign_defaults()
     int notein_01_status;
     int notein_01_byte1;
     int notein_01_inchan;
-    number gen_01_phasor_1_currentPhase;
-    number gen_01_phasor_1_conv;
-    number gen_01_mtof_2_lastInValue;
-    number gen_01_mtof_2_lastOutValue;
-    number gen_01_mtof_2_lastTuning;
-    Float64BufferRef gen_01_mtof_2_buffer;
-    number gen_01_mtof_20_lastInValue;
-    number gen_01_mtof_20_lastOutValue;
-    number gen_01_mtof_20_lastTuning;
-    Float64BufferRef gen_01_mtof_20_buffer;
+    Float64BufferRef gen_01_manageParam;
+    number gen_01_sampleCount_value;
+    number gen_01_change_13_prev;
+    number gen_01_change_14_prev;
+    number gen_01_change_15_prev;
+    number gen_01_change_16_prev;
+    number gen_01_mtof_17_lastInValue;
+    number gen_01_mtof_17_lastOutValue;
+    number gen_01_mtof_17_lastTuning;
+    Float64BufferRef gen_01_mtof_17_buffer;
+    number gen_01_phasor_18_currentPhase;
+    number gen_01_phasor_18_conv;
+    number gen_01_mtof_19_lastInValue;
+    number gen_01_mtof_19_lastOutValue;
+    number gen_01_mtof_19_lastTuning;
+    Float64BufferRef gen_01_mtof_19_buffer;
+    number gen_01_mtof_22_lastInValue;
+    number gen_01_mtof_22_lastOutValue;
+    number gen_01_mtof_22_lastTuning;
+    Float64BufferRef gen_01_mtof_22_buffer;
+    number gen_01_mtof_56_lastInValue;
+    number gen_01_mtof_56_lastOutValue;
+    number gen_01_mtof_56_lastTuning;
+    Float64BufferRef gen_01_mtof_56_buffer;
+    number gen_01_mtof_75_lastInValue;
+    number gen_01_mtof_75_lastOutValue;
+    number gen_01_mtof_75_lastTuning;
+    Float64BufferRef gen_01_mtof_75_buffer;
     bool gen_01_setupDone;
     number rampsmooth_tilde_01_prev;
     number rampsmooth_tilde_01_index;
@@ -2798,6 +3849,11 @@ void assign_defaults()
     number param_08_lastValue;
     number param_09_lastValue;
     number param_10_lastValue;
+    number param_11_lastValue;
+    number param_12_lastValue;
+    number param_13_lastValue;
+    number param_14_lastValue;
+    number param_15_lastValue;
     signal globaltransport_tempo;
     bool globaltransport_tempoNeedsReset;
     number globaltransport_lastTempo;
@@ -2809,6 +3865,7 @@ void assign_defaults()
     bool globaltransport_notify;
     bool globaltransport_setupDone;
     number stackprotect_count;
+    DataRef manageParam;
     DataRef RNBODefaultMtofLookupTable256;
     Index _voiceIndex;
     Int _noteNumber;

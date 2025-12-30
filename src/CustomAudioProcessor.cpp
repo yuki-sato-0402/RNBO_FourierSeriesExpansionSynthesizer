@@ -25,7 +25,17 @@ parameters(*this, nullptr, juce::Identifier("PARAMETERS"),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "release",  1}, "release",
         juce::NormalisableRange<float>(0.f, 5000.f, 0.01f, 1.f),1000.f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "amp",  1}, "amp",
-        juce::NormalisableRange<float>(0.f, 1.f, 0.01f),0.5f)
+        juce::NormalisableRange<float>(0.f, 1.f, 0.01f),0.5f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "PosNeg",  1}, "PosNeg",
+        juce::NormalisableRange<float>(0, 1, 1), 1), 
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "PosNegSync",  1}, "PosNegSync",
+        juce::NormalisableRange<float>(0, 1, 1), 0),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "cycleCountToAdd",  1}, "cycleCountToAdd",
+        juce::NormalisableRange<float>(0, 20, 1), 1), 
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "cycleCountToSubtract",  1}, "cycleCountToSubtract",
+        juce::NormalisableRange<float>(0, 20, 1), 1),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "termsToAddPerCount",  1}, "termsToAddPerCount",
+        juce::NormalisableRange<float>(1, 20, 1), 1),
     }
   )
 {
@@ -85,6 +95,7 @@ void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 
 void CustomAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
+  std::cout << "Parameter Changed: " << parameterID << " New Value: " << newValue << std::endl;
   rnboObject.setParameterValue (apvtsParamIdToRnboParamIndex[parameterID], newValue);
 }
 

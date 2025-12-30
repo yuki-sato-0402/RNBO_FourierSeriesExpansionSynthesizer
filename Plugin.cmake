@@ -1,7 +1,7 @@
 # build VST3 for all platforms, add AU on MacOS
 set(PLUGIN_FORMATS VST3)
 if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  LIST(APPEND PLUGIN_FORMATS AU)
+  LIST(APPEND PLUGIN_FORMATS AU Standalone)
 endif()
 
 # if you are building a VST2 or AAX plugin, CMake needs to be told where to find these SDKs on your
@@ -26,7 +26,7 @@ juce_add_plugin(RNBOAudioPlugin
   NEEDS_MIDI_OUTPUT FALSE              # Does the plugin need midi output?
   IS_MIDI_EFFECT FALSE                 # Is this plugin a MIDI effect?
   EDITOR_WANTS_KEYBOARD_FOCUS TRUE     # Does the editor need keyboard focus?
-  COPY_PLUGIN_AFTER_BUILD FALSE        # Should the plugin be installed to a default location after building?
+  COPY_PLUGIN_AFTER_BUILD True        # Should the plugin be installed to a default location after building?
   PLUGIN_MANUFACTURER_CODE "Exm2"      # A four-character manufacturer id with at least one upper-case character
   PLUGIN_CODE "Rnb2"                   # A unique four-character plugin id with at least one upper-case character
   FORMATS ${PLUGIN_FORMATS}            # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
