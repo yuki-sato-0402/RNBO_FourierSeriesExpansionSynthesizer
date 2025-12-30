@@ -57,9 +57,8 @@ parameters(*this, nullptr, juce::Identifier("PARAMETERS"),
 
       // If you hit these assertions then you need to fix the incorrect apvts
       // parameter range in createParameterLayout().
-      jassert (info.min == parameters.getParameterRange (paramID).start);
-      jassert (info.max == parameters.getParameterRange (paramID).end);
-
+      jassert (std::abs (info.min - parameters.getParameterRange (paramID).start) < 1e-5f);
+      jassert (std::abs (info.max - parameters.getParameterRange (paramID).end) < 1e-5f);
       apvtsParamIdToRnboParamIndex[paramID] = i;
     
 
@@ -108,7 +107,7 @@ RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessa
 			auto info = playhead->getPosition();
 			if (info) {
 				auto bpm = info->getBpm();
-				if (bpm && *bpm != _lastBPM) {
+				if (bpm && !juce::approximatelyEqual (*bpm, _lastBPM)){
 					_lastBPM = *bpm;
 					RNBO::TempoEvent event(time, _lastBPM);
 					rnboObject.scheduleEvent(event);
@@ -123,7 +122,7 @@ RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessa
 				}
 
 				auto ppqPos = info->getPpqPosition();
-				if (ppqPos && *ppqPos != _lastPpqPosition) {
+				if (ppqPos && !juce::approximatelyEqual (*ppqPos, _lastPpqPosition)) {
 					_lastPpqPosition = *ppqPos;
 					RNBO::BeatTimeEvent event(time, _lastPpqPosition);
 					rnboObject.scheduleEvent(event);
