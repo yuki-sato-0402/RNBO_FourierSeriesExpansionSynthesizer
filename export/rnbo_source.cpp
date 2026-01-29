@@ -160,29 +160,26 @@ void process(
         n
     );
 
+    this->delaytilde_01_perform(this->delaytilde_01_delay, this->signals[0], this->signals[1], n);
+
     this->adsr_01_perform(
         this->adsr_01_attack,
         this->adsr_01_decay,
         this->adsr_01_sustain,
         this->adsr_01_release,
         this->zeroBuffer,
-        this->signals[1],
+        this->signals[0],
         n
     );
 
-    this->rampsmooth_tilde_01_perform(
-        this->signals[1],
-        this->rampsmooth_tilde_01_up,
-        this->rampsmooth_tilde_01_down,
-        this->signals[2],
-        n
-    );
-
-    this->dspexpr_02_perform(this->signals[0], this->signals[2], this->signals[1], n);
-    this->linetilde_01_perform(this->signals[2], n);
-    this->dspexpr_01_perform(this->signals[1], this->signals[2], this->signals[0], n);
-    this->signalforwarder_01_perform(this->signals[0], out2, n);
-    this->signalforwarder_02_perform(this->signals[0], out1, n);
+    this->delaytilde_02_perform(this->delaytilde_02_delay, this->signals[0], this->signals[2], n);
+    this->linetilde_01_perform(this->signals[0], n);
+    this->linetilde_02_perform(this->signals[3], n);
+    this->dspexpr_03_perform(this->signals[2], this->signals[3], this->signals[4], n);
+    this->dspexpr_02_perform(this->signals[1], this->signals[4], this->signals[3], n);
+    this->dspexpr_01_perform(this->signals[3], this->signals[0], this->signals[4], n);
+    this->signalforwarder_01_perform(this->signals[4], out2, n);
+    this->signalforwarder_02_perform(this->signals[4], out1, n);
     this->stackprotect_perform(n);
     this->globaltransport_advance();
     this->advanceTime((ENGINE*)nullptr);
@@ -195,7 +192,7 @@ void prepareToProcess(number sampleRate, Index maxBlockSize, bool force) {
     if (this->maxvs < maxBlockSize || !this->didAllocateSignals) {
         Index i;
 
-        for (i = 0; i < 3; i++) {
+        for (i = 0; i < 5; i++) {
             this->signals[i] = resizeSignal(this->signals[i], this->maxvs, maxBlockSize);
         }
 
@@ -220,8 +217,9 @@ void prepareToProcess(number sampleRate, Index maxBlockSize, bool force) {
     }
 
     this->gen_01_dspsetup(forceDSPSetup);
+    this->delaytilde_01_dspsetup(forceDSPSetup);
     this->adsr_01_dspsetup(forceDSPSetup);
-    this->rampsmooth_tilde_01_dspsetup(forceDSPSetup);
+    this->delaytilde_02_dspsetup(forceDSPSetup);
     this->globaltransport_dspsetup(forceDSPSetup);
 
     if (sampleRateChanged)
@@ -248,12 +246,22 @@ DataRef* getDataRef(DataRefIndex index)  {
     switch (index) {
     case 0:
         {
-        return addressOf(this->manageParam);
+        return addressOf(this->delaytilde_01_del_bufferobj);
         break;
         }
     case 1:
         {
+        return addressOf(this->manageParam);
+        break;
+        }
+    case 2:
+        {
         return addressOf(this->RNBODefaultMtofLookupTable256);
+        break;
+        }
+    case 3:
+        {
+        return addressOf(this->delaytilde_02_del_bufferobj);
         break;
         }
     default:
@@ -264,54 +272,82 @@ DataRef* getDataRef(DataRefIndex index)  {
 }
 
 DataRefIndex getNumDataRefs() const {
-    return 2;
+    return 4;
 }
 
 void processDataViewUpdate(DataRefIndex index, MillisecondTime time) {
     this->updateTime(time, (ENGINE*)nullptr);
 
     if (index == 0) {
-        this->gen_01_manageParam = reInitDataView(this->gen_01_manageParam, this->manageParam);
+        this->delaytilde_01_del_buffer = reInitDataView(this->delaytilde_01_del_buffer, this->delaytilde_01_del_bufferobj);
     }
 
     if (index == 1) {
+        this->gen_01_manageParam = reInitDataView(this->gen_01_manageParam, this->manageParam);
+    }
+
+    if (index == 2) {
         this->gen_01_mtof_16_buffer = reInitDataView(this->gen_01_mtof_16_buffer, this->RNBODefaultMtofLookupTable256);
         this->gen_01_mtof_18_buffer = reInitDataView(this->gen_01_mtof_18_buffer, this->RNBODefaultMtofLookupTable256);
         this->gen_01_mtof_21_buffer = reInitDataView(this->gen_01_mtof_21_buffer, this->RNBODefaultMtofLookupTable256);
         this->gen_01_mtof_55_buffer = reInitDataView(this->gen_01_mtof_55_buffer, this->RNBODefaultMtofLookupTable256);
         this->gen_01_mtof_74_buffer = reInitDataView(this->gen_01_mtof_74_buffer, this->RNBODefaultMtofLookupTable256);
     }
+
+    if (index == 3) {
+        this->delaytilde_02_del_buffer = reInitDataView(this->delaytilde_02_del_buffer, this->delaytilde_02_del_bufferobj);
+    }
 }
 
 void initialize() {
     RNBO_ASSERT(!this->_isInitialized);
 
-    this->manageParam = initDataRef(
-        this->manageParam,
+    this->delaytilde_01_del_bufferobj = initDataRef(
+        this->delaytilde_01_del_bufferobj,
         this->dataRefStrings->name0,
         true,
         this->dataRefStrings->file0,
         this->dataRefStrings->tag0
     );
 
-    this->RNBODefaultMtofLookupTable256 = initDataRef(
-        this->RNBODefaultMtofLookupTable256,
+    this->manageParam = initDataRef(
+        this->manageParam,
         this->dataRefStrings->name1,
         true,
         this->dataRefStrings->file1,
         this->dataRefStrings->tag1
     );
 
+    this->RNBODefaultMtofLookupTable256 = initDataRef(
+        this->RNBODefaultMtofLookupTable256,
+        this->dataRefStrings->name2,
+        true,
+        this->dataRefStrings->file2,
+        this->dataRefStrings->tag2
+    );
+
+    this->delaytilde_02_del_bufferobj = initDataRef(
+        this->delaytilde_02_del_bufferobj,
+        this->dataRefStrings->name3,
+        true,
+        this->dataRefStrings->file3,
+        this->dataRefStrings->tag3
+    );
+
     this->assign_defaults();
     this->applyState();
-    this->manageParam->setIndex(0);
+    this->delaytilde_01_del_bufferobj->setIndex(0);
+    this->delaytilde_01_del_buffer = new Float64Buffer(this->delaytilde_01_del_bufferobj);
+    this->manageParam->setIndex(1);
     this->gen_01_manageParam = new SampleBuffer(this->manageParam);
-    this->RNBODefaultMtofLookupTable256->setIndex(1);
+    this->RNBODefaultMtofLookupTable256->setIndex(2);
     this->gen_01_mtof_16_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
     this->gen_01_mtof_18_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
     this->gen_01_mtof_21_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
     this->gen_01_mtof_55_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
     this->gen_01_mtof_74_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
+    this->delaytilde_02_del_bufferobj->setIndex(3);
+    this->delaytilde_02_del_buffer = new Float64Buffer(this->delaytilde_02_del_bufferobj);
     this->initializeObjects();
     this->allocateDataRefs();
     this->startup();
@@ -1253,12 +1289,55 @@ void processNumMessage(MessageTag tag, MessageTag objectId, MillisecondTime time
 
         break;
         }
+    case TAG("listin"):
+        {
+        if (TAG("message_obj-46") == objectId)
+            this->message_01_listin_number_set(payload);
+
+        break;
+        }
     }
 }
 
-void processListMessage(MessageTag , MessageTag , MillisecondTime , const list& ) {}
+void processListMessage(
+    MessageTag tag,
+    MessageTag objectId,
+    MillisecondTime time,
+    const list& payload
+) {
+    this->updateTime(time, (ENGINE*)nullptr);
 
-void processBangMessage(MessageTag , MessageTag , MillisecondTime ) {}
+    switch (tag) {
+    case TAG("listin"):
+        {
+        if (TAG("message_obj-46") == objectId)
+            this->message_01_listin_list_set(payload);
+
+        break;
+        }
+    }
+}
+
+void processBangMessage(MessageTag tag, MessageTag objectId, MillisecondTime time) {
+    this->updateTime(time, (ENGINE*)nullptr);
+
+    switch (tag) {
+    case TAG("listin"):
+        {
+        if (TAG("message_obj-46") == objectId)
+            this->message_01_listin_bang_bang();
+
+        break;
+        }
+    case TAG("startupbang"):
+        {
+        if (TAG("loadmess_obj-84") == objectId)
+            this->loadmess_01_startupbang_bang();
+
+        break;
+        }
+    }
+}
 
 MessageTagInfo resolveTag(MessageTag tag) const {
     switch (tag) {
@@ -1274,6 +1353,14 @@ MessageTagInfo resolveTag(MessageTag tag) const {
         {
         return "setup";
         }
+    case TAG("listout"):
+        {
+        return "listout";
+        }
+    case TAG("message_obj-46"):
+        {
+        return "message_obj-46";
+        }
     case TAG("valin"):
         {
         return "valin";
@@ -1281,6 +1368,18 @@ MessageTagInfo resolveTag(MessageTag tag) const {
     case TAG("format"):
         {
         return "format";
+        }
+    case TAG("listin"):
+        {
+        return "listin";
+        }
+    case TAG("startupbang"):
+        {
+        return "startupbang";
+        }
+    case TAG("loadmess_obj-84"):
+        {
+        return "loadmess_obj-84";
         }
     }
 
@@ -1329,8 +1428,10 @@ rnbomatic* getTopLevelPatcher() {
 
 void cancelClockEvents()
 {
+    getEngine()->flushClockEvents(this, 892732297, false);
     getEngine()->flushClockEvents(this, -1468824490, false);
     getEngine()->flushClockEvents(this, -62043057, false);
+    getEngine()->flushClockEvents(this, -281953904, false);
 }
 
 template<typename LISTTYPE = list> void listquicksort(LISTTYPE& arr, LISTTYPE& sortindices, Int l, Int h, bool ascending) {
@@ -1370,6 +1471,87 @@ template<typename LISTTYPE = list> void listswapelements(LISTTYPE& arr, Int a, I
 
 inline number linearinterp(number frac, number x, number y) {
     return x + (y - x) * frac;
+}
+
+inline number cubicinterp(number a, number w, number x, number y, number z) {
+    number a1 = 1. + a;
+    number aa = a * a1;
+    number b = 1. - a;
+    number b1 = 2. - a;
+    number bb = b * b1;
+    number fw = -.1666667 * bb * a;
+    number fx = .5 * bb * a1;
+    number fy = .5 * aa * b1;
+    number fz = -.1666667 * aa * b;
+    return w * fw + x * fx + y * fy + z * fz;
+}
+
+inline number fastcubicinterp(number a, number w, number x, number y, number z) {
+    number a2 = a * a;
+    number f0 = z - y - w + x;
+    number f1 = w - x - f0;
+    number f2 = y - w;
+    number f3 = x;
+    return f0 * a * a2 + f1 * a2 + f2 * a + f3;
+}
+
+inline number splineinterp(number a, number w, number x, number y, number z) {
+    number a2 = a * a;
+    number f0 = -0.5 * w + 1.5 * x - 1.5 * y + 0.5 * z;
+    number f1 = w - 2.5 * x + 2 * y - 0.5 * z;
+    number f2 = -0.5 * w + 0.5 * y;
+    return f0 * a * a2 + f1 * a2 + f2 * a + x;
+}
+
+inline number spline6interp(number a, number y0, number y1, number y2, number y3, number y4, number y5) {
+    number ym2py2 = y0 + y4;
+    number ym1py1 = y1 + y3;
+    number y2mym2 = y4 - y0;
+    number y1mym1 = y3 - y1;
+    number sixthym1py1 = (number)1 / (number)6.0 * ym1py1;
+    number c0 = (number)1 / (number)120.0 * ym2py2 + (number)13 / (number)60.0 * ym1py1 + (number)11 / (number)20.0 * y2;
+    number c1 = (number)1 / (number)24.0 * y2mym2 + (number)5 / (number)12.0 * y1mym1;
+    number c2 = (number)1 / (number)12.0 * ym2py2 + sixthym1py1 - (number)1 / (number)2.0 * y2;
+    number c3 = (number)1 / (number)12.0 * y2mym2 - (number)1 / (number)6.0 * y1mym1;
+    number c4 = (number)1 / (number)24.0 * ym2py2 - sixthym1py1 + (number)1 / (number)4.0 * y2;
+    number c5 = (number)1 / (number)120.0 * (y5 - y0) + (number)1 / (number)24.0 * (y1 - y4) + (number)1 / (number)12.0 * (y3 - y2);
+    return ((((c5 * a + c4) * a + c3) * a + c2) * a + c1) * a + c0;
+}
+
+inline number cosT8(number r) {
+    number t84 = 56.0;
+    number t83 = 1680.0;
+    number t82 = 20160.0;
+    number t81 = 2.4801587302e-05;
+    number t73 = 42.0;
+    number t72 = 840.0;
+    number t71 = 1.9841269841e-04;
+
+    if (r < 0.785398163397448309615660845819875721 && r > -0.785398163397448309615660845819875721) {
+        number rr = r * r;
+        return 1.0 - rr * t81 * (t82 - rr * (t83 - rr * (t84 - rr)));
+    } else if (r > 0.0) {
+        r -= 1.57079632679489661923132169163975144;
+        number rr = r * r;
+        return -r * (1.0 - t71 * rr * (t72 - rr * (t73 - rr)));
+    } else {
+        r += 1.57079632679489661923132169163975144;
+        number rr = r * r;
+        return r * (1.0 - t71 * rr * (t72 - rr * (t73 - rr)));
+    }
+}
+
+inline number cosineinterp(number frac, number x, number y) {
+    number a2 = (1.0 - this->cosT8(frac * 3.14159265358979323846)) / (number)2.0;
+    return x * (1.0 - a2) + y * a2;
+}
+
+number mstosamps(MillisecondTime ms) {
+    return ms * this->sr * 0.001;
+}
+
+number maximum(number x, number y) {
+    return (x < y ? y : x);
 }
 
 inline number safemod(number f, number m) {
@@ -1468,79 +1650,6 @@ template<typename BUFFERTYPE> void poke_default(
     }
 }
 
-inline number cubicinterp(number a, number w, number x, number y, number z) {
-    number a1 = 1. + a;
-    number aa = a * a1;
-    number b = 1. - a;
-    number b1 = 2. - a;
-    number bb = b * b1;
-    number fw = -.1666667 * bb * a;
-    number fx = .5 * bb * a1;
-    number fy = .5 * aa * b1;
-    number fz = -.1666667 * aa * b;
-    return w * fw + x * fx + y * fy + z * fz;
-}
-
-inline number fastcubicinterp(number a, number w, number x, number y, number z) {
-    number a2 = a * a;
-    number f0 = z - y - w + x;
-    number f1 = w - x - f0;
-    number f2 = y - w;
-    number f3 = x;
-    return f0 * a * a2 + f1 * a2 + f2 * a + f3;
-}
-
-inline number splineinterp(number a, number w, number x, number y, number z) {
-    number a2 = a * a;
-    number f0 = -0.5 * w + 1.5 * x - 1.5 * y + 0.5 * z;
-    number f1 = w - 2.5 * x + 2 * y - 0.5 * z;
-    number f2 = -0.5 * w + 0.5 * y;
-    return f0 * a * a2 + f1 * a2 + f2 * a + x;
-}
-
-inline number spline6interp(number a, number y0, number y1, number y2, number y3, number y4, number y5) {
-    number ym2py2 = y0 + y4;
-    number ym1py1 = y1 + y3;
-    number y2mym2 = y4 - y0;
-    number y1mym1 = y3 - y1;
-    number sixthym1py1 = (number)1 / (number)6.0 * ym1py1;
-    number c0 = (number)1 / (number)120.0 * ym2py2 + (number)13 / (number)60.0 * ym1py1 + (number)11 / (number)20.0 * y2;
-    number c1 = (number)1 / (number)24.0 * y2mym2 + (number)5 / (number)12.0 * y1mym1;
-    number c2 = (number)1 / (number)12.0 * ym2py2 + sixthym1py1 - (number)1 / (number)2.0 * y2;
-    number c3 = (number)1 / (number)12.0 * y2mym2 - (number)1 / (number)6.0 * y1mym1;
-    number c4 = (number)1 / (number)24.0 * ym2py2 - sixthym1py1 + (number)1 / (number)4.0 * y2;
-    number c5 = (number)1 / (number)120.0 * (y5 - y0) + (number)1 / (number)24.0 * (y1 - y4) + (number)1 / (number)12.0 * (y3 - y2);
-    return ((((c5 * a + c4) * a + c3) * a + c2) * a + c1) * a + c0;
-}
-
-inline number cosT8(number r) {
-    number t84 = 56.0;
-    number t83 = 1680.0;
-    number t82 = 20160.0;
-    number t81 = 2.4801587302e-05;
-    number t73 = 42.0;
-    number t72 = 840.0;
-    number t71 = 1.9841269841e-04;
-
-    if (r < 0.785398163397448309615660845819875721 && r > -0.785398163397448309615660845819875721) {
-        number rr = r * r;
-        return 1.0 - rr * t81 * (t82 - rr * (t83 - rr * (t84 - rr)));
-    } else if (r > 0.0) {
-        r -= 1.57079632679489661923132169163975144;
-        number rr = r * r;
-        return -r * (1.0 - t71 * rr * (t72 - rr * (t73 - rr)));
-    } else {
-        r += 1.57079632679489661923132169163975144;
-        number rr = r * r;
-        return r * (1.0 - t71 * rr * (t72 - rr * (t73 - rr)));
-    }
-}
-
-inline number cosineinterp(number frac, number x, number y) {
-    number a2 = (1.0 - this->cosT8(frac * 3.14159265358979323846)) / (number)2.0;
-    return x * (1.0 - a2) + y * a2;
-}
-
 template<typename BUFFERTYPE> array<SampleValue, 1 + 1> peek_default(BUFFERTYPE& buffer, SampleValue sampleIndex, Index channelOffset) {
     number bufferSize = buffer->getSize();
     const Index bufferChannels = (const Index)(buffer->getChannels());
@@ -1619,16 +1728,8 @@ inline number intnum(const number value) {
     return trunc(value);
 }
 
-number maximum(number x, number y) {
-    return (x < y ? y : x);
-}
-
 UInt64 currentsampletime() {
     return this->audioProcessSampleCount + this->sampleOffsetIntoNextAudioBuffer;
-}
-
-number mstosamps(MillisecondTime ms) {
-    return ms * this->sr * 0.001;
 }
 
 number fromnormalized(Index index, number normalizedValue) {
@@ -1849,14 +1950,32 @@ void numberobj_01_format_set(number v) {
     this->numberobj_01_currentFormat = trunc((v > 6 ? 6 : (v < 0 ? 0 : v)));
 }
 
+template<typename LISTTYPE> void message_01_listin_list_set(const LISTTYPE& v) {
+    this->message_01_set_set(v);
+}
+
+void message_01_listin_number_set(number v) {
+    this->message_01_set_set(v);
+}
+
+void message_01_listin_bang_bang() {
+    this->message_01_trigger_bang();
+}
+
+void loadmess_01_startupbang_bang() {
+    this->loadmess_01_message_bang();
+}
+
 void adsr_01_mute_bang() {}
 
 void linetilde_01_target_bang() {}
 
+void linetilde_02_target_bang() {}
+
 void deallocateSignals() {
     Index i;
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 5; i++) {
         this->signals[i] = freeSignal(this->signals[i]);
     }
 
@@ -1894,7 +2013,7 @@ void fillRNBODefaultMtofLookupTable256(DataRef& ref) {
 
 void fillDataRef(DataRefIndex index, DataRef& ref) {
     switch (index) {
-    case 1:
+    case 2:
         {
         this->fillRNBODefaultMtofLookupTable256(ref);
         break;
@@ -1919,13 +2038,22 @@ void allocateDataRefs() {
     this->gen_01_mtof_55_buffer->setSampleRate(this->sr);
     this->gen_01_mtof_74_buffer->requestSize(65536, 1);
     this->gen_01_mtof_74_buffer->setSampleRate(this->sr);
+    this->delaytilde_01_del_buffer = this->delaytilde_01_del_buffer->allocateIfNeeded();
+
+    if (this->delaytilde_01_del_bufferobj->hasRequestedSize()) {
+        if (this->delaytilde_01_del_bufferobj->wantsFill())
+            this->zeroDataRef(this->delaytilde_01_del_bufferobj);
+
+        this->getEngine()->sendDataRefUpdated(0);
+    }
+
     this->gen_01_manageParam = this->gen_01_manageParam->allocateIfNeeded();
 
     if (this->manageParam->hasRequestedSize()) {
         if (this->manageParam->wantsFill())
             this->zeroDataRef(this->manageParam);
 
-        this->getEngine()->sendDataRefUpdated(0);
+        this->getEngine()->sendDataRefUpdated(1);
     }
 
     this->gen_01_mtof_16_buffer = this->gen_01_mtof_16_buffer->allocateIfNeeded();
@@ -1938,16 +2066,29 @@ void allocateDataRefs() {
         if (this->RNBODefaultMtofLookupTable256->wantsFill())
             this->fillRNBODefaultMtofLookupTable256(this->RNBODefaultMtofLookupTable256);
 
-        this->getEngine()->sendDataRefUpdated(1);
+        this->getEngine()->sendDataRefUpdated(2);
+    }
+
+    this->delaytilde_02_del_buffer = this->delaytilde_02_del_buffer->allocateIfNeeded();
+
+    if (this->delaytilde_02_del_bufferobj->hasRequestedSize()) {
+        if (this->delaytilde_02_del_bufferobj->wantsFill())
+            this->zeroDataRef(this->delaytilde_02_del_bufferobj);
+
+        this->getEngine()->sendDataRefUpdated(3);
     }
 }
 
 void initializeObjects() {
+    this->delaytilde_01_del_init();
     this->numberobj_01_init();
     this->gen_01_sampleCount_init();
     this->gen_01_change_13_init();
     this->gen_01_change_14_init();
     this->gen_01_change_15_init();
+    this->delaytilde_02_del_init();
+    this->change_01_init();
+    this->message_01_init();
 }
 
 Index getIsMuted()  {
@@ -1970,6 +2111,11 @@ void processClockEvent(MillisecondTime time, ClockId index, bool hasValue, Param
     this->updateTime(time, (ENGINE*)nullptr);
 
     switch (index) {
+    case 892732297:
+        {
+        this->loadmess_01_startupbang_bang();
+        break;
+        }
     case -1468824490:
         {
         this->adsr_01_mute_bang();
@@ -1978,6 +2124,11 @@ void processClockEvent(MillisecondTime time, ClockId index, bool hasValue, Param
     case -62043057:
         {
         this->linetilde_01_target_bang();
+        break;
+        }
+    case -281953904:
+        {
+        this->linetilde_02_target_bang();
         break;
         }
     }
@@ -2001,6 +2152,7 @@ void sendOutlet(OutletIndex index, ParameterValue value) {
 
 void startup() {
     this->updateTime(this->getEngine()->getCurrentTime(), (ENGINE*)nullptr);
+    this->getEngine()->scheduleClockEvent(this, 892732297, 0 + this->_currentTime);;
 
     {
         this->scheduleParamInit(0, 0);
@@ -2332,9 +2484,153 @@ void numberobj_01_value_set(number v) {
     this->numberobj_01_output_set(localvalue);
 }
 
+template<typename LISTTYPE> void message_01_set_set(const LISTTYPE& v) {
+    this->message_01_set = jsCreateListCopy(v);
+}
+
+void linetilde_02_time_set(number v) {
+    this->linetilde_02_time = v;
+}
+
+template<typename LISTTYPE> void linetilde_02_segments_set(const LISTTYPE& v) {
+    this->linetilde_02_segments = jsCreateListCopy(v);
+
+    if ((bool)(v->length)) {
+        if (v->length == 1 && this->linetilde_02_time == 0) {
+            this->linetilde_02_activeRamps->length = 0;
+            this->linetilde_02_currentValue = v[0];
+        } else {
+            auto currentTime = this->currentsampletime();
+            number lastRampValue = this->linetilde_02_currentValue;
+            number rampEnd = currentTime - this->sampleOffsetIntoNextAudioBuffer;
+
+            for (Index i = 0; i < this->linetilde_02_activeRamps->length; i += 3) {
+                rampEnd = this->linetilde_02_activeRamps[(Index)(i + 2)];
+
+                if (rampEnd > currentTime) {
+                    this->linetilde_02_activeRamps[(Index)(i + 2)] = currentTime;
+                    number diff = rampEnd - currentTime;
+                    number valueDiff = diff * this->linetilde_02_activeRamps[(Index)(i + 1)];
+                    lastRampValue = this->linetilde_02_activeRamps[(Index)i] - valueDiff;
+                    this->linetilde_02_activeRamps[(Index)i] = lastRampValue;
+                    this->linetilde_02_activeRamps->length = i + 3;
+                    rampEnd = currentTime;
+                } else {
+                    lastRampValue = this->linetilde_02_activeRamps[(Index)i];
+                }
+            }
+
+            if (rampEnd < currentTime) {
+                this->linetilde_02_activeRamps->push(lastRampValue);
+                this->linetilde_02_activeRamps->push(0);
+                this->linetilde_02_activeRamps->push(currentTime);
+            }
+
+            number lastRampEnd = currentTime;
+
+            for (Index i = 0; i < v->length; i += 2) {
+                number destinationValue = v[(Index)i];
+                number inc = 0;
+                number rampTimeInSamples;
+
+                if (v->length > i + 1) {
+                    rampTimeInSamples = this->mstosamps(v[(Index)(i + 1)]);
+
+                    if ((bool)(this->linetilde_02_keepramp)) {
+                        this->linetilde_02_time_set(v[(Index)(i + 1)]);
+                    }
+                } else {
+                    rampTimeInSamples = this->mstosamps(this->linetilde_02_time);
+                }
+
+                if (rampTimeInSamples <= 0) {
+                    rampTimeInSamples = 1;
+                }
+
+                inc = (destinationValue - lastRampValue) / rampTimeInSamples;
+                lastRampEnd += rampTimeInSamples;
+                this->linetilde_02_activeRamps->push(destinationValue);
+                this->linetilde_02_activeRamps->push(inc);
+                this->linetilde_02_activeRamps->push(lastRampEnd);
+                lastRampValue = destinationValue;
+            }
+        }
+    }
+}
+
+template<typename LISTTYPE> void message_01_out_set(const LISTTYPE& v) {
+    this->linetilde_02_segments_set(v);
+}
+
+void message_01_trigger_bang() {
+    if ((bool)(this->message_01_set->length) || (bool)(false)) {
+        this->message_01_out_set(this->message_01_set);
+    }
+}
+
+void delaytilde_01_delay_set(number v) {
+    this->delaytilde_01_delay = v;
+}
+
+void delaytilde_02_delay_set(number v) {
+    this->delaytilde_02_delay = v;
+}
+
+void mstosamps_01_out1_set(number v) {
+    this->delaytilde_01_delay_set(v);
+    this->delaytilde_02_delay_set(v);
+}
+
+void mstosamps_01_ms_set(number ms) {
+    this->mstosamps_01_ms = ms;
+
+    {
+        this->mstosamps_01_out1_set(ms * this->sr * 0.001);
+        return;
+    }
+}
+
+void loadmess_01_message_bang() {
+    list v = this->loadmess_01_message;
+
+    {
+        number converted = (v->length > 0 ? v[0] : 0);
+        this->mstosamps_01_ms_set(converted);
+    }
+}
+
 void notein_01_outchannel_set(number ) {}
 
 void notein_01_releasevelocity_set(number ) {}
+
+void change_01_zero_set(number ) {}
+
+void change_01_nonzero_set(number v) {
+    RNBO_UNUSED(v);
+    this->message_01_trigger_bang();
+}
+
+void change_01_out_set(number v) {
+    this->change_01_out = v;
+}
+
+void change_01_input_set(number v) {
+    this->change_01_input = v;
+
+    if (v != this->change_01_prev) {
+        if (v == 0) {
+            this->change_01_zero_set(1);
+        } else if (this->change_01_out == 0) {
+            this->change_01_nonzero_set(1);
+        }
+
+        {
+            this->change_01_out_set(v);
+        }
+    }
+
+    this->change_01_prev = v;
+}
 
 void adsr_01_trigger_number_set(number v) {
     this->adsr_01_trigger_number = v;
@@ -2361,6 +2657,7 @@ void expr_01_in1_set(number in1) {
 }
 
 void notein_01_velocity_set(number v) {
+    this->change_01_input_set(v);
     this->expr_01_in1_set(v);
 }
 
@@ -3242,6 +3539,44 @@ void gen_01_perform(
     this->gen_01_sampleCount_value = __gen_01_sampleCount_value;
 }
 
+void delaytilde_01_perform(number delay, const SampleValue * input, SampleValue * output, Index n) {
+    auto __delaytilde_01_crossfadeDelay = this->delaytilde_01_crossfadeDelay;
+    auto __delaytilde_01_rampInSamples = this->delaytilde_01_rampInSamples;
+    auto __delaytilde_01_ramp = this->delaytilde_01_ramp;
+    auto __delaytilde_01_lastDelay = this->delaytilde_01_lastDelay;
+
+    for (Index i = 0; i < n; i++) {
+        if (__delaytilde_01_lastDelay == -1) {
+            __delaytilde_01_lastDelay = delay;
+        }
+
+        if (__delaytilde_01_ramp > 0) {
+            number factor = __delaytilde_01_ramp / __delaytilde_01_rampInSamples;
+            output[(Index)i] = this->delaytilde_01_del_read(__delaytilde_01_crossfadeDelay, 0) * factor + this->delaytilde_01_del_read(__delaytilde_01_lastDelay, 0) * (1. - factor);
+            __delaytilde_01_ramp--;
+        } else {
+            number effectiveDelay = delay;
+
+            if (effectiveDelay != __delaytilde_01_lastDelay) {
+                __delaytilde_01_ramp = __delaytilde_01_rampInSamples;
+                __delaytilde_01_crossfadeDelay = __delaytilde_01_lastDelay;
+                __delaytilde_01_lastDelay = effectiveDelay;
+                output[(Index)i] = this->delaytilde_01_del_read(__delaytilde_01_crossfadeDelay, 0);
+                __delaytilde_01_ramp--;
+            } else {
+                output[(Index)i] = this->delaytilde_01_del_read(effectiveDelay, 0);
+            }
+        }
+
+        this->delaytilde_01_del_write(input[(Index)i]);
+        this->delaytilde_01_del_step();
+    }
+
+    this->delaytilde_01_lastDelay = __delaytilde_01_lastDelay;
+    this->delaytilde_01_ramp = __delaytilde_01_ramp;
+    this->delaytilde_01_crossfadeDelay = __delaytilde_01_crossfadeDelay;
+}
+
 void adsr_01_perform(
     number attack,
     number decay,
@@ -3357,56 +3692,42 @@ void adsr_01_perform(
     this->adsr_01_time = __adsr_01_time;
 }
 
-void rampsmooth_tilde_01_perform(const Sample * x, number up, number down, SampleValue * out1, Index n) {
-    RNBO_UNUSED(down);
-    RNBO_UNUSED(up);
-    auto __rampsmooth_tilde_01_increment = this->rampsmooth_tilde_01_increment;
-    auto __rampsmooth_tilde_01_index = this->rampsmooth_tilde_01_index;
-    auto __rampsmooth_tilde_01_prev = this->rampsmooth_tilde_01_prev;
-    Index i;
+void delaytilde_02_perform(number delay, const SampleValue * input, SampleValue * output, Index n) {
+    auto __delaytilde_02_crossfadeDelay = this->delaytilde_02_crossfadeDelay;
+    auto __delaytilde_02_rampInSamples = this->delaytilde_02_rampInSamples;
+    auto __delaytilde_02_ramp = this->delaytilde_02_ramp;
+    auto __delaytilde_02_lastDelay = this->delaytilde_02_lastDelay;
 
-    for (i = 0; i < (Index)n; i++) {
-        if (this->rampsmooth_tilde_01_d_next(x[(Index)i]) != 0.) {
-            if (x[(Index)i] > __rampsmooth_tilde_01_prev) {
-                number _up = 100;
+    for (Index i = 0; i < n; i++) {
+        if (__delaytilde_02_lastDelay == -1) {
+            __delaytilde_02_lastDelay = delay;
+        }
 
-                if (_up < 1)
-                    _up = 1;
+        if (__delaytilde_02_ramp > 0) {
+            number factor = __delaytilde_02_ramp / __delaytilde_02_rampInSamples;
+            output[(Index)i] = this->delaytilde_02_del_read(__delaytilde_02_crossfadeDelay, 0) * factor + this->delaytilde_02_del_read(__delaytilde_02_lastDelay, 0) * (1. - factor);
+            __delaytilde_02_ramp--;
+        } else {
+            number effectiveDelay = delay;
 
-                __rampsmooth_tilde_01_index = _up;
-                __rampsmooth_tilde_01_increment = (x[(Index)i] - __rampsmooth_tilde_01_prev) / _up;
-            } else if (x[(Index)i] < __rampsmooth_tilde_01_prev) {
-                number _down = 100;
-
-                if (_down < 1)
-                    _down = 1;
-
-                __rampsmooth_tilde_01_index = _down;
-                __rampsmooth_tilde_01_increment = (x[(Index)i] - __rampsmooth_tilde_01_prev) / _down;
+            if (effectiveDelay != __delaytilde_02_lastDelay) {
+                __delaytilde_02_ramp = __delaytilde_02_rampInSamples;
+                __delaytilde_02_crossfadeDelay = __delaytilde_02_lastDelay;
+                __delaytilde_02_lastDelay = effectiveDelay;
+                output[(Index)i] = this->delaytilde_02_del_read(__delaytilde_02_crossfadeDelay, 0);
+                __delaytilde_02_ramp--;
+            } else {
+                output[(Index)i] = this->delaytilde_02_del_read(effectiveDelay, 0);
             }
         }
 
-        if (__rampsmooth_tilde_01_index > 0) {
-            __rampsmooth_tilde_01_prev += __rampsmooth_tilde_01_increment;
-            __rampsmooth_tilde_01_index -= 1;
-        } else {
-            __rampsmooth_tilde_01_prev = x[(Index)i];
-        }
-
-        out1[(Index)i] = __rampsmooth_tilde_01_prev;
+        this->delaytilde_02_del_write(input[(Index)i]);
+        this->delaytilde_02_del_step();
     }
 
-    this->rampsmooth_tilde_01_prev = __rampsmooth_tilde_01_prev;
-    this->rampsmooth_tilde_01_index = __rampsmooth_tilde_01_index;
-    this->rampsmooth_tilde_01_increment = __rampsmooth_tilde_01_increment;
-}
-
-void dspexpr_02_perform(const Sample * in1, const Sample * in2, SampleValue * out1, Index n) {
-    Index i;
-
-    for (i = 0; i < (Index)n; i++) {
-        out1[(Index)i] = in1[(Index)i] * in2[(Index)i];//#map:_###_obj_###_:1
-    }
+    this->delaytilde_02_lastDelay = __delaytilde_02_lastDelay;
+    this->delaytilde_02_ramp = __delaytilde_02_ramp;
+    this->delaytilde_02_crossfadeDelay = __delaytilde_02_crossfadeDelay;
 }
 
 void linetilde_01_perform(SampleValue * out, Index n) {
@@ -3460,6 +3781,73 @@ void linetilde_01_perform(SampleValue * out, Index n) {
     this->linetilde_01_time = __linetilde_01_time;
 }
 
+void linetilde_02_perform(SampleValue * out, Index n) {
+    auto __linetilde_02_time = this->linetilde_02_time;
+    auto __linetilde_02_keepramp = this->linetilde_02_keepramp;
+    auto __linetilde_02_currentValue = this->linetilde_02_currentValue;
+    Index i = 0;
+
+    if ((bool)(this->linetilde_02_activeRamps->length)) {
+        while ((bool)(this->linetilde_02_activeRamps->length) && i < n) {
+            number destinationValue = this->linetilde_02_activeRamps[0];
+            number inc = this->linetilde_02_activeRamps[1];
+            number rampTimeInSamples = this->linetilde_02_activeRamps[2] - this->audioProcessSampleCount - i;
+            number val = __linetilde_02_currentValue;
+
+            while (rampTimeInSamples > 0 && i < n) {
+                out[(Index)i] = val;
+                val += inc;
+                i++;
+                rampTimeInSamples--;
+            }
+
+            if (rampTimeInSamples <= 0) {
+                val = destinationValue;
+                this->linetilde_02_activeRamps->splice(0, 3);
+
+                if ((bool)(!(bool)(this->linetilde_02_activeRamps->length))) {
+                    this->getEngine()->scheduleClockEventWithValue(
+                        this,
+                        -281953904,
+                        this->sampsToMs((SampleIndex)(this->vs)) + this->_currentTime,
+                        0
+                    );;
+
+                    if ((bool)(!(bool)(__linetilde_02_keepramp))) {
+                        __linetilde_02_time = 0;
+                    }
+                }
+            }
+
+            __linetilde_02_currentValue = val;
+        }
+    }
+
+    while (i < n) {
+        out[(Index)i] = __linetilde_02_currentValue;
+        i++;
+    }
+
+    this->linetilde_02_currentValue = __linetilde_02_currentValue;
+    this->linetilde_02_time = __linetilde_02_time;
+}
+
+void dspexpr_03_perform(const Sample * in1, const Sample * in2, SampleValue * out1, Index n) {
+    Index i;
+
+    for (i = 0; i < (Index)n; i++) {
+        out1[(Index)i] = in1[(Index)i] * in2[(Index)i];//#map:_###_obj_###_:1
+    }
+}
+
+void dspexpr_02_perform(const Sample * in1, const Sample * in2, SampleValue * out1, Index n) {
+    Index i;
+
+    for (i = 0; i < (Index)n; i++) {
+        out1[(Index)i] = in1[(Index)i] * in2[(Index)i];//#map:_###_obj_###_:1
+    }
+}
+
 void dspexpr_01_perform(const Sample * in1, const Sample * in2, SampleValue * out1, Index n) {
     Index i;
 
@@ -3491,6 +3879,222 @@ void numberobj_01_value_setter(number v) {
     }
 
     this->numberobj_01_value = localvalue;
+}
+
+void delaytilde_01_del_step() {
+    this->delaytilde_01_del_reader++;
+
+    if (this->delaytilde_01_del_reader >= (Int)(this->delaytilde_01_del_buffer->getSize()))
+        this->delaytilde_01_del_reader = 0;
+}
+
+number delaytilde_01_del_read(number size, Int interp) {
+    if (interp == 0) {
+        number r = (Int)(this->delaytilde_01_del_buffer->getSize()) + this->delaytilde_01_del_reader - ((size > this->delaytilde_01_del__maxdelay ? this->delaytilde_01_del__maxdelay : (size < (this->delaytilde_01_del_reader != this->delaytilde_01_del_writer) ? this->delaytilde_01_del_reader != this->delaytilde_01_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Int index2 = (Int)(index1 + 1);
+
+        return this->linearinterp(frac, this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ));
+    } else if (interp == 1) {
+        number r = (Int)(this->delaytilde_01_del_buffer->getSize()) + this->delaytilde_01_del_reader - ((size > this->delaytilde_01_del__maxdelay ? this->delaytilde_01_del__maxdelay : (size < (1 + this->delaytilde_01_del_reader != this->delaytilde_01_del_writer) ? 1 + this->delaytilde_01_del_reader != this->delaytilde_01_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+        Index index3 = (Index)(index2 + 1);
+        Index index4 = (Index)(index3 + 1);
+
+        return this->cubicinterp(frac, this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index3 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index4 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ));
+    } else if (interp == 6) {
+        number r = (Int)(this->delaytilde_01_del_buffer->getSize()) + this->delaytilde_01_del_reader - ((size > this->delaytilde_01_del__maxdelay ? this->delaytilde_01_del__maxdelay : (size < (1 + this->delaytilde_01_del_reader != this->delaytilde_01_del_writer) ? 1 + this->delaytilde_01_del_reader != this->delaytilde_01_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+        Index index3 = (Index)(index2 + 1);
+        Index index4 = (Index)(index3 + 1);
+
+        return this->fastcubicinterp(frac, this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index3 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index4 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ));
+    } else if (interp == 2) {
+        number r = (Int)(this->delaytilde_01_del_buffer->getSize()) + this->delaytilde_01_del_reader - ((size > this->delaytilde_01_del__maxdelay ? this->delaytilde_01_del__maxdelay : (size < (1 + this->delaytilde_01_del_reader != this->delaytilde_01_del_writer) ? 1 + this->delaytilde_01_del_reader != this->delaytilde_01_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+        Index index3 = (Index)(index2 + 1);
+        Index index4 = (Index)(index3 + 1);
+
+        return this->splineinterp(frac, this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index3 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index4 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ));
+    } else if (interp == 7) {
+        number r = (Int)(this->delaytilde_01_del_buffer->getSize()) + this->delaytilde_01_del_reader - ((size > this->delaytilde_01_del__maxdelay ? this->delaytilde_01_del__maxdelay : (size < (1 + this->delaytilde_01_del_reader != this->delaytilde_01_del_writer) ? 1 + this->delaytilde_01_del_reader != this->delaytilde_01_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+        Index index3 = (Index)(index2 + 1);
+        Index index4 = (Index)(index3 + 1);
+        Index index5 = (Index)(index4 + 1);
+        Index index6 = (Index)(index5 + 1);
+
+        return this->spline6interp(frac, this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index3 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index4 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index5 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index6 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ));
+    } else if (interp == 3) {
+        number r = (Int)(this->delaytilde_01_del_buffer->getSize()) + this->delaytilde_01_del_reader - ((size > this->delaytilde_01_del__maxdelay ? this->delaytilde_01_del__maxdelay : (size < (this->delaytilde_01_del_reader != this->delaytilde_01_del_writer) ? this->delaytilde_01_del_reader != this->delaytilde_01_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+
+        return this->cosineinterp(frac, this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ), this->delaytilde_01_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_01_del_wrap))
+        ));
+    }
+
+    number r = (Int)(this->delaytilde_01_del_buffer->getSize()) + this->delaytilde_01_del_reader - ((size > this->delaytilde_01_del__maxdelay ? this->delaytilde_01_del__maxdelay : (size < (this->delaytilde_01_del_reader != this->delaytilde_01_del_writer) ? this->delaytilde_01_del_reader != this->delaytilde_01_del_writer : size)));
+    Int index1 = (Int)(rnbo_floor(r));
+
+    return this->delaytilde_01_del_buffer->getSample(
+        0,
+        (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_01_del_wrap))
+    );
+}
+
+void delaytilde_01_del_write(number v) {
+    this->delaytilde_01_del_writer = this->delaytilde_01_del_reader;
+    this->delaytilde_01_del_buffer[(Index)this->delaytilde_01_del_writer] = v;
+}
+
+number delaytilde_01_del_next(number v, Int size) {
+    number effectiveSize = (size == -1 ? this->delaytilde_01_del__maxdelay : size);
+    number val = this->delaytilde_01_del_read(effectiveSize, 0);
+    this->delaytilde_01_del_write(v);
+    this->delaytilde_01_del_step();
+    return val;
+}
+
+array<Index, 2> delaytilde_01_del_calcSizeInSamples() {
+    number sizeInSamples = 0;
+    Index allocatedSizeInSamples = 0;
+
+    {
+        sizeInSamples = this->delaytilde_01_del_evaluateSizeExpr(this->sr, this->vs);
+        this->delaytilde_01_del_sizemode = 0;
+    }
+
+    sizeInSamples = rnbo_floor(sizeInSamples);
+    sizeInSamples = this->maximum(sizeInSamples, 2);
+    allocatedSizeInSamples = (Index)(sizeInSamples);
+    allocatedSizeInSamples = nextpoweroftwo(allocatedSizeInSamples);
+    return {sizeInSamples, allocatedSizeInSamples};
+}
+
+void delaytilde_01_del_init() {
+    auto result = this->delaytilde_01_del_calcSizeInSamples();
+    this->delaytilde_01_del__maxdelay = result[0];
+    Index requestedSizeInSamples = (Index)(result[1]);
+    this->delaytilde_01_del_buffer->requestSize(requestedSizeInSamples, 1);
+    this->delaytilde_01_del_wrap = requestedSizeInSamples - 1;
+}
+
+void delaytilde_01_del_clear() {
+    this->delaytilde_01_del_buffer->setZero();
+}
+
+void delaytilde_01_del_reset() {
+    auto result = this->delaytilde_01_del_calcSizeInSamples();
+    this->delaytilde_01_del__maxdelay = result[0];
+    Index allocatedSizeInSamples = (Index)(result[1]);
+    this->delaytilde_01_del_buffer->setSize(allocatedSizeInSamples);
+    updateDataRef(this, this->delaytilde_01_del_buffer);
+    this->delaytilde_01_del_wrap = this->delaytilde_01_del_buffer->getSize() - 1;
+    this->delaytilde_01_del_clear();
+
+    if (this->delaytilde_01_del_reader >= this->delaytilde_01_del__maxdelay || this->delaytilde_01_del_writer >= this->delaytilde_01_del__maxdelay) {
+        this->delaytilde_01_del_reader = 0;
+        this->delaytilde_01_del_writer = 0;
+    }
+}
+
+void delaytilde_01_del_dspsetup() {
+    this->delaytilde_01_del_reset();
+}
+
+number delaytilde_01_del_evaluateSizeExpr(number samplerate, number vectorsize) {
+    RNBO_UNUSED(vectorsize);
+    return samplerate;
+}
+
+number delaytilde_01_del_size() {
+    return this->delaytilde_01_del__maxdelay;
+}
+
+void delaytilde_01_dspsetup(bool force) {
+    if ((bool)(this->delaytilde_01_setupDone) && (bool)(!(bool)(force)))
+        return;
+
+    this->delaytilde_01_rampInSamples = (Int)(this->mstosamps(50));
+    this->delaytilde_01_lastDelay = -1;
+    this->delaytilde_01_setupDone = true;
+    this->delaytilde_01_del_dspsetup();
 }
 
 void numberobj_01_init() {
@@ -3723,26 +4327,220 @@ void gen_01_dspsetup(bool force) {
     this->gen_01_phasor_17_dspsetup();
 }
 
-number rampsmooth_tilde_01_d_next(number x) {
-    number temp = (number)(x - this->rampsmooth_tilde_01_d_prev);
-    this->rampsmooth_tilde_01_d_prev = x;
-    return temp;
+void delaytilde_02_del_step() {
+    this->delaytilde_02_del_reader++;
+
+    if (this->delaytilde_02_del_reader >= (Int)(this->delaytilde_02_del_buffer->getSize()))
+        this->delaytilde_02_del_reader = 0;
 }
 
-void rampsmooth_tilde_01_d_dspsetup() {
-    this->rampsmooth_tilde_01_d_reset();
+number delaytilde_02_del_read(number size, Int interp) {
+    if (interp == 0) {
+        number r = (Int)(this->delaytilde_02_del_buffer->getSize()) + this->delaytilde_02_del_reader - ((size > this->delaytilde_02_del__maxdelay ? this->delaytilde_02_del__maxdelay : (size < (this->delaytilde_02_del_reader != this->delaytilde_02_del_writer) ? this->delaytilde_02_del_reader != this->delaytilde_02_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Int index2 = (Int)(index1 + 1);
+
+        return this->linearinterp(frac, this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ));
+    } else if (interp == 1) {
+        number r = (Int)(this->delaytilde_02_del_buffer->getSize()) + this->delaytilde_02_del_reader - ((size > this->delaytilde_02_del__maxdelay ? this->delaytilde_02_del__maxdelay : (size < (1 + this->delaytilde_02_del_reader != this->delaytilde_02_del_writer) ? 1 + this->delaytilde_02_del_reader != this->delaytilde_02_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+        Index index3 = (Index)(index2 + 1);
+        Index index4 = (Index)(index3 + 1);
+
+        return this->cubicinterp(frac, this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index3 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index4 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ));
+    } else if (interp == 6) {
+        number r = (Int)(this->delaytilde_02_del_buffer->getSize()) + this->delaytilde_02_del_reader - ((size > this->delaytilde_02_del__maxdelay ? this->delaytilde_02_del__maxdelay : (size < (1 + this->delaytilde_02_del_reader != this->delaytilde_02_del_writer) ? 1 + this->delaytilde_02_del_reader != this->delaytilde_02_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+        Index index3 = (Index)(index2 + 1);
+        Index index4 = (Index)(index3 + 1);
+
+        return this->fastcubicinterp(frac, this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index3 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index4 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ));
+    } else if (interp == 2) {
+        number r = (Int)(this->delaytilde_02_del_buffer->getSize()) + this->delaytilde_02_del_reader - ((size > this->delaytilde_02_del__maxdelay ? this->delaytilde_02_del__maxdelay : (size < (1 + this->delaytilde_02_del_reader != this->delaytilde_02_del_writer) ? 1 + this->delaytilde_02_del_reader != this->delaytilde_02_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+        Index index3 = (Index)(index2 + 1);
+        Index index4 = (Index)(index3 + 1);
+
+        return this->splineinterp(frac, this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index3 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index4 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ));
+    } else if (interp == 7) {
+        number r = (Int)(this->delaytilde_02_del_buffer->getSize()) + this->delaytilde_02_del_reader - ((size > this->delaytilde_02_del__maxdelay ? this->delaytilde_02_del__maxdelay : (size < (1 + this->delaytilde_02_del_reader != this->delaytilde_02_del_writer) ? 1 + this->delaytilde_02_del_reader != this->delaytilde_02_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+        Index index3 = (Index)(index2 + 1);
+        Index index4 = (Index)(index3 + 1);
+        Index index5 = (Index)(index4 + 1);
+        Index index6 = (Index)(index5 + 1);
+
+        return this->spline6interp(frac, this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index3 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index4 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index5 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index6 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ));
+    } else if (interp == 3) {
+        number r = (Int)(this->delaytilde_02_del_buffer->getSize()) + this->delaytilde_02_del_reader - ((size > this->delaytilde_02_del__maxdelay ? this->delaytilde_02_del__maxdelay : (size < (this->delaytilde_02_del_reader != this->delaytilde_02_del_writer) ? this->delaytilde_02_del_reader != this->delaytilde_02_del_writer : size)));
+        Int index1 = (Int)(rnbo_floor(r));
+        number frac = r - index1;
+        Index index2 = (Index)(index1 + 1);
+
+        return this->cosineinterp(frac, this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ), this->delaytilde_02_del_buffer->getSample(
+            0,
+            (Index)((BinOpInt)((BinOpInt)index2 & (BinOpInt)this->delaytilde_02_del_wrap))
+        ));
+    }
+
+    number r = (Int)(this->delaytilde_02_del_buffer->getSize()) + this->delaytilde_02_del_reader - ((size > this->delaytilde_02_del__maxdelay ? this->delaytilde_02_del__maxdelay : (size < (this->delaytilde_02_del_reader != this->delaytilde_02_del_writer) ? this->delaytilde_02_del_reader != this->delaytilde_02_del_writer : size)));
+    Int index1 = (Int)(rnbo_floor(r));
+
+    return this->delaytilde_02_del_buffer->getSample(
+        0,
+        (Index)((BinOpInt)((BinOpInt)index1 & (BinOpInt)this->delaytilde_02_del_wrap))
+    );
 }
 
-void rampsmooth_tilde_01_d_reset() {
-    this->rampsmooth_tilde_01_d_prev = 0;
+void delaytilde_02_del_write(number v) {
+    this->delaytilde_02_del_writer = this->delaytilde_02_del_reader;
+    this->delaytilde_02_del_buffer[(Index)this->delaytilde_02_del_writer] = v;
 }
 
-void rampsmooth_tilde_01_dspsetup(bool force) {
-    if ((bool)(this->rampsmooth_tilde_01_setupDone) && (bool)(!(bool)(force)))
+number delaytilde_02_del_next(number v, Int size) {
+    number effectiveSize = (size == -1 ? this->delaytilde_02_del__maxdelay : size);
+    number val = this->delaytilde_02_del_read(effectiveSize, 0);
+    this->delaytilde_02_del_write(v);
+    this->delaytilde_02_del_step();
+    return val;
+}
+
+array<Index, 2> delaytilde_02_del_calcSizeInSamples() {
+    number sizeInSamples = 0;
+    Index allocatedSizeInSamples = 0;
+
+    {
+        sizeInSamples = this->delaytilde_02_del_evaluateSizeExpr(this->sr, this->vs);
+        this->delaytilde_02_del_sizemode = 0;
+    }
+
+    sizeInSamples = rnbo_floor(sizeInSamples);
+    sizeInSamples = this->maximum(sizeInSamples, 2);
+    allocatedSizeInSamples = (Index)(sizeInSamples);
+    allocatedSizeInSamples = nextpoweroftwo(allocatedSizeInSamples);
+    return {sizeInSamples, allocatedSizeInSamples};
+}
+
+void delaytilde_02_del_init() {
+    auto result = this->delaytilde_02_del_calcSizeInSamples();
+    this->delaytilde_02_del__maxdelay = result[0];
+    Index requestedSizeInSamples = (Index)(result[1]);
+    this->delaytilde_02_del_buffer->requestSize(requestedSizeInSamples, 1);
+    this->delaytilde_02_del_wrap = requestedSizeInSamples - 1;
+}
+
+void delaytilde_02_del_clear() {
+    this->delaytilde_02_del_buffer->setZero();
+}
+
+void delaytilde_02_del_reset() {
+    auto result = this->delaytilde_02_del_calcSizeInSamples();
+    this->delaytilde_02_del__maxdelay = result[0];
+    Index allocatedSizeInSamples = (Index)(result[1]);
+    this->delaytilde_02_del_buffer->setSize(allocatedSizeInSamples);
+    updateDataRef(this, this->delaytilde_02_del_buffer);
+    this->delaytilde_02_del_wrap = this->delaytilde_02_del_buffer->getSize() - 1;
+    this->delaytilde_02_del_clear();
+
+    if (this->delaytilde_02_del_reader >= this->delaytilde_02_del__maxdelay || this->delaytilde_02_del_writer >= this->delaytilde_02_del__maxdelay) {
+        this->delaytilde_02_del_reader = 0;
+        this->delaytilde_02_del_writer = 0;
+    }
+}
+
+void delaytilde_02_del_dspsetup() {
+    this->delaytilde_02_del_reset();
+}
+
+number delaytilde_02_del_evaluateSizeExpr(number samplerate, number vectorsize) {
+    RNBO_UNUSED(vectorsize);
+    return samplerate;
+}
+
+number delaytilde_02_del_size() {
+    return this->delaytilde_02_del__maxdelay;
+}
+
+void delaytilde_02_dspsetup(bool force) {
+    if ((bool)(this->delaytilde_02_setupDone) && (bool)(!(bool)(force)))
         return;
 
-    this->rampsmooth_tilde_01_setupDone = true;
-    this->rampsmooth_tilde_01_d_dspsetup();
+    this->delaytilde_02_rampInSamples = (Int)(this->mstosamps(50));
+    this->delaytilde_02_lastDelay = -1;
+    this->delaytilde_02_setupDone = true;
+    this->delaytilde_02_del_dspsetup();
 }
 
 void adsr_01_dspsetup(bool force) {
@@ -3751,6 +4549,14 @@ void adsr_01_dspsetup(bool force) {
 
     this->adsr_01_mspersamp = (number)1000 / this->sr;
     this->adsr_01_setupDone = true;
+}
+
+void change_01_init() {
+    this->change_01_prev = this->change_01_input;
+}
+
+void message_01_init() {
+    this->message_01_set_set(listbase<number, 4>{0, 50, 1, 0});
 }
 
 void param_01_getPresetValue(PatcherStateInterface& preset) {
@@ -3977,6 +4783,7 @@ void updateTime(MillisecondTime time, EXTERNALENGINE* engine, bool inProcess = f
 
 void assign_defaults()
 {
+    delaytilde_01_delay = 0;
     numberobj_01_value = 0;
     numberobj_01_value_setter(numberobj_01_value);
     dspexpr_01_in1 = 0;
@@ -3995,9 +4802,9 @@ void assign_defaults()
     gen_01_cycleCountToAdd = 0;
     gen_01_cycleCountToSubtract = 0;
     gen_01_termsToAddPerCount = 0;
-    rampsmooth_tilde_01_x = 0;
-    rampsmooth_tilde_01_up = 100;
-    rampsmooth_tilde_01_down = 100;
+    dspexpr_03_in1 = 0;
+    dspexpr_03_in2 = 0;
+    delaytilde_02_delay = 0;
     adsr_01_trigger_number = 0;
     adsr_01_attack = 0;
     adsr_01_decay = 0;
@@ -4010,6 +4817,12 @@ void assign_defaults()
     expr_01_out1 = 0;
     linetilde_01_time = 10;
     linetilde_01_keepramp = true;
+    change_01_input = 0;
+    change_01_out = 0;
+    linetilde_02_time = 0;
+    linetilde_02_keepramp = false;
+    loadmess_01_message = { 50 };
+    mstosamps_01_ms = 0;
     param_01_value = 0;
     param_02_value = 100;
     param_03_value = 10;
@@ -4135,11 +4948,23 @@ void assign_defaults()
     signals[0] = nullptr;
     signals[1] = nullptr;
     signals[2] = nullptr;
+    signals[3] = nullptr;
+    signals[4] = nullptr;
     didAllocateSignals = 0;
     vs = 0;
     maxvs = 0;
     sr = 44100;
     invsr = 0.000022675736961451248;
+    delaytilde_01_lastDelay = -1;
+    delaytilde_01_crossfadeDelay = 0;
+    delaytilde_01_ramp = 0;
+    delaytilde_01_rampInSamples = 0;
+    delaytilde_01_del__maxdelay = 0;
+    delaytilde_01_del_sizemode = 0;
+    delaytilde_01_del_wrap = 0;
+    delaytilde_01_del_reader = 0;
+    delaytilde_01_del_writer = 0;
+    delaytilde_01_setupDone = false;
     numberobj_01_currentFormat = 6;
     numberobj_01_lastValue = 0;
     notein_01_status = 0;
@@ -4167,11 +4992,16 @@ void assign_defaults()
     gen_01_mtof_74_lastOutValue = 0;
     gen_01_mtof_74_lastTuning = 0;
     gen_01_setupDone = false;
-    rampsmooth_tilde_01_prev = 0;
-    rampsmooth_tilde_01_index = 0;
-    rampsmooth_tilde_01_increment = 0;
-    rampsmooth_tilde_01_d_prev = 0;
-    rampsmooth_tilde_01_setupDone = false;
+    delaytilde_02_lastDelay = -1;
+    delaytilde_02_crossfadeDelay = 0;
+    delaytilde_02_ramp = 0;
+    delaytilde_02_rampInSamples = 0;
+    delaytilde_02_del__maxdelay = 0;
+    delaytilde_02_del_sizemode = 0;
+    delaytilde_02_del_wrap = 0;
+    delaytilde_02_del_reader = 0;
+    delaytilde_02_del_writer = 0;
+    delaytilde_02_setupDone = false;
     adsr_01_phase = 1;
     adsr_01_mspersamp = 0;
     adsr_01_time = 0;
@@ -4183,6 +5013,7 @@ void assign_defaults()
     adsr_01_triggerValueBuf = nullptr;
     adsr_01_setupDone = false;
     linetilde_01_currentValue = 1;
+    linetilde_02_currentValue = 0;
     param_01_lastValue = 0;
     param_02_lastValue = 0;
     param_03_lastValue = 0;
@@ -4253,12 +5084,18 @@ void assign_defaults()
 
     // data ref strings
     struct DataRefStrings {
-    	static constexpr auto& name0 = "manageParam";
+    	static constexpr auto& name0 = "delaytilde_01_del_bufferobj";
     	static constexpr auto& file0 = "";
     	static constexpr auto& tag0 = "buffer~";
-    	static constexpr auto& name1 = "RNBODefaultMtofLookupTable256";
+    	static constexpr auto& name1 = "manageParam";
     	static constexpr auto& file1 = "";
     	static constexpr auto& tag1 = "buffer~";
+    	static constexpr auto& name2 = "RNBODefaultMtofLookupTable256";
+    	static constexpr auto& file2 = "";
+    	static constexpr auto& tag2 = "buffer~";
+    	static constexpr auto& name3 = "delaytilde_02_del_bufferobj";
+    	static constexpr auto& file3 = "";
+    	static constexpr auto& tag3 = "buffer~";
     	DataRefStrings* operator->() { return this; }
     	const DataRefStrings* operator->() const { return this; }
     };
@@ -4267,6 +5104,7 @@ void assign_defaults()
 
 // member variables
 
+    number delaytilde_01_delay;
     number numberobj_01_value;
     number dspexpr_01_in1;
     number dspexpr_01_in2;
@@ -4284,9 +5122,9 @@ void assign_defaults()
     number gen_01_cycleCountToAdd;
     number gen_01_cycleCountToSubtract;
     number gen_01_termsToAddPerCount;
-    number rampsmooth_tilde_01_x;
-    number rampsmooth_tilde_01_up;
-    number rampsmooth_tilde_01_down;
+    number dspexpr_03_in1;
+    number dspexpr_03_in2;
+    number delaytilde_02_delay;
     number adsr_01_trigger_number;
     number adsr_01_attack;
     number adsr_01_decay;
@@ -4300,6 +5138,14 @@ void assign_defaults()
     list linetilde_01_segments;
     number linetilde_01_time;
     number linetilde_01_keepramp;
+    number change_01_input;
+    number change_01_out;
+    list message_01_set;
+    list linetilde_02_segments;
+    number linetilde_02_time;
+    number linetilde_02_keepramp;
+    list loadmess_01_message;
+    number mstosamps_01_ms;
     number param_01_value;
     number param_02_value;
     number param_03_value;
@@ -4423,12 +5269,23 @@ void assign_defaults()
     Index sampleOffsetIntoNextAudioBuffer;
     signal zeroBuffer;
     signal dummyBuffer;
-    SampleValue * signals[3];
+    SampleValue * signals[5];
     bool didAllocateSignals;
     Index vs;
     Index maxvs;
     number sr;
     number invsr;
+    number delaytilde_01_lastDelay;
+    number delaytilde_01_crossfadeDelay;
+    number delaytilde_01_ramp;
+    Int delaytilde_01_rampInSamples;
+    Float64BufferRef delaytilde_01_del_buffer;
+    Index delaytilde_01_del__maxdelay;
+    Int delaytilde_01_del_sizemode;
+    Index delaytilde_01_del_wrap;
+    Int delaytilde_01_del_reader;
+    Int delaytilde_01_del_writer;
+    bool delaytilde_01_setupDone;
     Int numberobj_01_currentFormat;
     number numberobj_01_lastValue;
     Int notein_01_status;
@@ -4462,11 +5319,17 @@ void assign_defaults()
     number gen_01_mtof_74_lastTuning;
     SampleBufferRef gen_01_mtof_74_buffer;
     bool gen_01_setupDone;
-    number rampsmooth_tilde_01_prev;
-    number rampsmooth_tilde_01_index;
-    number rampsmooth_tilde_01_increment;
-    number rampsmooth_tilde_01_d_prev;
-    bool rampsmooth_tilde_01_setupDone;
+    number delaytilde_02_lastDelay;
+    number delaytilde_02_crossfadeDelay;
+    number delaytilde_02_ramp;
+    Int delaytilde_02_rampInSamples;
+    Float64BufferRef delaytilde_02_del_buffer;
+    Index delaytilde_02_del__maxdelay;
+    Int delaytilde_02_del_sizemode;
+    Index delaytilde_02_del_wrap;
+    Int delaytilde_02_del_reader;
+    Int delaytilde_02_del_writer;
+    bool delaytilde_02_setupDone;
     Int adsr_01_phase;
     number adsr_01_mspersamp;
     number adsr_01_time;
@@ -4479,6 +5342,9 @@ void assign_defaults()
     bool adsr_01_setupDone;
     list linetilde_01_activeRamps;
     number linetilde_01_currentValue;
+    number change_01_prev;
+    list linetilde_02_activeRamps;
+    number linetilde_02_currentValue;
     number param_01_lastValue;
     number param_02_lastValue;
     number param_03_lastValue;
@@ -4542,8 +5408,10 @@ void assign_defaults()
     signal globaltransport_tempo;
     signal globaltransport_state;
     number stackprotect_count;
+    DataRef delaytilde_01_del_bufferobj;
     DataRef manageParam;
     DataRef RNBODefaultMtofLookupTable256;
+    DataRef delaytilde_02_del_bufferobj;
     Index _voiceIndex;
     Int _noteNumber;
     Index isMuted;

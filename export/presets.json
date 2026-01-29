@@ -21,10 +21,10 @@
         "value": 2
       },
       "cycleCountToAdd": {
-        "value": 0
+        "value": 1
       },
       "cycleCountToSubtract": {
-        "value": 3
+        "value": 1
       },
       "decay": {
         "value": 100
@@ -42,7 +42,7 @@
         "value": 80
       },
       "terms": {
-        "value": 6
+        "value": 1
       },
       "termsToAddPerCount": {
         "value": 1
