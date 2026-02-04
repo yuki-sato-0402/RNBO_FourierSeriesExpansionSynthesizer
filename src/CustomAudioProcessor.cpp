@@ -3,8 +3,9 @@
 
 CustomAudioProcessor::CustomAudioProcessor() 
 : AudioProcessor (BusesProperties()
-    .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-parameters(*this, nullptr, juce::Identifier("PARAMETERS"),
+    .withOutput("Output", juce::AudioChannelSet::createLCR(), true)),
+    myVisualiser(1),
+    parameters(*this, nullptr, juce::Identifier("PARAMETERS"),
     juce::AudioProcessorValueTreeState::ParameterLayout {
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "terms",  1}, "terms",
         juce::NormalisableRange<float>(1, 40, 1, 1), 1),
@@ -36,6 +37,10 @@ parameters(*this, nullptr, juce::Identifier("PARAMETERS"),
         juce::NormalisableRange<float>(0, 20, 1), 1),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "termsToAddPerCount",  1}, "termsToAddPerCount",
         juce::NormalisableRange<float>(1, 20, 1), 1),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "harmonicSeriesMode",  1}, "harmonicSeriesMode",
+        juce::NormalisableRange<float>(0, 1, 1), 0),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "harmonicRatio",  1}, "harmonicRatio",
+        juce::NormalisableRange<float>(0.1f, 2.f, 0.01f), 1.f),
     }
   )
 {
@@ -68,11 +73,15 @@ parameters(*this, nullptr, juce::Identifier("PARAMETERS"),
     } 
   }
 
+  myVisualiser.setBufferSize(512);
+  myVisualiser.setRepaintRate(30);
+
 }
 
 void CustomAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     rnboObject.prepareToProcess (sampleRate, static_cast<size_t> (samplesPerBlock));
+    myVisualiser.clear();
 }
  
 void CustomAudioProcessor::releaseResources()
@@ -83,12 +92,36 @@ void CustomAudioProcessor::releaseResources()
 void CustomAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     auto tc = preProcess(midiMessages);
-	  rnboObject.process(
-                        buffer.getArrayOfWritePointers(), static_cast<RNBO::Index>(buffer.getNumChannels()),
-                        buffer.getArrayOfWritePointers(), static_cast<RNBO::Index>(buffer.getNumChannels()),
-                        static_cast<RNBO::Index> (buffer.getNumSamples()),
-			  &_midiInput, &_midiOutput
-			  );
+
+    //std::cout << "Num Channels: " << buffer.getNumChannels() << std::endl;
+
+    rnboObject.process(
+        buffer.getArrayOfWritePointers(), static_cast<RNBO::Index>(buffer.getNumChannels()),
+        buffer.getArrayOfWritePointers(), static_cast<RNBO::Index>(buffer.getNumChannels()),
+        static_cast<RNBO::Index> (buffer.getNumSamples()),
+        &_midiInput, &_midiOutput
+    );
+
+    // Copy Channel 3 (Index 2) for the visualizer, then delete it.
+    const int visChannelIndex = 2;
+    const int numSamples = buffer.getNumSamples();
+
+   
+    if (buffer.getNumChannels() > visChannelIndex) {
+        // Create a single-channel buffer for the visualizer
+        juce::AudioBuffer<float> visualBuf(1, numSamples);
+        float* visWrite = visualBuf.getWritePointer(0);
+        const float* src = buffer.getReadPointer(visChannelIndex);
+
+        // Copy data from the original buffer to the visualizer buffer
+        std::memcpy(visWrite, src, sizeof(float) * (size_t)numSamples);
+
+        buffer.clear(visChannelIndex, 0, numSamples);
+
+        const float* channelsForVis[1] = { visualBuf.getReadPointer(0) };
+        myVisualiser.pushBuffer(channelsForVis, 1, numSamples);
+    }
+
     postProcess(tc, midiMessages);
 }
 

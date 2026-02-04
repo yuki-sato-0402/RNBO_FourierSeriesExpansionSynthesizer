@@ -124,6 +124,8 @@ void processMidiEvent(MillisecondTime time, int port, ConstByteArray data, Index
     this->ctlin_13_midihandler(data[0] & 240, (data[0] & 15) + 1, port, data, length);
     this->ctlin_14_midihandler(data[0] & 240, (data[0] & 15) + 1, port, data, length);
     this->ctlin_15_midihandler(data[0] & 240, (data[0] & 15) + 1, port, data, length);
+    this->ctlin_16_midihandler(data[0] & 240, (data[0] & 15) + 1, port, data, length);
+    this->ctlin_17_midihandler(data[0] & 240, (data[0] & 15) + 1, port, data, length);
 }
 
 Index getNumMidiOutputPorts() const {
@@ -143,6 +145,7 @@ void process(
     this->updateTime(this->getEngine()->getCurrentTime(), (ENGINE*)nullptr, true);
     SampleValue * out1 = (numOutputs >= 1 && outputs[0] ? outputs[0] : this->dummyBuffer);
     SampleValue * out2 = (numOutputs >= 2 && outputs[1] ? outputs[1] : this->dummyBuffer);
+    SampleValue * out3 = (numOutputs >= 3 && outputs[2] ? outputs[2] : this->dummyBuffer);
 
     this->gen_01_perform(
         this->gen_01_in1,
@@ -156,7 +159,10 @@ void process(
         this->gen_01_cycleCountToAdd,
         this->gen_01_cycleCountToSubtract,
         this->gen_01_termsToAddPerCount,
+        this->gen_01_harmonicSeriesMode,
+        this->gen_01_harmonicRatio,
         this->signals[0],
+        out3,
         n
     );
 
@@ -216,7 +222,6 @@ void prepareToProcess(number sampleRate, Index maxBlockSize, bool force) {
         this->invsr = 1 / sampleRate;
     }
 
-    this->gen_01_dspsetup(forceDSPSetup);
     this->delaytilde_01_dspsetup(forceDSPSetup);
     this->adsr_01_dspsetup(forceDSPSetup);
     this->delaytilde_02_dspsetup(forceDSPSetup);
@@ -239,7 +244,7 @@ Index getNumInputChannels() const {
 }
 
 Index getNumOutputChannels() const {
-    return 2;
+    return 3;
 }
 
 DataRef* getDataRef(DataRefIndex index)  {
@@ -251,15 +256,20 @@ DataRef* getDataRef(DataRefIndex index)  {
         }
     case 1:
         {
-        return addressOf(this->manageParam);
+        return addressOf(this->phaseStore);
         break;
         }
     case 2:
         {
-        return addressOf(this->RNBODefaultMtofLookupTable256);
+        return addressOf(this->manageParam);
         break;
         }
     case 3:
+        {
+        return addressOf(this->RNBODefaultMtofLookupTable256);
+        break;
+        }
+    case 4:
         {
         return addressOf(this->delaytilde_02_del_bufferobj);
         break;
@@ -272,7 +282,7 @@ DataRef* getDataRef(DataRefIndex index)  {
 }
 
 DataRefIndex getNumDataRefs() const {
-    return 4;
+    return 5;
 }
 
 void processDataViewUpdate(DataRefIndex index, MillisecondTime time) {
@@ -283,18 +293,20 @@ void processDataViewUpdate(DataRefIndex index, MillisecondTime time) {
     }
 
     if (index == 1) {
-        this->gen_01_manageParam = reInitDataView(this->gen_01_manageParam, this->manageParam);
+        this->gen_01_phaseStore = reInitDataView(this->gen_01_phaseStore, this->phaseStore);
     }
 
     if (index == 2) {
-        this->gen_01_mtof_16_buffer = reInitDataView(this->gen_01_mtof_16_buffer, this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_18_buffer = reInitDataView(this->gen_01_mtof_18_buffer, this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_21_buffer = reInitDataView(this->gen_01_mtof_21_buffer, this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_55_buffer = reInitDataView(this->gen_01_mtof_55_buffer, this->RNBODefaultMtofLookupTable256);
-        this->gen_01_mtof_74_buffer = reInitDataView(this->gen_01_mtof_74_buffer, this->RNBODefaultMtofLookupTable256);
+        this->gen_01_manageParam = reInitDataView(this->gen_01_manageParam, this->manageParam);
     }
 
     if (index == 3) {
+        this->gen_01_mtof_11_buffer = reInitDataView(this->gen_01_mtof_11_buffer, this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_78_buffer = reInitDataView(this->gen_01_mtof_78_buffer, this->RNBODefaultMtofLookupTable256);
+        this->gen_01_mtof_79_buffer = reInitDataView(this->gen_01_mtof_79_buffer, this->RNBODefaultMtofLookupTable256);
+    }
+
+    if (index == 4) {
         this->delaytilde_02_del_buffer = reInitDataView(this->delaytilde_02_del_buffer, this->delaytilde_02_del_bufferobj);
     }
 }
@@ -310,43 +322,51 @@ void initialize() {
         this->dataRefStrings->tag0
     );
 
-    this->manageParam = initDataRef(
-        this->manageParam,
+    this->phaseStore = initDataRef(
+        this->phaseStore,
         this->dataRefStrings->name1,
         true,
         this->dataRefStrings->file1,
         this->dataRefStrings->tag1
     );
 
-    this->RNBODefaultMtofLookupTable256 = initDataRef(
-        this->RNBODefaultMtofLookupTable256,
+    this->manageParam = initDataRef(
+        this->manageParam,
         this->dataRefStrings->name2,
         true,
         this->dataRefStrings->file2,
         this->dataRefStrings->tag2
     );
 
-    this->delaytilde_02_del_bufferobj = initDataRef(
-        this->delaytilde_02_del_bufferobj,
+    this->RNBODefaultMtofLookupTable256 = initDataRef(
+        this->RNBODefaultMtofLookupTable256,
         this->dataRefStrings->name3,
         true,
         this->dataRefStrings->file3,
         this->dataRefStrings->tag3
     );
 
+    this->delaytilde_02_del_bufferobj = initDataRef(
+        this->delaytilde_02_del_bufferobj,
+        this->dataRefStrings->name4,
+        true,
+        this->dataRefStrings->file4,
+        this->dataRefStrings->tag4
+    );
+
     this->assign_defaults();
     this->applyState();
     this->delaytilde_01_del_bufferobj->setIndex(0);
     this->delaytilde_01_del_buffer = new Float64Buffer(this->delaytilde_01_del_bufferobj);
-    this->manageParam->setIndex(1);
+    this->phaseStore->setIndex(1);
+    this->gen_01_phaseStore = new SampleBuffer(this->phaseStore);
+    this->manageParam->setIndex(2);
     this->gen_01_manageParam = new SampleBuffer(this->manageParam);
-    this->RNBODefaultMtofLookupTable256->setIndex(2);
-    this->gen_01_mtof_16_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_18_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_21_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_55_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
-    this->gen_01_mtof_74_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
-    this->delaytilde_02_del_bufferobj->setIndex(3);
+    this->RNBODefaultMtofLookupTable256->setIndex(3);
+    this->gen_01_mtof_11_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_78_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
+    this->gen_01_mtof_79_buffer = new SampleBuffer(this->RNBODefaultMtofLookupTable256);
+    this->delaytilde_02_del_bufferobj->setIndex(4);
     this->delaytilde_02_del_buffer = new Float64Buffer(this->delaytilde_02_del_bufferobj);
     this->initializeObjects();
     this->allocateDataRefs();
@@ -368,10 +388,12 @@ void getPreset(PatcherStateInterface& preset) {
     this->param_09_getPresetValue(getSubState(preset, "terms"));
     this->param_10_getPresetValue(getSubState(preset, "release"));
     this->param_11_getPresetValue(getSubState(preset, "sustain"));
-    this->param_12_getPresetValue(getSubState(preset, "PosNegSync"));
-    this->param_13_getPresetValue(getSubState(preset, "termsToAddPerCount"));
-    this->param_14_getPresetValue(getSubState(preset, "cycleCountToSubtract"));
-    this->param_15_getPresetValue(getSubState(preset, "cycleCountToAdd"));
+    this->param_12_getPresetValue(getSubState(preset, "harmonicRatio"));
+    this->param_13_getPresetValue(getSubState(preset, "harmonicSeriesMode"));
+    this->param_14_getPresetValue(getSubState(preset, "PosNegSync"));
+    this->param_15_getPresetValue(getSubState(preset, "termsToAddPerCount"));
+    this->param_16_getPresetValue(getSubState(preset, "cycleCountToSubtract"));
+    this->param_17_getPresetValue(getSubState(preset, "cycleCountToAdd"));
 }
 
 void setPreset(MillisecondTime time, PatcherStateInterface& preset) {
@@ -387,10 +409,12 @@ void setPreset(MillisecondTime time, PatcherStateInterface& preset) {
     this->param_09_setPresetValue(getSubState(preset, "terms"));
     this->param_10_setPresetValue(getSubState(preset, "release"));
     this->param_11_setPresetValue(getSubState(preset, "sustain"));
-    this->param_12_setPresetValue(getSubState(preset, "PosNegSync"));
-    this->param_13_setPresetValue(getSubState(preset, "termsToAddPerCount"));
-    this->param_14_setPresetValue(getSubState(preset, "cycleCountToSubtract"));
-    this->param_15_setPresetValue(getSubState(preset, "cycleCountToAdd"));
+    this->param_12_setPresetValue(getSubState(preset, "harmonicRatio"));
+    this->param_13_setPresetValue(getSubState(preset, "harmonicSeriesMode"));
+    this->param_14_setPresetValue(getSubState(preset, "PosNegSync"));
+    this->param_15_setPresetValue(getSubState(preset, "termsToAddPerCount"));
+    this->param_16_setPresetValue(getSubState(preset, "cycleCountToSubtract"));
+    this->param_17_setPresetValue(getSubState(preset, "cycleCountToAdd"));
 }
 
 void setParameterValue(ParameterIndex index, ParameterValue v, MillisecondTime time) {
@@ -472,6 +496,16 @@ void setParameterValue(ParameterIndex index, ParameterValue v, MillisecondTime t
         this->param_15_value_set(v);
         break;
         }
+    case 15:
+        {
+        this->param_16_value_set(v);
+        break;
+        }
+    case 16:
+        {
+        this->param_17_value_set(v);
+        break;
+        }
     }
 }
 
@@ -549,6 +583,14 @@ ParameterValue getParameterValue(ParameterIndex index)  {
         {
         return this->param_15_value;
         }
+    case 15:
+        {
+        return this->param_16_value;
+        }
+    case 16:
+        {
+        return this->param_17_value;
+        }
     default:
         {
         return 0;
@@ -565,7 +607,7 @@ ParameterIndex getNumSignalOutParameters() const {
 }
 
 ParameterIndex getNumParameters() const {
-    return 15;
+    return 17;
 }
 
 ConstCharPointer getParameterName(ParameterIndex index) const {
@@ -616,17 +658,25 @@ ConstCharPointer getParameterName(ParameterIndex index) const {
         }
     case 11:
         {
-        return "PosNegSync";
+        return "harmonicRatio";
         }
     case 12:
         {
-        return "termsToAddPerCount";
+        return "harmonicSeriesMode";
         }
     case 13:
         {
-        return "cycleCountToSubtract";
+        return "PosNegSync";
         }
     case 14:
+        {
+        return "termsToAddPerCount";
+        }
+    case 15:
+        {
+        return "cycleCountToSubtract";
+        }
+    case 16:
         {
         return "cycleCountToAdd";
         }
@@ -685,17 +735,25 @@ ConstCharPointer getParameterId(ParameterIndex index) const {
         }
     case 11:
         {
-        return "PosNegSync";
+        return "harmonicRatio";
         }
     case 12:
         {
-        return "termsToAddPerCount";
+        return "harmonicSeriesMode";
         }
     case 13:
         {
-        return "cycleCountToSubtract";
+        return "PosNegSync";
         }
     case 14:
+        {
+        return "termsToAddPerCount";
+        }
+    case 15:
+        {
+        return "cycleCountToSubtract";
+        }
+    case 16:
         {
         return "cycleCountToAdd";
         }
@@ -922,8 +980,8 @@ void getParameterInfo(ParameterIndex index, ParameterInfo * info) const {
             {
             info->type = ParameterTypeNumber;
             info->initialValue = 1;
-            info->min = 0;
-            info->max = 1;
+            info->min = 0.1;
+            info->max = 2;
             info->exponent = 1;
             info->steps = 0;
             info->debug = false;
@@ -940,9 +998,9 @@ void getParameterInfo(ParameterIndex index, ParameterInfo * info) const {
         case 12:
             {
             info->type = ParameterTypeNumber;
-            info->initialValue = 1;
-            info->min = 1;
-            info->max = 20;
+            info->initialValue = 0;
+            info->min = 0;
+            info->max = 1;
             info->exponent = 1;
             info->steps = 0;
             info->debug = false;
@@ -961,7 +1019,7 @@ void getParameterInfo(ParameterIndex index, ParameterInfo * info) const {
             info->type = ParameterTypeNumber;
             info->initialValue = 1;
             info->min = 0;
-            info->max = 20;
+            info->max = 1;
             info->exponent = 1;
             info->steps = 0;
             info->debug = false;
@@ -976,6 +1034,44 @@ void getParameterInfo(ParameterIndex index, ParameterInfo * info) const {
             break;
             }
         case 14:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 1;
+            info->min = 1;
+            info->max = 20;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 15:
+            {
+            info->type = ParameterTypeNumber;
+            info->initialValue = 1;
+            info->min = 0;
+            info->max = 20;
+            info->exponent = 1;
+            info->steps = 0;
+            info->debug = false;
+            info->saveable = true;
+            info->transmittable = true;
+            info->initialized = true;
+            info->visible = true;
+            info->displayName = "";
+            info->unit = "";
+            info->ioType = IOTypeUndefined;
+            info->signalIndex = INVALID_INDEX;
+            break;
+            }
+        case 16:
             {
             info->type = ParameterTypeNumber;
             info->initialValue = 1;
@@ -1017,7 +1113,8 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
     case 0:
     case 4:
     case 7:
-    case 11:
+    case 12:
+    case 13:
         {
         {
             value = (value < 0 ? 0 : (value > 1 ? 1 : value));
@@ -1025,8 +1122,8 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
-    case 13:
-    case 14:
+    case 15:
+    case 16:
         {
         {
             value = (value < 0 ? 0 : (value > 20 ? 20 : value));
@@ -1058,7 +1155,7 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
-    case 12:
+    case 14:
         {
         {
             value = (value < 1 ? 1 : (value > 20 ? 20 : value));
@@ -1099,6 +1196,14 @@ ParameterValue convertToNormalizedParameterValue(ParameterIndex index, Parameter
             return normalizedValue;
         }
         }
+    case 11:
+        {
+        {
+            value = (value < 0.1 ? 0.1 : (value > 2 ? 2 : value));
+            ParameterValue normalizedValue = (value - 0.1) / (2 - 0.1);
+            return normalizedValue;
+        }
+        }
     default:
         {
         return value;
@@ -1113,7 +1218,8 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
     case 0:
     case 4:
     case 7:
-    case 11:
+    case 12:
+    case 13:
         {
         {
             {
@@ -1121,8 +1227,8 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
             }
         }
         }
-    case 13:
-    case 14:
+    case 15:
+    case 16:
         {
         {
             {
@@ -1154,7 +1260,7 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
             }
         }
         }
-    case 12:
+    case 14:
         {
         {
             {
@@ -1192,6 +1298,14 @@ ParameterValue convertFromNormalizedParameterValue(ParameterIndex index, Paramet
         {
             {
                 return 2 + value * (40 - 2);
+            }
+        }
+        }
+    case 11:
+        {
+        {
+            {
+                return 0.1 + value * (2 - 0.1);
             }
         }
         }
@@ -1263,6 +1377,14 @@ ParameterValue constrainParameterValue(ParameterIndex index, ParameterValue valu
     case 14:
         {
         return this->param_15_value_constrain(value);
+        }
+    case 15:
+        {
+        return this->param_16_value_constrain(value);
+        }
+    case 16:
+        {
+        return this->param_17_value_constrain(value);
         }
     default:
         {
@@ -1693,37 +1815,6 @@ template<typename BUFFERTYPE> array<SampleValue, 1 + 1> peek_default(BUFFERTYPE&
     }
 }
 
-inline number safediv(number num, number denom) {
-    return (denom == 0.0 ? 0.0 : num / denom);
-}
-
-number safepow(number base, number exponent) {
-    return fixnan(rnbo_pow(base, exponent));
-}
-
-number scale(
-    number x,
-    number lowin,
-    number hiin,
-    number lowout,
-    number highout,
-    number pow
-) {
-    auto inscale = this->safediv(1., hiin - lowin);
-    number outdiff = highout - lowout;
-    number value = (x - lowin) * inscale;
-
-    if (pow != 1) {
-        if (value > 0)
-            value = this->safepow(value, pow);
-        else
-            value = -this->safepow(-value, pow);
-    }
-
-    value = value * outdiff + lowout;
-    return value;
-}
-
 inline number intnum(const number value) {
     return trunc(value);
 }
@@ -1896,7 +1987,7 @@ void param_12_value_set(number v) {
         this->param_12_lastValue = this->param_12_value;
     }
 
-    this->gen_01_PosNegSync_set(v);
+    this->gen_01_harmonicRatio_set(v);
 }
 
 void param_13_value_set(number v) {
@@ -1909,7 +2000,7 @@ void param_13_value_set(number v) {
         this->param_13_lastValue = this->param_13_value;
     }
 
-    this->gen_01_termsToAddPerCount_set(v);
+    this->gen_01_harmonicSeriesMode_set(v);
 }
 
 void param_14_value_set(number v) {
@@ -1922,7 +2013,7 @@ void param_14_value_set(number v) {
         this->param_14_lastValue = this->param_14_value;
     }
 
-    this->gen_01_cycleCountToSubtract_set(v);
+    this->gen_01_PosNegSync_set(v);
 }
 
 void param_15_value_set(number v) {
@@ -1933,6 +2024,32 @@ void param_15_value_set(number v) {
     if (this->param_15_value != this->param_15_lastValue) {
         this->getEngine()->presetTouched();
         this->param_15_lastValue = this->param_15_value;
+    }
+
+    this->gen_01_termsToAddPerCount_set(v);
+}
+
+void param_16_value_set(number v) {
+    v = this->param_16_value_constrain(v);
+    this->param_16_value = v;
+    this->sendParameter(15, false);
+
+    if (this->param_16_value != this->param_16_lastValue) {
+        this->getEngine()->presetTouched();
+        this->param_16_lastValue = this->param_16_value;
+    }
+
+    this->gen_01_cycleCountToSubtract_set(v);
+}
+
+void param_17_value_set(number v) {
+    v = this->param_17_value_constrain(v);
+    this->param_17_value = v;
+    this->sendParameter(16, false);
+
+    if (this->param_17_value != this->param_17_lastValue) {
+        this->getEngine()->presetTouched();
+        this->param_17_lastValue = this->param_17_value;
     }
 
     this->gen_01_cycleCountToAdd_set(v);
@@ -2013,7 +2130,7 @@ void fillRNBODefaultMtofLookupTable256(DataRef& ref) {
 
 void fillDataRef(DataRefIndex index, DataRef& ref) {
     switch (index) {
-    case 2:
+    case 3:
         {
         this->fillRNBODefaultMtofLookupTable256(ref);
         break;
@@ -2026,18 +2143,16 @@ void zeroDataRef(DataRef& ref) {
 }
 
 void allocateDataRefs() {
+    this->gen_01_phaseStore->requestSize(40, 2);
+    this->gen_01_phaseStore->setSampleRate(this->sr);
     this->gen_01_manageParam->requestSize(10, 1);
     this->gen_01_manageParam->setSampleRate(this->sr);
-    this->gen_01_mtof_16_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_16_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_18_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_18_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_21_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_21_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_55_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_55_buffer->setSampleRate(this->sr);
-    this->gen_01_mtof_74_buffer->requestSize(65536, 1);
-    this->gen_01_mtof_74_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_11_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_11_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_78_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_78_buffer->setSampleRate(this->sr);
+    this->gen_01_mtof_79_buffer->requestSize(65536, 1);
+    this->gen_01_mtof_79_buffer->setSampleRate(this->sr);
     this->delaytilde_01_del_buffer = this->delaytilde_01_del_buffer->allocateIfNeeded();
 
     if (this->delaytilde_01_del_bufferobj->hasRequestedSize()) {
@@ -2047,26 +2162,33 @@ void allocateDataRefs() {
         this->getEngine()->sendDataRefUpdated(0);
     }
 
+    this->gen_01_phaseStore = this->gen_01_phaseStore->allocateIfNeeded();
+
+    if (this->phaseStore->hasRequestedSize()) {
+        if (this->phaseStore->wantsFill())
+            this->zeroDataRef(this->phaseStore);
+
+        this->getEngine()->sendDataRefUpdated(1);
+    }
+
     this->gen_01_manageParam = this->gen_01_manageParam->allocateIfNeeded();
 
     if (this->manageParam->hasRequestedSize()) {
         if (this->manageParam->wantsFill())
             this->zeroDataRef(this->manageParam);
 
-        this->getEngine()->sendDataRefUpdated(1);
+        this->getEngine()->sendDataRefUpdated(2);
     }
 
-    this->gen_01_mtof_16_buffer = this->gen_01_mtof_16_buffer->allocateIfNeeded();
-    this->gen_01_mtof_18_buffer = this->gen_01_mtof_18_buffer->allocateIfNeeded();
-    this->gen_01_mtof_21_buffer = this->gen_01_mtof_21_buffer->allocateIfNeeded();
-    this->gen_01_mtof_55_buffer = this->gen_01_mtof_55_buffer->allocateIfNeeded();
-    this->gen_01_mtof_74_buffer = this->gen_01_mtof_74_buffer->allocateIfNeeded();
+    this->gen_01_mtof_11_buffer = this->gen_01_mtof_11_buffer->allocateIfNeeded();
+    this->gen_01_mtof_78_buffer = this->gen_01_mtof_78_buffer->allocateIfNeeded();
+    this->gen_01_mtof_79_buffer = this->gen_01_mtof_79_buffer->allocateIfNeeded();
 
     if (this->RNBODefaultMtofLookupTable256->hasRequestedSize()) {
         if (this->RNBODefaultMtofLookupTable256->wantsFill())
             this->fillRNBODefaultMtofLookupTable256(this->RNBODefaultMtofLookupTable256);
 
-        this->getEngine()->sendDataRefUpdated(2);
+        this->getEngine()->sendDataRefUpdated(3);
     }
 
     this->delaytilde_02_del_buffer = this->delaytilde_02_del_buffer->allocateIfNeeded();
@@ -2075,7 +2197,7 @@ void allocateDataRefs() {
         if (this->delaytilde_02_del_bufferobj->wantsFill())
             this->zeroDataRef(this->delaytilde_02_del_bufferobj);
 
-        this->getEngine()->sendDataRefUpdated(3);
+        this->getEngine()->sendDataRefUpdated(4);
     }
 }
 
@@ -2083,9 +2205,17 @@ void initializeObjects() {
     this->delaytilde_01_del_init();
     this->numberobj_01_init();
     this->gen_01_sampleCount_init();
-    this->gen_01_change_13_init();
-    this->gen_01_change_14_init();
-    this->gen_01_change_15_init();
+    this->gen_01_change_8_init();
+    this->gen_01_change_9_init();
+    this->gen_01_change_10_init();
+    this->gen_01_change_70_init();
+    this->gen_01_change_71_init();
+    this->gen_01_change_72_init();
+    this->gen_01_change_73_init();
+    this->gen_01_change_74_init();
+    this->gen_01_change_75_init();
+    this->gen_01_change_76_init();
+    this->gen_01_change_77_init();
     this->delaytilde_02_del_init();
     this->change_01_init();
     this->message_01_init();
@@ -2212,6 +2342,14 @@ void startup() {
 
     {
         this->scheduleParamInit(14, 0);
+    }
+
+    {
+        this->scheduleParamInit(15, 0);
+    }
+
+    {
+        this->scheduleParamInit(16, 0);
     }
 
     this->processParamInitEvents();
@@ -2429,6 +2567,24 @@ void expr_14_in1_set(number in1) {
 }
 
 number param_12_value_constrain(number v) const {
+    v = (v > 2 ? 2 : (v < 0.1 ? 0.1 : v));
+    return v;
+}
+
+void gen_01_harmonicRatio_set(number v) {
+    this->gen_01_harmonicRatio = v;
+}
+
+number param_13_value_constrain(number v) const {
+    v = (v > 1 ? 1 : (v < 0 ? 0 : v));
+    return v;
+}
+
+void gen_01_harmonicSeriesMode_set(number v) {
+    this->gen_01_harmonicSeriesMode = v;
+}
+
+number param_14_value_constrain(number v) const {
     v = (v > 1 ? 1 : (v < 0 ? 0 : v));
     return v;
 }
@@ -2437,7 +2593,7 @@ void gen_01_PosNegSync_set(number v) {
     this->gen_01_PosNegSync = v;
 }
 
-number param_13_value_constrain(number v) const {
+number param_15_value_constrain(number v) const {
     v = (v > 20 ? 20 : (v < 1 ? 1 : v));
     return v;
 }
@@ -2446,7 +2602,7 @@ void gen_01_termsToAddPerCount_set(number v) {
     this->gen_01_termsToAddPerCount = v;
 }
 
-number param_14_value_constrain(number v) const {
+number param_16_value_constrain(number v) const {
     v = (v > 20 ? 20 : (v < 0 ? 0 : v));
     return v;
 }
@@ -2455,7 +2611,7 @@ void gen_01_cycleCountToSubtract_set(number v) {
     this->gen_01_cycleCountToSubtract = v;
 }
 
-number param_15_value_constrain(number v) const {
+number param_17_value_constrain(number v) const {
     v = (v > 20 ? 20 : (v < 0 ? 0 : v));
     return v;
 }
@@ -3256,6 +3412,82 @@ void ctlin_15_midihandler(int status, int channel, int port, ConstByteArray data
     }
 }
 
+void ctlin_16_outchannel_set(number ) {}
+
+void ctlin_16_outcontroller_set(number ) {}
+
+void fromnormalized_16_output_set(number v) {
+    this->param_16_value_set(v);
+}
+
+void fromnormalized_16_input_set(number v) {
+    this->fromnormalized_16_output_set(this->fromnormalized(15, v));
+}
+
+void expr_21_out1_set(number v) {
+    this->expr_21_out1 = v;
+    this->fromnormalized_16_input_set(this->expr_21_out1);
+}
+
+void expr_21_in1_set(number in1) {
+    this->expr_21_in1 = in1;
+    this->expr_21_out1_set(this->expr_21_in1 * this->expr_21_in2);//#map:expr_21:1
+}
+
+void ctlin_16_value_set(number v) {
+    this->expr_21_in1_set(v);
+}
+
+void ctlin_16_midihandler(int status, int channel, int port, ConstByteArray data, Index length) {
+    RNBO_UNUSED(length);
+    RNBO_UNUSED(port);
+
+    if (status == 0xB0 && (channel == this->ctlin_16_channel || this->ctlin_16_channel == -1) && (data[1] == this->ctlin_16_controller || this->ctlin_16_controller == -1)) {
+        this->ctlin_16_outchannel_set(channel);
+        this->ctlin_16_outcontroller_set(data[1]);
+        this->ctlin_16_value_set(data[2]);
+        this->ctlin_16_status = 0;
+    }
+}
+
+void ctlin_17_outchannel_set(number ) {}
+
+void ctlin_17_outcontroller_set(number ) {}
+
+void fromnormalized_17_output_set(number v) {
+    this->param_17_value_set(v);
+}
+
+void fromnormalized_17_input_set(number v) {
+    this->fromnormalized_17_output_set(this->fromnormalized(16, v));
+}
+
+void expr_22_out1_set(number v) {
+    this->expr_22_out1 = v;
+    this->fromnormalized_17_input_set(this->expr_22_out1);
+}
+
+void expr_22_in1_set(number in1) {
+    this->expr_22_in1 = in1;
+    this->expr_22_out1_set(this->expr_22_in1 * this->expr_22_in2);//#map:expr_22:1
+}
+
+void ctlin_17_value_set(number v) {
+    this->expr_22_in1_set(v);
+}
+
+void ctlin_17_midihandler(int status, int channel, int port, ConstByteArray data, Index length) {
+    RNBO_UNUSED(length);
+    RNBO_UNUSED(port);
+
+    if (status == 0xB0 && (channel == this->ctlin_17_channel || this->ctlin_17_channel == -1) && (data[1] == this->ctlin_17_controller || this->ctlin_17_controller == -1)) {
+        this->ctlin_17_outchannel_set(channel);
+        this->ctlin_17_outcontroller_set(data[1]);
+        this->ctlin_17_value_set(data[2]);
+        this->ctlin_17_status = 0;
+    }
+}
+
 void gen_01_perform(
     number in1,
     number terms,
@@ -3268,7 +3500,10 @@ void gen_01_perform(
     number cycleCountToAdd,
     number cycleCountToSubtract,
     number termsToAddPerCount,
+    number harmonicSeriesMode,
+    number harmonicRatio,
     SampleValue * out1,
+    SampleValue * out2,
     Index n
 ) {
     auto __gen_01_sampleCount_value = this->gen_01_sampleCount_value;
@@ -3302,238 +3537,570 @@ void gen_01_perform(
             this->poke_default(this->gen_01_manageParam, ocillator, 9, 0, 0);
         }
 
-        number posTerms = 0;
-        auto result_0 = this->peek_default(this->gen_01_manageParam, 0, 0);
-        posTerms = result_0[0];
         number posFilterOnOff = 0;
-        auto result_1 = this->peek_default(this->gen_01_manageParam, 1, 0);
-        posFilterOnOff = result_1[0];
+        auto result_0 = this->peek_default(this->gen_01_manageParam, 1, 0);
+        posFilterOnOff = result_0[0];
         number posCutoffOvertone = 0;
-        auto result_2 = this->peek_default(this->gen_01_manageParam, 2, 0);
-        posCutoffOvertone = result_2[0];
+        auto result_1 = this->peek_default(this->gen_01_manageParam, 2, 0);
+        posCutoffOvertone = result_1[0];
         number posAttenuation = 0;
-        auto result_3 = this->peek_default(this->gen_01_manageParam, 3, 0);
-        posAttenuation = result_3[0];
+        auto result_2 = this->peek_default(this->gen_01_manageParam, 3, 0);
+        posAttenuation = result_2[0];
         number posOcillator = 0;
-        auto result_4 = this->peek_default(this->gen_01_manageParam, 4, 0);
-        posOcillator = result_4[0];
-        number negTerms = 0;
-        auto result_5 = this->peek_default(this->gen_01_manageParam, 5, 0);
-        negTerms = result_5[0];
+        auto result_3 = this->peek_default(this->gen_01_manageParam, 4, 0);
+        posOcillator = result_3[0];
         number negFilterOnOff = 0;
-        auto result_6 = this->peek_default(this->gen_01_manageParam, 6, 0);
-        negFilterOnOff = result_6[0];
+        auto result_4 = this->peek_default(this->gen_01_manageParam, 6, 0);
+        negFilterOnOff = result_4[0];
         number negCutoffOvertone = 0;
-        auto result_7 = this->peek_default(this->gen_01_manageParam, 7, 0);
-        negCutoffOvertone = result_7[0];
+        auto result_5 = this->peek_default(this->gen_01_manageParam, 7, 0);
+        negCutoffOvertone = result_5[0];
         number negAttenuation = 0;
-        auto result_8 = this->peek_default(this->gen_01_manageParam, 8, 0);
-        negAttenuation = result_8[0];
+        auto result_6 = this->peek_default(this->gen_01_manageParam, 8, 0);
+        negAttenuation = result_6[0];
         number negOcillator = 0;
-        auto result_9 = this->peek_default(this->gen_01_manageParam, 9, 0);
-        negOcillator = result_9[0];
-        number posWave_10 = 0;
-        number negWave_11 = 0;
-        number countReset_12 = 0;
+        auto result_7 = this->peek_default(this->gen_01_manageParam, 9, 0);
+        negOcillator = result_7[0];
 
-        if (this->gen_01_change_13_next(cycleCountToAdd) != 0 || this->gen_01_change_14_next(cycleCountToSubtract) != 0 || this->gen_01_change_15_next(this->gen_01_mtof_16_next(in1, 440)) != 0) {
-            countReset_12 = 1;
+        if (this->gen_01_change_8_next(cycleCountToAdd) != 0 || this->gen_01_change_9_next(cycleCountToSubtract) != 0 || this->gen_01_change_10_next(terms) != 0) {
             __gen_01_sampleCount_value = 0;
         }
 
-        number wave_gen_19 = this->gen_01_phasor_17_next(this->gen_01_mtof_18_next(in1, 440), countReset_12);
-        auto scaled_wave_20 = this->scale(wave_gen_19, 0, 1, 0, 6.28318530717958647692, 1);
-        number periodSamps_22 = (this->gen_01_mtof_21_next(in1, 440) == 0. ? 0. : this->sr / this->gen_01_mtof_21_next(in1, 440));
+        number periodSamps1_12 = (this->gen_01_mtof_11_next(in1, 440) == 0. ? 0. : this->sr / this->gen_01_mtof_11_next(in1, 440));
+        number periodSamps2_13 = this->sr / (number)1;
         __gen_01_sampleCount_value = __gen_01_sampleCount_value + 1;
+        number changeCycleNumber_15 = 0;
+        number changeCycleNumber_14 = 0;
 
-        auto cycleCount_23 = this->wrap(
-            __gen_01_sampleCount_value,
-            0,
-            periodSamps_22 * (cycleCountToAdd + cycleCountToSubtract)
-        );
+        {
+            auto termsToAddPerCount_21 = termsToAddPerCount;
+            auto cycleCountToSubtract_20 = cycleCountToSubtract;
+            auto cycleCountToAdd_19 = cycleCountToAdd;
+            auto manageParam_18 = this->gen_01_manageParam;
+            auto sampleCount_17 = __gen_01_sampleCount_value;
+            auto periodSamps_16 = periodSamps1_12;
 
-        number cycleCount_1_24 = this->intnum((periodSamps_22 == 0. ? 0. : cycleCount_23 / periodSamps_22)) + 1;
+            auto cycleCount_22 = this->wrap(
+                sampleCount_17,
+                0,
+                periodSamps_16 * (cycleCountToAdd_19 + cycleCountToSubtract_20)
+            );
 
-        if (cycleCountToAdd != 0 && cycleCount_1_24 <= cycleCountToAdd) {
-            number peek_2 = 0;
-            number peek_3 = 0;
-            auto result_25 = this->peek_default(this->gen_01_manageParam, 0, 0);
-            peek_3 = result_25[1];
-            peek_2 = result_25[0];
-            posTerms = peek_2 + cycleCount_1_24 * termsToAddPerCount;
-            number peek_4 = 0;
-            number peek_5 = 0;
-            auto result_26 = this->peek_default(this->gen_01_manageParam, 5, 0);
-            peek_5 = result_26[1];
-            peek_4 = result_26[0];
-            negTerms = peek_4 + cycleCount_1_24 * termsToAddPerCount;
-        } else if (cycleCountToAdd != 0 && cycleCount_1_24 > cycleCountToAdd) {
-            number totalAddedTerms_27 = cycleCountToAdd * termsToAddPerCount;
-            number termsToSubtractPerCount_28 = (cycleCountToSubtract == 0. ? 0. : totalAddedTerms_27 / cycleCountToSubtract);
-            number countForSubtract_29 = cycleCount_1_24 - cycleCountToAdd;
-            auto addedTerms_30 = this->intnum(totalAddedTerms_27 - termsToSubtractPerCount_28 * countForSubtract_29);
-            number peek_6 = 0;
-            number peek_7 = 0;
-            auto result_31 = this->peek_default(this->gen_01_manageParam, 0, 0);
-            peek_7 = result_31[1];
-            peek_6 = result_31[0];
-            posTerms = peek_6 + addedTerms_30;
-            number peek_8 = 0;
-            number peek_9 = 0;
-            auto result_32 = this->peek_default(this->gen_01_manageParam, 5, 0);
-            peek_9 = result_32[1];
-            peek_8 = result_32[0];
-            negTerms = peek_8 + addedTerms_30;
-        } else {
-            auto result_33 = this->peek_default(this->gen_01_manageParam, 0, 0);
-            posTerms = result_33[0];
-            auto result_34 = this->peek_default(this->gen_01_manageParam, 5, 0);
-            negTerms = result_34[0];
-        }
+            number cycleCount_1_23 = this->intnum((periodSamps_16 == 0. ? 0. : cycleCount_22 / periodSamps_16)) + 1;
+            number posTerms_24 = 0;
+            number negTerms_25 = 0;
 
-        auto maxTerms_35 = this->maximum(posTerms, negTerms);
+            if (cycleCountToAdd_19 != 0 && cycleCount_1_23 <= cycleCountToAdd_19) {
+                number peek_2 = 0;
+                number peek_3 = 0;
+                auto result_26 = this->peek_default(manageParam_18, 0, 0);
+                peek_3 = result_26[1];
+                peek_2 = result_26[0];
+                posTerms_24 = peek_2 + cycleCount_1_23 * termsToAddPerCount_21;
+                number peek_4 = 0;
+                number peek_5 = 0;
+                auto result_27 = this->peek_default(manageParam_18, 5, 0);
+                peek_5 = result_27[1];
+                peek_4 = result_27[0];
+                negTerms_25 = peek_4 + cycleCount_1_23 * termsToAddPerCount_21;
+            } else if (cycleCountToAdd_19 != 0 && cycleCount_1_23 > cycleCountToAdd_19) {
+                number totalAddedTerms_28 = cycleCountToAdd_19 * termsToAddPerCount_21;
+                number termsToSubtractPerCount_29 = (cycleCountToSubtract_20 == 0. ? 0. : totalAddedTerms_28 / cycleCountToSubtract_20);
+                number countForSubtract_30 = cycleCount_1_23 - cycleCountToAdd_19;
+                auto addedTerms_31 = this->intnum(totalAddedTerms_28 - termsToSubtractPerCount_29 * countForSubtract_30);
 
-        for (number i = 1; i <= maxTerms_35; i = i + 1) {
-            number sine_wave1_36 = rnbo_sin(scaled_wave_20 * i);
-
-            if (i <= posTerms) {
-                number processSynthesis_37 = 0;
-
-                {
-                    auto Ocillator_43 = posOcillator;
-                    auto Attenuation_42 = posAttenuation;
-                    auto CutoffOvertone_41 = posCutoffOvertone;
-                    auto FilterOnOff_40 = posFilterOnOff;
-                    auto index_39 = i;
-                    auto inputFreq_38 = in1;
-                    number Factors_44 = 1;
-                    number Amp_filter_45 = 1;
-
-                    if (Ocillator_43 == 1) {
-                        if (this->safemod(index_39, 2) == 1) {
-                            Factors_44 = (3.14159265358979323846 * index_39 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_39));
-                        } else {
-                            Factors_44 = 0;
-                        }
-                    } else if (Ocillator_43 == 2) {
-                        if (this->safemod(index_39, 2) == 1) {
-                            number myTriangle_46 = 0;
-
-                            {
-                                auto n2_47 = index_39;
-                                number amp_factor2_48 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_47, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_47, 2))));
-                                number phase_factor2_49 = fixnan(rnbo_pow(-1, (n2_47 - 1) / (number)2));
-                                myTriangle_46 = amp_factor2_48 * phase_factor2_49;
-                            }
-
-                            Factors_44 = myTriangle_46;
-                        } else {
-                            Factors_44 = 0;
-                        }
-                    } else {
-                        number mySawtooth_50 = 0;
-
-                        {
-                            auto n3_51 = index_39;
-                            number amp_factor3_52 = (3.14159265358979323846 * n3_51 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_51));
-                            number phase_factor3_53 = fixnan(rnbo_pow(-1, n3_51 + 1));
-                            mySawtooth_50 = amp_factor3_52 * phase_factor3_53;
-                        }
-
-                        Factors_44 = mySawtooth_50;
-                    }
-
-                    if (FilterOnOff_40 == 1) {
-                        if (index_39 >= CutoffOvertone_41) {
-                            number n_overtone_54 = (index_39 - CutoffOvertone_41 + 1) * Attenuation_42;
-                            Amp_filter_45 = (n_overtone_54 == 0. ? 0. : (number)1 / n_overtone_54);
-                        }
-                    }
-
-                    if (this->gen_01_mtof_55_next(inputFreq_38, 440) * index_39 > this->sr / (number)2) {
-                        Factors_44 = 0;
-                    }
-
-                    processSynthesis_37 = Factors_44 * Amp_filter_45;
+                if (posTerms_24 <= 0) {
+                    posTerms_24 = 1;
                 }
 
-                posWave_10 = posWave_10 + sine_wave1_36 * processSynthesis_37;
+                if (negTerms_25 <= 0) {
+                    negTerms_25 = 1;
+                }
+
+                number peek_6 = 0;
+                number peek_7 = 0;
+                auto result_32 = this->peek_default(manageParam_18, 0, 0);
+                peek_7 = result_32[1];
+                peek_6 = result_32[0];
+                posTerms_24 = peek_6 + addedTerms_31;
+                number peek_8 = 0;
+                number peek_9 = 0;
+                auto result_33 = this->peek_default(manageParam_18, 5, 0);
+                peek_9 = result_33[1];
+                peek_8 = result_33[0];
+                negTerms_25 = peek_8 + addedTerms_31;
+            } else {
+                auto result_34 = this->peek_default(manageParam_18, 0, 0);
+                posTerms_24 = result_34[0];
+                auto result_35 = this->peek_default(manageParam_18, 5, 0);
+                negTerms_25 = result_35[0];
             }
 
-            if (i <= negTerms) {
-                number processSynthesis_56 = 0;
-
-                {
-                    auto Ocillator_62 = negOcillator;
-                    auto Attenuation_61 = negAttenuation;
-                    auto CutoffOvertone_60 = negCutoffOvertone;
-                    auto FilterOnOff_59 = negFilterOnOff;
-                    auto index_58 = i;
-                    auto inputFreq_57 = in1;
-                    number Factors_63 = 1;
-                    number Amp_filter_64 = 1;
-
-                    if (Ocillator_62 == 1) {
-                        if (this->safemod(index_58, 2) == 1) {
-                            Factors_63 = (3.14159265358979323846 * index_58 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_58));
-                        } else {
-                            Factors_63 = 0;
-                        }
-                    } else if (Ocillator_62 == 2) {
-                        if (this->safemod(index_58, 2) == 1) {
-                            number myTriangle_65 = 0;
-
-                            {
-                                auto n2_66 = index_58;
-                                number amp_factor2_67 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_66, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_66, 2))));
-                                number phase_factor2_68 = fixnan(rnbo_pow(-1, (n2_66 - 1) / (number)2));
-                                myTriangle_65 = amp_factor2_67 * phase_factor2_68;
-                            }
-
-                            Factors_63 = myTriangle_65;
-                        } else {
-                            Factors_63 = 0;
-                        }
-                    } else {
-                        number mySawtooth_69 = 0;
-
-                        {
-                            auto n3_70 = index_58;
-                            number amp_factor3_71 = (3.14159265358979323846 * n3_70 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_70));
-                            number phase_factor3_72 = fixnan(rnbo_pow(-1, n3_70 + 1));
-                            mySawtooth_69 = amp_factor3_71 * phase_factor3_72;
-                        }
-
-                        Factors_63 = mySawtooth_69;
-                    }
-
-                    if (FilterOnOff_59 == 1) {
-                        if (index_58 >= CutoffOvertone_60) {
-                            number n_overtone_73 = (index_58 - CutoffOvertone_60 + 1) * Attenuation_61;
-                            Amp_filter_64 = (n_overtone_73 == 0. ? 0. : (number)1 / n_overtone_73);
-                        }
-                    }
-
-                    if (this->gen_01_mtof_74_next(inputFreq_57, 440) * index_58 > this->sr / (number)2) {
-                        Factors_63 = 0;
-                    }
-
-                    processSynthesis_56 = Factors_63 * Amp_filter_64;
-                }
-
-                negWave_11 = negWave_11 + sine_wave1_36 * processSynthesis_56;
+            {
+                changeCycleNumber_14 = posTerms_24;
+                changeCycleNumber_15 = negTerms_25;
             }
         }
 
-        if (posWave_10 >= 0) {
-            negWave_11 = negWave_11 * 0;
-        } else {
-            posWave_10 = posWave_10 * 0;
+        number posTerms1 = 0;
+        number negTerms1 = 0;
+        posTerms1 = changeCycleNumber_14, negTerms1 = changeCycleNumber_15;
+        number changeCycleNumber_37 = 0;
+        number changeCycleNumber_36 = 0;
+
+        {
+            auto termsToAddPerCount_43 = termsToAddPerCount;
+            auto cycleCountToSubtract_42 = cycleCountToSubtract;
+            auto cycleCountToAdd_41 = cycleCountToAdd;
+            auto manageParam_40 = this->gen_01_manageParam;
+            auto sampleCount_39 = __gen_01_sampleCount_value;
+            auto periodSamps_38 = periodSamps2_13;
+
+            auto cycleCount_44 = this->wrap(
+                sampleCount_39,
+                0,
+                periodSamps_38 * (cycleCountToAdd_41 + cycleCountToSubtract_42)
+            );
+
+            number cycleCount_1_45 = this->intnum((periodSamps_38 == 0. ? 0. : cycleCount_44 / periodSamps_38)) + 1;
+            number posTerms_46 = 0;
+            number negTerms_47 = 0;
+
+            if (cycleCountToAdd_41 != 0 && cycleCount_1_45 <= cycleCountToAdd_41) {
+                number peek_2 = 0;
+                number peek_3 = 0;
+                auto result_48 = this->peek_default(manageParam_40, 0, 0);
+                peek_3 = result_48[1];
+                peek_2 = result_48[0];
+                posTerms_46 = peek_2 + cycleCount_1_45 * termsToAddPerCount_43;
+                number peek_4 = 0;
+                number peek_5 = 0;
+                auto result_49 = this->peek_default(manageParam_40, 5, 0);
+                peek_5 = result_49[1];
+                peek_4 = result_49[0];
+                negTerms_47 = peek_4 + cycleCount_1_45 * termsToAddPerCount_43;
+            } else if (cycleCountToAdd_41 != 0 && cycleCount_1_45 > cycleCountToAdd_41) {
+                number totalAddedTerms_50 = cycleCountToAdd_41 * termsToAddPerCount_43;
+                number termsToSubtractPerCount_51 = (cycleCountToSubtract_42 == 0. ? 0. : totalAddedTerms_50 / cycleCountToSubtract_42);
+                number countForSubtract_52 = cycleCount_1_45 - cycleCountToAdd_41;
+                auto addedTerms_53 = this->intnum(totalAddedTerms_50 - termsToSubtractPerCount_51 * countForSubtract_52);
+
+                if (posTerms_46 <= 0) {
+                    posTerms_46 = 1;
+                }
+
+                if (negTerms_47 <= 0) {
+                    negTerms_47 = 1;
+                }
+
+                number peek_6 = 0;
+                number peek_7 = 0;
+                auto result_54 = this->peek_default(manageParam_40, 0, 0);
+                peek_7 = result_54[1];
+                peek_6 = result_54[0];
+                posTerms_46 = peek_6 + addedTerms_53;
+                number peek_8 = 0;
+                number peek_9 = 0;
+                auto result_55 = this->peek_default(manageParam_40, 5, 0);
+                peek_9 = result_55[1];
+                peek_8 = result_55[0];
+                negTerms_47 = peek_8 + addedTerms_53;
+            } else {
+                auto result_56 = this->peek_default(manageParam_40, 0, 0);
+                posTerms_46 = result_56[0];
+                auto result_57 = this->peek_default(manageParam_40, 5, 0);
+                negTerms_47 = result_57[0];
+            }
+
+            {
+                changeCycleNumber_36 = posTerms_46;
+                changeCycleNumber_37 = negTerms_47;
+            }
         }
 
-        number SynthesizedWave_10_75 = negWave_11 + posWave_10;
-        number expr_11_76 = (SynthesizedWave_10_75 * 0.7 > 1 ? 1 : (SynthesizedWave_10_75 * 0.7 < -1 ? -1 : SynthesizedWave_10_75 * 0.7));
-        out1[(Index)i0] = expr_11_76;
+        number posTerms2 = 0;
+        number negTerms2 = 0;
+        posTerms2 = changeCycleNumber_36, negTerms2 = changeCycleNumber_37;
+        auto maxTerms1_58 = this->maximum(posTerms1, negTerms1);
+        auto maxTerms2_59 = this->maximum(posTerms2, negTerms2);
+        auto maxTerms_60 = this->maximum(maxTerms1_58, maxTerms2_59);
+        number posWave1_61 = 0;
+        number negWave1_62 = 0;
+        number currentFreq1_63 = 0;
+        number posWave2_64 = 0;
+        number negWave2_65 = 0;
+        number currentFreq2_66 = 0;
+        number step_67 = (this->sr == 0. ? 0. : (number)1 / this->sr);
+        number phaseReset1_68 = 1;
+        number phaseReset2_69 = 1;
+
+        for (number i = 1; i <= maxTerms_60; i = i + 1) {
+            if (this->gen_01_change_70_next(terms) != 0 || (bool)(this->gen_01_change_71_next(maxTerms1_58)) || (bool)(this->gen_01_change_72_next(harmonicRatio)) || (bool)(this->gen_01_change_73_next(harmonicSeriesMode))) {
+                phaseReset1_68 = 0;
+            }
+
+            if (this->gen_01_change_74_next(terms) != 0 || (bool)(this->gen_01_change_75_next(maxTerms2_59)) || (bool)(this->gen_01_change_76_next(harmonicRatio)) || (bool)(this->gen_01_change_77_next(harmonicSeriesMode))) {
+                phaseReset2_69 = 0;
+            }
+
+            if (harmonicSeriesMode == 0) {
+                currentFreq1_63 = this->gen_01_mtof_78_next(in1, 440) * (1 + (i - 1) * harmonicRatio);
+                currentFreq2_66 = 1 * (1 + (i - 1) * harmonicRatio);
+            } else {
+                currentFreq1_63 = this->gen_01_mtof_79_next(in1, 440) * fixnan(rnbo_pow(harmonicRatio, i - 1));
+                currentFreq2_66 = 1 * fixnan(rnbo_pow(harmonicRatio, i - 1));
+            }
+
+            number processSynthesis_81 = 0;
+            number processSynthesis_80 = 0;
+
+            {
+                auto phaseStoreCh_99 = 0;
+                auto negOcillator_98 = negOcillator;
+                auto negAttenuation_97 = negAttenuation;
+                auto negCutoffOvertone_96 = negCutoffOvertone;
+                auto negFilterOnOff_95 = negFilterOnOff;
+                auto posOcillator_94 = posOcillator;
+                auto posAttenuation_93 = posAttenuation;
+                auto posCutoffOvertone_92 = posCutoffOvertone;
+                auto posFilterOnOff_91 = posFilterOnOff;
+                auto phaseReset_90 = phaseReset1_68;
+                auto phaseStore_89 = this->gen_01_phaseStore;
+                auto step_88 = step_67;
+                auto negTerms_87 = negTerms1;
+                auto posTerms_86 = posTerms1;
+                auto negWave_85 = negWave1_62;
+                auto posWave_84 = posWave1_61;
+                auto currentFreq_83 = currentFreq1_63;
+                auto index_82 = i;
+                number lastPhase = 0;
+                auto result_100 = this->peek_default(phaseStore_89, index_82 - 1, phaseStoreCh_99);
+                lastPhase = result_100[0];
+                number phaseToAdv_101 = 6.28318530717958647692 * currentFreq_83 * step_88;
+                number newPhase_102 = this->wrap(lastPhase + phaseToAdv_101, 0, 6.28318530717958647692) * phaseReset_90;
+                this->poke_default(phaseStore_89, newPhase_102, index_82 - 1, phaseStoreCh_99, 0);
+                number sine_wave_103 = rnbo_sin(newPhase_102);
+
+                if (index_82 <= posTerms_86) {
+                    number fourierSeriesCalculation_104 = 0;
+
+                    {
+                        auto Ocillator_110 = posOcillator_94;
+                        auto Attenuation_109 = posAttenuation_93;
+                        auto CutoffOvertone_108 = posCutoffOvertone_92;
+                        auto FilterOnOff_107 = posFilterOnOff_91;
+                        auto index_106 = index_82;
+                        auto currentFreq_105 = currentFreq_83;
+                        number Factors_111 = 1;
+                        number Amp_filter_112 = 1;
+
+                        if (Ocillator_110 == 1) {
+                            if (this->safemod(index_106, 2) == 1) {
+                                Factors_111 = (3.14159265358979323846 * index_106 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_106));
+                            } else {
+                                Factors_111 = 0;
+                            }
+                        } else if (Ocillator_110 == 2) {
+                            if (this->safemod(index_106, 2) == 1) {
+                                number myTriangle_113 = 0;
+
+                                {
+                                    auto n2_114 = index_106;
+                                    number amp_factor2_115 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_114, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_114, 2))));
+                                    number phase_factor2_116 = fixnan(rnbo_pow(-1, (n2_114 - 1) / (number)2));
+                                    myTriangle_113 = amp_factor2_115 * phase_factor2_116;
+                                }
+
+                                Factors_111 = myTriangle_113;
+                            } else {
+                                Factors_111 = 0;
+                            }
+                        } else {
+                            number mySawtooth_117 = 0;
+
+                            {
+                                auto n3_118 = index_106;
+                                number amp_factor3_119 = (3.14159265358979323846 * n3_118 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_118));
+                                number phase_factor3_120 = fixnan(rnbo_pow(-1, n3_118 + 1));
+                                mySawtooth_117 = amp_factor3_119 * phase_factor3_120;
+                            }
+
+                            Factors_111 = mySawtooth_117;
+                        }
+
+                        if (FilterOnOff_107 == 1) {
+                            if (index_106 >= CutoffOvertone_108) {
+                                number n_overtone_121 = (index_106 - CutoffOvertone_108 + 1) * Attenuation_109;
+                                Amp_filter_112 = (n_overtone_121 == 0. ? 0. : (number)1 / n_overtone_121);
+                            }
+                        }
+
+                        if (currentFreq_105 > this->sr / (number)2) {
+                            Factors_111 = 0;
+                        }
+
+                        fourierSeriesCalculation_104 = Factors_111 * Amp_filter_112;
+                    }
+
+                    posWave_84 = posWave_84 + sine_wave_103 * fourierSeriesCalculation_104;
+                }
+
+                if (index_82 <= negTerms_87) {
+                    number fourierSeriesCalculation_122 = 0;
+
+                    {
+                        auto Ocillator_128 = negOcillator_98;
+                        auto Attenuation_127 = negAttenuation_97;
+                        auto CutoffOvertone_126 = negCutoffOvertone_96;
+                        auto FilterOnOff_125 = negFilterOnOff_95;
+                        auto index_124 = index_82;
+                        auto currentFreq_123 = currentFreq_83;
+                        number Factors_129 = 1;
+                        number Amp_filter_130 = 1;
+
+                        if (Ocillator_128 == 1) {
+                            if (this->safemod(index_124, 2) == 1) {
+                                Factors_129 = (3.14159265358979323846 * index_124 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_124));
+                            } else {
+                                Factors_129 = 0;
+                            }
+                        } else if (Ocillator_128 == 2) {
+                            if (this->safemod(index_124, 2) == 1) {
+                                number myTriangle_131 = 0;
+
+                                {
+                                    auto n2_132 = index_124;
+                                    number amp_factor2_133 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_132, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_132, 2))));
+                                    number phase_factor2_134 = fixnan(rnbo_pow(-1, (n2_132 - 1) / (number)2));
+                                    myTriangle_131 = amp_factor2_133 * phase_factor2_134;
+                                }
+
+                                Factors_129 = myTriangle_131;
+                            } else {
+                                Factors_129 = 0;
+                            }
+                        } else {
+                            number mySawtooth_135 = 0;
+
+                            {
+                                auto n3_136 = index_124;
+                                number amp_factor3_137 = (3.14159265358979323846 * n3_136 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_136));
+                                number phase_factor3_138 = fixnan(rnbo_pow(-1, n3_136 + 1));
+                                mySawtooth_135 = amp_factor3_137 * phase_factor3_138;
+                            }
+
+                            Factors_129 = mySawtooth_135;
+                        }
+
+                        if (FilterOnOff_125 == 1) {
+                            if (index_124 >= CutoffOvertone_126) {
+                                number n_overtone_139 = (index_124 - CutoffOvertone_126 + 1) * Attenuation_127;
+                                Amp_filter_130 = (n_overtone_139 == 0. ? 0. : (number)1 / n_overtone_139);
+                            }
+                        }
+
+                        if (currentFreq_123 > this->sr / (number)2) {
+                            Factors_129 = 0;
+                        }
+
+                        fourierSeriesCalculation_122 = Factors_129 * Amp_filter_130;
+                    }
+
+                    negWave_85 = negWave_85 + sine_wave_103 * fourierSeriesCalculation_122;
+                }
+
+                {
+                    processSynthesis_80 = posWave_84;
+                    processSynthesis_81 = negWave_85;
+                }
+            }
+
+            posWave1_61 = processSynthesis_80, negWave1_62 = processSynthesis_81;
+            number processSynthesis_141 = 0;
+            number processSynthesis_140 = 0;
+
+            {
+                auto phaseStoreCh_159 = 1;
+                auto negOcillator_158 = negOcillator;
+                auto negAttenuation_157 = negAttenuation;
+                auto negCutoffOvertone_156 = negCutoffOvertone;
+                auto negFilterOnOff_155 = negFilterOnOff;
+                auto posOcillator_154 = posOcillator;
+                auto posAttenuation_153 = posAttenuation;
+                auto posCutoffOvertone_152 = posCutoffOvertone;
+                auto posFilterOnOff_151 = posFilterOnOff;
+                auto phaseReset_150 = phaseReset2_69;
+                auto phaseStore_149 = this->gen_01_phaseStore;
+                auto step_148 = step_67;
+                auto negTerms_147 = negTerms2;
+                auto posTerms_146 = posTerms2;
+                auto negWave_145 = negWave2_65;
+                auto posWave_144 = posWave2_64;
+                auto currentFreq_143 = currentFreq2_66;
+                auto index_142 = i;
+                number lastPhase = 0;
+                auto result_160 = this->peek_default(phaseStore_149, index_142 - 1, phaseStoreCh_159);
+                lastPhase = result_160[0];
+                number phaseToAdv_161 = 6.28318530717958647692 * currentFreq_143 * step_148;
+                number newPhase_162 = this->wrap(lastPhase + phaseToAdv_161, 0, 6.28318530717958647692) * phaseReset_150;
+                this->poke_default(phaseStore_149, newPhase_162, index_142 - 1, phaseStoreCh_159, 0);
+                number sine_wave_163 = rnbo_sin(newPhase_162);
+
+                if (index_142 <= posTerms_146) {
+                    number fourierSeriesCalculation_164 = 0;
+
+                    {
+                        auto Ocillator_170 = posOcillator_154;
+                        auto Attenuation_169 = posAttenuation_153;
+                        auto CutoffOvertone_168 = posCutoffOvertone_152;
+                        auto FilterOnOff_167 = posFilterOnOff_151;
+                        auto index_166 = index_142;
+                        auto currentFreq_165 = currentFreq_143;
+                        number Factors_171 = 1;
+                        number Amp_filter_172 = 1;
+
+                        if (Ocillator_170 == 1) {
+                            if (this->safemod(index_166, 2) == 1) {
+                                Factors_171 = (3.14159265358979323846 * index_166 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_166));
+                            } else {
+                                Factors_171 = 0;
+                            }
+                        } else if (Ocillator_170 == 2) {
+                            if (this->safemod(index_166, 2) == 1) {
+                                number myTriangle_173 = 0;
+
+                                {
+                                    auto n2_174 = index_166;
+                                    number amp_factor2_175 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_174, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_174, 2))));
+                                    number phase_factor2_176 = fixnan(rnbo_pow(-1, (n2_174 - 1) / (number)2));
+                                    myTriangle_173 = amp_factor2_175 * phase_factor2_176;
+                                }
+
+                                Factors_171 = myTriangle_173;
+                            } else {
+                                Factors_171 = 0;
+                            }
+                        } else {
+                            number mySawtooth_177 = 0;
+
+                            {
+                                auto n3_178 = index_166;
+                                number amp_factor3_179 = (3.14159265358979323846 * n3_178 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_178));
+                                number phase_factor3_180 = fixnan(rnbo_pow(-1, n3_178 + 1));
+                                mySawtooth_177 = amp_factor3_179 * phase_factor3_180;
+                            }
+
+                            Factors_171 = mySawtooth_177;
+                        }
+
+                        if (FilterOnOff_167 == 1) {
+                            if (index_166 >= CutoffOvertone_168) {
+                                number n_overtone_181 = (index_166 - CutoffOvertone_168 + 1) * Attenuation_169;
+                                Amp_filter_172 = (n_overtone_181 == 0. ? 0. : (number)1 / n_overtone_181);
+                            }
+                        }
+
+                        if (currentFreq_165 > this->sr / (number)2) {
+                            Factors_171 = 0;
+                        }
+
+                        fourierSeriesCalculation_164 = Factors_171 * Amp_filter_172;
+                    }
+
+                    posWave_144 = posWave_144 + sine_wave_163 * fourierSeriesCalculation_164;
+                }
+
+                if (index_142 <= negTerms_147) {
+                    number fourierSeriesCalculation_182 = 0;
+
+                    {
+                        auto Ocillator_188 = negOcillator_158;
+                        auto Attenuation_187 = negAttenuation_157;
+                        auto CutoffOvertone_186 = negCutoffOvertone_156;
+                        auto FilterOnOff_185 = negFilterOnOff_155;
+                        auto index_184 = index_142;
+                        auto currentFreq_183 = currentFreq_143;
+                        number Factors_189 = 1;
+                        number Amp_filter_190 = 1;
+
+                        if (Ocillator_188 == 1) {
+                            if (this->safemod(index_184, 2) == 1) {
+                                Factors_189 = (3.14159265358979323846 * index_184 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_184));
+                            } else {
+                                Factors_189 = 0;
+                            }
+                        } else if (Ocillator_188 == 2) {
+                            if (this->safemod(index_184, 2) == 1) {
+                                number myTriangle_191 = 0;
+
+                                {
+                                    auto n2_192 = index_184;
+                                    number amp_factor2_193 = (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_192, 2)) == 0. ? 0. : (number)8 / (fixnan(rnbo_pow(3.14159265358979323846, 2)) * fixnan(rnbo_pow(n2_192, 2))));
+                                    number phase_factor2_194 = fixnan(rnbo_pow(-1, (n2_192 - 1) / (number)2));
+                                    myTriangle_191 = amp_factor2_193 * phase_factor2_194;
+                                }
+
+                                Factors_189 = myTriangle_191;
+                            } else {
+                                Factors_189 = 0;
+                            }
+                        } else {
+                            number mySawtooth_195 = 0;
+
+                            {
+                                auto n3_196 = index_184;
+                                number amp_factor3_197 = (3.14159265358979323846 * n3_196 == 0. ? 0. : (number)2 / (3.14159265358979323846 * n3_196));
+                                number phase_factor3_198 = fixnan(rnbo_pow(-1, n3_196 + 1));
+                                mySawtooth_195 = amp_factor3_197 * phase_factor3_198;
+                            }
+
+                            Factors_189 = mySawtooth_195;
+                        }
+
+                        if (FilterOnOff_185 == 1) {
+                            if (index_184 >= CutoffOvertone_186) {
+                                number n_overtone_199 = (index_184 - CutoffOvertone_186 + 1) * Attenuation_187;
+                                Amp_filter_190 = (n_overtone_199 == 0. ? 0. : (number)1 / n_overtone_199);
+                            }
+                        }
+
+                        if (currentFreq_183 > this->sr / (number)2) {
+                            Factors_189 = 0;
+                        }
+
+                        fourierSeriesCalculation_182 = Factors_189 * Amp_filter_190;
+                    }
+
+                    negWave_145 = negWave_145 + sine_wave_163 * fourierSeriesCalculation_182;
+                }
+
+                {
+                    processSynthesis_140 = posWave_144;
+                    processSynthesis_141 = negWave_145;
+                }
+            }
+
+            posWave2_64 = processSynthesis_140, negWave2_65 = processSynthesis_141;
+        }
+
+        if (posWave1_61 >= 0) {
+            negWave1_62 = negWave1_62 * 0;
+        } else {
+            posWave1_61 = posWave1_61 * 0;
+        }
+
+        if (posWave2_64 >= 0) {
+            negWave2_65 = negWave2_65 * 0;
+        } else {
+            posWave2_64 = posWave2_64 * 0;
+        }
+
+        number SynthesizedWave1_200 = negWave1_62 + posWave1_61;
+        number SynthesizedWave2_201 = negWave2_65 + posWave2_64;
+        number expr_10_202 = (SynthesizedWave1_200 * 0.7 > 1 ? 1 : (SynthesizedWave1_200 * 0.7 < -1 ? -1 : SynthesizedWave1_200 * 0.7));
+        number expr_11_203 = (SynthesizedWave2_201 * 0.7 > 1 ? 1 : (SynthesizedWave2_201 * 0.7 < -1 ? -1 : SynthesizedWave2_201 * 0.7));
+        out2[(Index)i0] = expr_11_203;
+        out1[(Index)i0] = expr_10_202;
     }
 
     this->gen_01_sampleCount_value = __gen_01_sampleCount_value;
@@ -4128,203 +4695,230 @@ void gen_01_sampleCount_init() {
     this->gen_01_sampleCount_value = 0;
 }
 
-number gen_01_change_13_next(number x) {
-    number temp = x - this->gen_01_change_13_prev;
-    this->gen_01_change_13_prev = x;
+number gen_01_change_8_next(number x) {
+    number temp = x - this->gen_01_change_8_prev;
+    this->gen_01_change_8_prev = x;
     return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
 }
 
-void gen_01_change_13_init() {
-    this->gen_01_change_13_prev = 0;
+void gen_01_change_8_init() {
+    this->gen_01_change_8_prev = 0;
 }
 
-void gen_01_change_13_reset() {
-    this->gen_01_change_13_prev = 0;
+void gen_01_change_8_reset() {
+    this->gen_01_change_8_prev = 0;
 }
 
-number gen_01_change_14_next(number x) {
-    number temp = x - this->gen_01_change_14_prev;
-    this->gen_01_change_14_prev = x;
+number gen_01_change_9_next(number x) {
+    number temp = x - this->gen_01_change_9_prev;
+    this->gen_01_change_9_prev = x;
     return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
 }
 
-void gen_01_change_14_init() {
-    this->gen_01_change_14_prev = 0;
+void gen_01_change_9_init() {
+    this->gen_01_change_9_prev = 0;
 }
 
-void gen_01_change_14_reset() {
-    this->gen_01_change_14_prev = 0;
+void gen_01_change_9_reset() {
+    this->gen_01_change_9_prev = 0;
 }
 
-number gen_01_change_15_next(number x) {
-    number temp = x - this->gen_01_change_15_prev;
-    this->gen_01_change_15_prev = x;
+number gen_01_change_10_next(number x) {
+    number temp = x - this->gen_01_change_10_prev;
+    this->gen_01_change_10_prev = x;
     return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
 }
 
-void gen_01_change_15_init() {
-    this->gen_01_change_15_prev = 0;
+void gen_01_change_10_init() {
+    this->gen_01_change_10_prev = 0;
 }
 
-void gen_01_change_15_reset() {
-    this->gen_01_change_15_prev = 0;
+void gen_01_change_10_reset() {
+    this->gen_01_change_10_prev = 0;
 }
 
-number gen_01_mtof_16_next(number midivalue, number tuning) {
+number gen_01_mtof_11_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_16_lastInValue && 440 == this->gen_01_mtof_16_lastTuning)
-        return this->gen_01_mtof_16_lastOutValue;
+    if (midivalue == this->gen_01_mtof_11_lastInValue && 440 == this->gen_01_mtof_11_lastTuning)
+        return this->gen_01_mtof_11_lastOutValue;
 
-    this->gen_01_mtof_16_lastInValue = midivalue;
-    this->gen_01_mtof_16_lastTuning = 440;
+    this->gen_01_mtof_11_lastInValue = midivalue;
+    this->gen_01_mtof_11_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_16_lastOutValue = 440 * result;
-    return this->gen_01_mtof_16_lastOutValue;
+    this->gen_01_mtof_11_lastOutValue = 440 * result;
+    return this->gen_01_mtof_11_lastOutValue;
 }
 
-void gen_01_mtof_16_reset() {
-    this->gen_01_mtof_16_lastInValue = 0;
-    this->gen_01_mtof_16_lastOutValue = 0;
-    this->gen_01_mtof_16_lastTuning = 0;
+void gen_01_mtof_11_reset() {
+    this->gen_01_mtof_11_lastInValue = 0;
+    this->gen_01_mtof_11_lastOutValue = 0;
+    this->gen_01_mtof_11_lastTuning = 0;
 }
 
-number gen_01_phasor_17_next(number freq, number reset) {
-    {
-        {
-            if (reset > 0.)
-                this->gen_01_phasor_17_currentPhase = 0;
-        }
-    }
-
-    number pincr = freq * this->gen_01_phasor_17_conv;
-
-    if (this->gen_01_phasor_17_currentPhase < 0.)
-        this->gen_01_phasor_17_currentPhase = 1. + this->gen_01_phasor_17_currentPhase;
-
-    if (this->gen_01_phasor_17_currentPhase > 1.)
-        this->gen_01_phasor_17_currentPhase = this->gen_01_phasor_17_currentPhase - 1.;
-
-    number tmp = this->gen_01_phasor_17_currentPhase;
-    this->gen_01_phasor_17_currentPhase += pincr;
-    return tmp;
+number gen_01_change_70_next(number x) {
+    number temp = x - this->gen_01_change_70_prev;
+    this->gen_01_change_70_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
 }
 
-void gen_01_phasor_17_reset() {
-    this->gen_01_phasor_17_currentPhase = 0;
+void gen_01_change_70_init() {
+    this->gen_01_change_70_prev = 0;
 }
 
-void gen_01_phasor_17_dspsetup() {
-    this->gen_01_phasor_17_conv = (this->sr == 0. ? 0. : (number)1 / this->sr);
+void gen_01_change_70_reset() {
+    this->gen_01_change_70_prev = 0;
 }
 
-number gen_01_mtof_18_next(number midivalue, number tuning) {
+number gen_01_change_71_next(number x) {
+    number temp = x - this->gen_01_change_71_prev;
+    this->gen_01_change_71_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_71_init() {
+    this->gen_01_change_71_prev = 0;
+}
+
+void gen_01_change_71_reset() {
+    this->gen_01_change_71_prev = 0;
+}
+
+number gen_01_change_72_next(number x) {
+    number temp = x - this->gen_01_change_72_prev;
+    this->gen_01_change_72_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_72_init() {
+    this->gen_01_change_72_prev = 0;
+}
+
+void gen_01_change_72_reset() {
+    this->gen_01_change_72_prev = 0;
+}
+
+number gen_01_change_73_next(number x) {
+    number temp = x - this->gen_01_change_73_prev;
+    this->gen_01_change_73_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_73_init() {
+    this->gen_01_change_73_prev = 0;
+}
+
+void gen_01_change_73_reset() {
+    this->gen_01_change_73_prev = 0;
+}
+
+number gen_01_change_74_next(number x) {
+    number temp = x - this->gen_01_change_74_prev;
+    this->gen_01_change_74_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_74_init() {
+    this->gen_01_change_74_prev = 0;
+}
+
+void gen_01_change_74_reset() {
+    this->gen_01_change_74_prev = 0;
+}
+
+number gen_01_change_75_next(number x) {
+    number temp = x - this->gen_01_change_75_prev;
+    this->gen_01_change_75_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_75_init() {
+    this->gen_01_change_75_prev = 0;
+}
+
+void gen_01_change_75_reset() {
+    this->gen_01_change_75_prev = 0;
+}
+
+number gen_01_change_76_next(number x) {
+    number temp = x - this->gen_01_change_76_prev;
+    this->gen_01_change_76_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_76_init() {
+    this->gen_01_change_76_prev = 0;
+}
+
+void gen_01_change_76_reset() {
+    this->gen_01_change_76_prev = 0;
+}
+
+number gen_01_change_77_next(number x) {
+    number temp = x - this->gen_01_change_77_prev;
+    this->gen_01_change_77_prev = x;
+    return (temp > 0. ? 1. : (temp < 0. ? -1. : 0));
+}
+
+void gen_01_change_77_init() {
+    this->gen_01_change_77_prev = 0;
+}
+
+void gen_01_change_77_reset() {
+    this->gen_01_change_77_prev = 0;
+}
+
+number gen_01_mtof_78_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_18_lastInValue && 440 == this->gen_01_mtof_18_lastTuning)
-        return this->gen_01_mtof_18_lastOutValue;
+    if (midivalue == this->gen_01_mtof_78_lastInValue && 440 == this->gen_01_mtof_78_lastTuning)
+        return this->gen_01_mtof_78_lastOutValue;
 
-    this->gen_01_mtof_18_lastInValue = midivalue;
-    this->gen_01_mtof_18_lastTuning = 440;
+    this->gen_01_mtof_78_lastInValue = midivalue;
+    this->gen_01_mtof_78_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_18_lastOutValue = 440 * result;
-    return this->gen_01_mtof_18_lastOutValue;
+    this->gen_01_mtof_78_lastOutValue = 440 * result;
+    return this->gen_01_mtof_78_lastOutValue;
 }
 
-void gen_01_mtof_18_reset() {
-    this->gen_01_mtof_18_lastInValue = 0;
-    this->gen_01_mtof_18_lastOutValue = 0;
-    this->gen_01_mtof_18_lastTuning = 0;
+void gen_01_mtof_78_reset() {
+    this->gen_01_mtof_78_lastInValue = 0;
+    this->gen_01_mtof_78_lastOutValue = 0;
+    this->gen_01_mtof_78_lastTuning = 0;
 }
 
-number gen_01_mtof_21_next(number midivalue, number tuning) {
+number gen_01_mtof_79_next(number midivalue, number tuning) {
     RNBO_UNUSED(tuning);
 
-    if (midivalue == this->gen_01_mtof_21_lastInValue && 440 == this->gen_01_mtof_21_lastTuning)
-        return this->gen_01_mtof_21_lastOutValue;
+    if (midivalue == this->gen_01_mtof_79_lastInValue && 440 == this->gen_01_mtof_79_lastTuning)
+        return this->gen_01_mtof_79_lastOutValue;
 
-    this->gen_01_mtof_21_lastInValue = midivalue;
-    this->gen_01_mtof_21_lastTuning = 440;
+    this->gen_01_mtof_79_lastInValue = midivalue;
+    this->gen_01_mtof_79_lastTuning = 440;
     number result = 0;
 
     {
         result = rnbo_exp(.057762265 * (midivalue - 69.0));
     }
 
-    this->gen_01_mtof_21_lastOutValue = 440 * result;
-    return this->gen_01_mtof_21_lastOutValue;
+    this->gen_01_mtof_79_lastOutValue = 440 * result;
+    return this->gen_01_mtof_79_lastOutValue;
 }
 
-void gen_01_mtof_21_reset() {
-    this->gen_01_mtof_21_lastInValue = 0;
-    this->gen_01_mtof_21_lastOutValue = 0;
-    this->gen_01_mtof_21_lastTuning = 0;
-}
-
-number gen_01_mtof_55_next(number midivalue, number tuning) {
-    RNBO_UNUSED(tuning);
-
-    if (midivalue == this->gen_01_mtof_55_lastInValue && 440 == this->gen_01_mtof_55_lastTuning)
-        return this->gen_01_mtof_55_lastOutValue;
-
-    this->gen_01_mtof_55_lastInValue = midivalue;
-    this->gen_01_mtof_55_lastTuning = 440;
-    number result = 0;
-
-    {
-        result = rnbo_exp(.057762265 * (midivalue - 69.0));
-    }
-
-    this->gen_01_mtof_55_lastOutValue = 440 * result;
-    return this->gen_01_mtof_55_lastOutValue;
-}
-
-void gen_01_mtof_55_reset() {
-    this->gen_01_mtof_55_lastInValue = 0;
-    this->gen_01_mtof_55_lastOutValue = 0;
-    this->gen_01_mtof_55_lastTuning = 0;
-}
-
-number gen_01_mtof_74_next(number midivalue, number tuning) {
-    RNBO_UNUSED(tuning);
-
-    if (midivalue == this->gen_01_mtof_74_lastInValue && 440 == this->gen_01_mtof_74_lastTuning)
-        return this->gen_01_mtof_74_lastOutValue;
-
-    this->gen_01_mtof_74_lastInValue = midivalue;
-    this->gen_01_mtof_74_lastTuning = 440;
-    number result = 0;
-
-    {
-        result = rnbo_exp(.057762265 * (midivalue - 69.0));
-    }
-
-    this->gen_01_mtof_74_lastOutValue = 440 * result;
-    return this->gen_01_mtof_74_lastOutValue;
-}
-
-void gen_01_mtof_74_reset() {
-    this->gen_01_mtof_74_lastInValue = 0;
-    this->gen_01_mtof_74_lastOutValue = 0;
-    this->gen_01_mtof_74_lastTuning = 0;
-}
-
-void gen_01_dspsetup(bool force) {
-    if ((bool)(this->gen_01_setupDone) && (bool)(!(bool)(force)))
-        return;
-
-    this->gen_01_setupDone = true;
-    this->gen_01_phasor_17_dspsetup();
+void gen_01_mtof_79_reset() {
+    this->gen_01_mtof_79_lastInValue = 0;
+    this->gen_01_mtof_79_lastOutValue = 0;
+    this->gen_01_mtof_79_lastTuning = 0;
 }
 
 void delaytilde_02_del_step() {
@@ -4724,6 +5318,28 @@ void param_15_setPresetValue(PatcherStateInterface& preset) {
     this->param_15_value_set(preset["value"]);
 }
 
+void param_16_getPresetValue(PatcherStateInterface& preset) {
+    preset["value"] = this->param_16_value;
+}
+
+void param_16_setPresetValue(PatcherStateInterface& preset) {
+    if ((bool)(stateIsEmpty(preset)))
+        return;
+
+    this->param_16_value_set(preset["value"]);
+}
+
+void param_17_getPresetValue(PatcherStateInterface& preset) {
+    preset["value"] = this->param_17_value;
+}
+
+void param_17_setPresetValue(PatcherStateInterface& preset) {
+    if ((bool)(stateIsEmpty(preset)))
+        return;
+
+    this->param_17_value_set(preset["value"]);
+}
+
 void globaltransport_advance() {}
 
 void globaltransport_dspsetup(bool ) {}
@@ -4802,6 +5418,8 @@ void assign_defaults()
     gen_01_cycleCountToAdd = 0;
     gen_01_cycleCountToSubtract = 0;
     gen_01_termsToAddPerCount = 0;
+    gen_01_harmonicSeriesMode = 0;
+    gen_01_harmonicRatio = 0;
     dspexpr_03_in1 = 0;
     dspexpr_03_in2 = 0;
     delaytilde_02_delay = 0;
@@ -4847,9 +5465,11 @@ void assign_defaults()
     param_10_value = 1000;
     param_11_value = 80;
     param_12_value = 1;
-    param_13_value = 1;
+    param_13_value = 0;
     param_14_value = 1;
     param_15_value = 1;
+    param_16_value = 1;
+    param_17_value = 1;
     ctlin_01_input = 0;
     ctlin_01_controller = 0;
     ctlin_01_channel = -1;
@@ -4940,6 +5560,18 @@ void assign_defaults()
     expr_20_in1 = 0;
     expr_20_in2 = 0.007874015748;
     expr_20_out1 = 0;
+    ctlin_16_input = 0;
+    ctlin_16_controller = 0;
+    ctlin_16_channel = -1;
+    expr_21_in1 = 0;
+    expr_21_in2 = 0.007874015748;
+    expr_21_out1 = 0;
+    ctlin_17_input = 0;
+    ctlin_17_controller = 0;
+    ctlin_17_channel = -1;
+    expr_22_in1 = 0;
+    expr_22_in2 = 0.007874015748;
+    expr_22_out1 = 0;
     _currentTime = 0;
     audioProcessSampleCount = 0;
     sampleOffsetIntoNextAudioBuffer = 0;
@@ -4971,27 +5603,26 @@ void assign_defaults()
     notein_01_byte1 = -1;
     notein_01_inchan = 0;
     gen_01_sampleCount_value = 0;
-    gen_01_change_13_prev = 0;
-    gen_01_change_14_prev = 0;
-    gen_01_change_15_prev = 0;
-    gen_01_mtof_16_lastInValue = 0;
-    gen_01_mtof_16_lastOutValue = 0;
-    gen_01_mtof_16_lastTuning = 0;
-    gen_01_phasor_17_currentPhase = 0;
-    gen_01_phasor_17_conv = 0;
-    gen_01_mtof_18_lastInValue = 0;
-    gen_01_mtof_18_lastOutValue = 0;
-    gen_01_mtof_18_lastTuning = 0;
-    gen_01_mtof_21_lastInValue = 0;
-    gen_01_mtof_21_lastOutValue = 0;
-    gen_01_mtof_21_lastTuning = 0;
-    gen_01_mtof_55_lastInValue = 0;
-    gen_01_mtof_55_lastOutValue = 0;
-    gen_01_mtof_55_lastTuning = 0;
-    gen_01_mtof_74_lastInValue = 0;
-    gen_01_mtof_74_lastOutValue = 0;
-    gen_01_mtof_74_lastTuning = 0;
-    gen_01_setupDone = false;
+    gen_01_change_8_prev = 0;
+    gen_01_change_9_prev = 0;
+    gen_01_change_10_prev = 0;
+    gen_01_mtof_11_lastInValue = 0;
+    gen_01_mtof_11_lastOutValue = 0;
+    gen_01_mtof_11_lastTuning = 0;
+    gen_01_change_70_prev = 0;
+    gen_01_change_71_prev = 0;
+    gen_01_change_72_prev = 0;
+    gen_01_change_73_prev = 0;
+    gen_01_change_74_prev = 0;
+    gen_01_change_75_prev = 0;
+    gen_01_change_76_prev = 0;
+    gen_01_change_77_prev = 0;
+    gen_01_mtof_78_lastInValue = 0;
+    gen_01_mtof_78_lastOutValue = 0;
+    gen_01_mtof_78_lastTuning = 0;
+    gen_01_mtof_79_lastInValue = 0;
+    gen_01_mtof_79_lastOutValue = 0;
+    gen_01_mtof_79_lastTuning = 0;
     delaytilde_02_lastDelay = -1;
     delaytilde_02_crossfadeDelay = 0;
     delaytilde_02_ramp = 0;
@@ -5029,6 +5660,8 @@ void assign_defaults()
     param_13_lastValue = 0;
     param_14_lastValue = 0;
     param_15_lastValue = 0;
+    param_16_lastValue = 0;
+    param_17_lastValue = 0;
     ctlin_01_status = 0;
     ctlin_01_byte1 = -1;
     ctlin_01_inchan = 0;
@@ -5074,6 +5707,12 @@ void assign_defaults()
     ctlin_15_status = 0;
     ctlin_15_byte1 = -1;
     ctlin_15_inchan = 0;
+    ctlin_16_status = 0;
+    ctlin_16_byte1 = -1;
+    ctlin_16_inchan = 0;
+    ctlin_17_status = 0;
+    ctlin_17_byte1 = -1;
+    ctlin_17_inchan = 0;
     globaltransport_tempo = nullptr;
     globaltransport_state = nullptr;
     stackprotect_count = 0;
@@ -5087,15 +5726,18 @@ void assign_defaults()
     	static constexpr auto& name0 = "delaytilde_01_del_bufferobj";
     	static constexpr auto& file0 = "";
     	static constexpr auto& tag0 = "buffer~";
-    	static constexpr auto& name1 = "manageParam";
+    	static constexpr auto& name1 = "phaseStore";
     	static constexpr auto& file1 = "";
     	static constexpr auto& tag1 = "buffer~";
-    	static constexpr auto& name2 = "RNBODefaultMtofLookupTable256";
+    	static constexpr auto& name2 = "manageParam";
     	static constexpr auto& file2 = "";
     	static constexpr auto& tag2 = "buffer~";
-    	static constexpr auto& name3 = "delaytilde_02_del_bufferobj";
+    	static constexpr auto& name3 = "RNBODefaultMtofLookupTable256";
     	static constexpr auto& file3 = "";
     	static constexpr auto& tag3 = "buffer~";
+    	static constexpr auto& name4 = "delaytilde_02_del_bufferobj";
+    	static constexpr auto& file4 = "";
+    	static constexpr auto& tag4 = "buffer~";
     	DataRefStrings* operator->() { return this; }
     	const DataRefStrings* operator->() const { return this; }
     };
@@ -5122,6 +5764,8 @@ void assign_defaults()
     number gen_01_cycleCountToAdd;
     number gen_01_cycleCountToSubtract;
     number gen_01_termsToAddPerCount;
+    number gen_01_harmonicSeriesMode;
+    number gen_01_harmonicRatio;
     number dspexpr_03_in1;
     number dspexpr_03_in2;
     number delaytilde_02_delay;
@@ -5173,6 +5817,8 @@ void assign_defaults()
     number param_13_value;
     number param_14_value;
     number param_15_value;
+    number param_16_value;
+    number param_17_value;
     number ctlin_01_input;
     number ctlin_01_controller;
     number ctlin_01_channel;
@@ -5263,6 +5909,18 @@ void assign_defaults()
     number expr_20_in1;
     number expr_20_in2;
     number expr_20_out1;
+    number ctlin_16_input;
+    number ctlin_16_controller;
+    number ctlin_16_channel;
+    number expr_21_in1;
+    number expr_21_in2;
+    number expr_21_out1;
+    number ctlin_17_input;
+    number ctlin_17_controller;
+    number ctlin_17_channel;
+    number expr_22_in1;
+    number expr_22_in2;
+    number expr_22_out1;
     MillisecondTime _currentTime;
     ENGINE _internalEngine;
     UInt64 audioProcessSampleCount;
@@ -5292,33 +5950,31 @@ void assign_defaults()
     Int notein_01_byte1;
     Int notein_01_inchan;
     number gen_01_sampleCount_value;
+    SampleBufferRef gen_01_phaseStore;
     SampleBufferRef gen_01_manageParam;
-    number gen_01_change_13_prev;
-    number gen_01_change_14_prev;
-    number gen_01_change_15_prev;
-    number gen_01_mtof_16_lastInValue;
-    number gen_01_mtof_16_lastOutValue;
-    number gen_01_mtof_16_lastTuning;
-    SampleBufferRef gen_01_mtof_16_buffer;
-    number gen_01_phasor_17_currentPhase;
-    number gen_01_phasor_17_conv;
-    number gen_01_mtof_18_lastInValue;
-    number gen_01_mtof_18_lastOutValue;
-    number gen_01_mtof_18_lastTuning;
-    SampleBufferRef gen_01_mtof_18_buffer;
-    number gen_01_mtof_21_lastInValue;
-    number gen_01_mtof_21_lastOutValue;
-    number gen_01_mtof_21_lastTuning;
-    SampleBufferRef gen_01_mtof_21_buffer;
-    number gen_01_mtof_55_lastInValue;
-    number gen_01_mtof_55_lastOutValue;
-    number gen_01_mtof_55_lastTuning;
-    SampleBufferRef gen_01_mtof_55_buffer;
-    number gen_01_mtof_74_lastInValue;
-    number gen_01_mtof_74_lastOutValue;
-    number gen_01_mtof_74_lastTuning;
-    SampleBufferRef gen_01_mtof_74_buffer;
-    bool gen_01_setupDone;
+    number gen_01_change_8_prev;
+    number gen_01_change_9_prev;
+    number gen_01_change_10_prev;
+    number gen_01_mtof_11_lastInValue;
+    number gen_01_mtof_11_lastOutValue;
+    number gen_01_mtof_11_lastTuning;
+    SampleBufferRef gen_01_mtof_11_buffer;
+    number gen_01_change_70_prev;
+    number gen_01_change_71_prev;
+    number gen_01_change_72_prev;
+    number gen_01_change_73_prev;
+    number gen_01_change_74_prev;
+    number gen_01_change_75_prev;
+    number gen_01_change_76_prev;
+    number gen_01_change_77_prev;
+    number gen_01_mtof_78_lastInValue;
+    number gen_01_mtof_78_lastOutValue;
+    number gen_01_mtof_78_lastTuning;
+    SampleBufferRef gen_01_mtof_78_buffer;
+    number gen_01_mtof_79_lastInValue;
+    number gen_01_mtof_79_lastOutValue;
+    number gen_01_mtof_79_lastTuning;
+    SampleBufferRef gen_01_mtof_79_buffer;
     number delaytilde_02_lastDelay;
     number delaytilde_02_crossfadeDelay;
     number delaytilde_02_ramp;
@@ -5360,6 +6016,8 @@ void assign_defaults()
     number param_13_lastValue;
     number param_14_lastValue;
     number param_15_lastValue;
+    number param_16_lastValue;
+    number param_17_lastValue;
     Int ctlin_01_status;
     Int ctlin_01_byte1;
     Int ctlin_01_inchan;
@@ -5405,10 +6063,17 @@ void assign_defaults()
     Int ctlin_15_status;
     Int ctlin_15_byte1;
     Int ctlin_15_inchan;
+    Int ctlin_16_status;
+    Int ctlin_16_byte1;
+    Int ctlin_16_inchan;
+    Int ctlin_17_status;
+    Int ctlin_17_byte1;
+    Int ctlin_17_inchan;
     signal globaltransport_tempo;
     signal globaltransport_state;
     number stackprotect_count;
     DataRef delaytilde_01_del_bufferobj;
+    DataRef phaseStore;
     DataRef manageParam;
     DataRef RNBODefaultMtofLookupTable256;
     DataRef delaytilde_02_del_bufferobj;

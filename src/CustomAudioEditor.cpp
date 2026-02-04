@@ -2,9 +2,13 @@
 #include "CustomAudioEditor.h"
 
 CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
-    : AudioProcessorEditor (&p), valueTreeState(vts)
+    : AudioProcessorEditor (&p), valueTreeState(vts), audioProcessor(p)
 {
     midnightLookAndFeel.setColourScheme(juce::LookAndFeel_V4::getMidnightColourScheme());
+
+    addAndMakeVisible(audioProcessor.myVisualiser);
+    //audioProcessor.myVisualiser.setLookAndFeel(&midnightLookAndFeel);
+    audioProcessor.myVisualiser.setColours(backgroundColour, juce::Colours::white);
 
     addAndMakeVisible(termsSlider);
     termsSliderAttachment.reset (new SliderAttachment (valueTreeState, "terms", termsSlider));
@@ -41,13 +45,13 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     attenuationLabel.setText ("attenuation", juce::dontSendNotification);
     attenuationLabel.setJustificationType(juce::Justification::centred);
 
-    addAndMakeVisible(selectComboBox);
-    selectComboBox.addItem("Square", 1);
-    selectComboBox.addItem("Triangle", 2);
-    selectComboBox.addItem("Sawtooth", 3); 
-    selectComboBox.setSelectedItemIndex(0);
-    comboBoxAttachment.reset (new juce::AudioProcessorValueTreeState::ComboBoxAttachment (valueTreeState, "ocillator", selectComboBox));
-    selectComboBox.setLookAndFeel(&midnightLookAndFeel);    
+    addAndMakeVisible(ocillatorComboBox);
+    ocillatorComboBox.addItem("Square", 1);
+    ocillatorComboBox.addItem("Triangle", 2);
+    ocillatorComboBox.addItem("Sawtooth", 3); 
+    ocillatorComboBox.setSelectedItemIndex(0);
+    ocillatorComboBoxAttachment.reset (new juce::AudioProcessorValueTreeState::ComboBoxAttachment (valueTreeState, "ocillator", ocillatorComboBox));
+    ocillatorComboBox.setLookAndFeel(&midnightLookAndFeel);    
     addAndMakeVisible(ocillatorLabel);
     ocillatorLabel.setText ("ocillator", juce::dontSendNotification);
     ocillatorLabel.setJustificationType(juce::Justification::centred);
@@ -175,15 +179,32 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     ampLabel.setText ("amp", juce::dontSendNotification);
     ampLabel.setJustificationType(juce::Justification::centred);
 
-    setSize(900, 400);
+    addAndMakeVisible(harmonicSeriesModeComboBox);
+    harmonicSeriesModeComboBox.addItem("Linear Mode", 1);
+    harmonicSeriesModeComboBox.addItem("Exponential Mode", 2);
+    harmonicSeriesModeComboBox.setSelectedItemIndex(0);
+    harmonicSeriesModeComboBoxAttachment.reset (new juce::AudioProcessorValueTreeState::ComboBoxAttachment (valueTreeState, "harmonicSeriesMode", harmonicSeriesModeComboBox));
+    harmonicSeriesModeComboBox.setLookAndFeel(&midnightLookAndFeel);    
+    addAndMakeVisible(harmonicSeriesModeLabel);
+    harmonicSeriesModeLabel.setText ("harmonicSeriesMode", juce::dontSendNotification);
+    harmonicSeriesModeLabel.setJustificationType(juce::Justification::centred);
+
+    addAndMakeVisible(harmonicRatioSlider);
+    harmonicRatioSliderAttachment.reset (new SliderAttachment (valueTreeState, "harmonicRatio", harmonicRatioSlider));
+    harmonicRatioSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    harmonicRatioSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, harmonicRatioSlider.getTextBoxWidth(), harmonicRatioSlider.getTextBoxHeight());
+    harmonicRatioSlider.setLookAndFeel(&midnightLookAndFeel);
+
+    addAndMakeVisible(harmonicRatioLabel);
+    harmonicRatioLabel.setText ("harmonicRatio", juce::dontSendNotification);
+    harmonicRatioLabel.setJustificationType(juce::Justification::centred);
+
+    setSize(900, 500);
 }
 
 
 void CustomAudioEditor::paint (Graphics& g)
 {
-    // Get the background color from the midnight scheme
-    auto backgroundColour = juce::LookAndFeel_V4::getMidnightColourScheme().getUIColour(juce::LookAndFeel_V4::ColourScheme::UIColour::windowBackground);
-
     // Fill the entire component with this color
     g.fillAll(backgroundColour);
 }
@@ -193,14 +214,18 @@ void CustomAudioEditor::resized()
     auto area = getLocalBounds();
 
     auto componentWidth2 = (area.getWidth() - 120)/5;
-    auto componentHeight = (area.getHeight() - 80)/3;
+    auto componentHeight = (area.getHeight() - 100)/4;
     auto padding = 20;           
 
-    selectComboBox.setBounds(padding,  padding + (componentHeight / 4), componentWidth2,  componentHeight / 2);
-    termsSlider.setBounds(selectComboBox.getRight() + padding, padding + (componentHeight / 4),  componentWidth2 , componentHeight  / 2);
-    filterButton.setBounds(termsSlider.getRight() + padding, padding, componentWidth2, componentHeight);
-    cutoffOvertoneSlider.setBounds( filterButton.getRight() + padding, padding + (componentHeight / 4), componentWidth2 , componentHeight / 2);
-    attenuationSlider.setBounds(cutoffOvertoneSlider.getRight() + padding, padding, componentWidth2,  componentHeight);
+    harmonicSeriesModeComboBox.setBounds(padding,  padding + (componentHeight / 4), componentWidth2,  componentHeight / 2);
+    harmonicRatioSlider.setBounds(harmonicSeriesModeComboBox.getRight() + padding, padding,  componentWidth2 , componentHeight);
+    audioProcessor.myVisualiser.setBounds(harmonicRatioSlider.getRight() + padding, padding,  componentWidth2 * 3 , componentHeight);
+
+    ocillatorComboBox.setBounds(padding,  harmonicRatioSlider.getBottom() + padding + (componentHeight / 4), componentWidth2,  componentHeight / 2);
+    termsSlider.setBounds(ocillatorComboBox.getRight() + padding, harmonicRatioSlider.getBottom() + padding + (componentHeight / 4),  componentWidth2 , componentHeight  / 2);
+    filterButton.setBounds(termsSlider.getRight() + padding, harmonicRatioSlider.getBottom() + padding, componentWidth2, componentHeight);
+    cutoffOvertoneSlider.setBounds( filterButton.getRight() + padding, harmonicRatioSlider.getBottom() + padding + (componentHeight / 4), componentWidth2 , componentHeight / 2);
+    attenuationSlider.setBounds(cutoffOvertoneSlider.getRight() + padding, harmonicRatioSlider.getBottom() + padding, componentWidth2,  componentHeight);
 
     posNegSyncButton.setBounds( padding + 10, attenuationSlider.getBottom() + padding, componentWidth2, componentHeight / 4);
     posButton.setBounds( padding + 10, posNegSyncButton.getBottom() + padding, componentWidth2,  componentHeight / 4);
@@ -215,7 +240,7 @@ void CustomAudioEditor::resized()
     sustainSlider.setBounds(decaySlider.getRight() + padding, termsToAddPerCountSlider.getBottom() + padding + (componentHeight / 4), componentWidth2, componentHeight);
     releaseSlider.setBounds(sustainSlider.getRight() + padding, termsToAddPerCountSlider.getBottom() + padding + (componentHeight / 4), componentWidth2, componentHeight);
 
-    ocillatorLabel.setBounds(selectComboBox.getX(), selectComboBox.getY()-40, selectComboBox.getWidth(),selectComboBox.getHeight() );
+    ocillatorLabel.setBounds(ocillatorComboBox.getX(), ocillatorComboBox.getY()-40, ocillatorComboBox.getWidth(),ocillatorComboBox.getHeight() );
     termsLabel.setBounds(termsSlider.getX(), termsSlider.getY()-20, termsSlider.getWidth(),termsSlider.getTextBoxHeight() );
     cutoffOvertoneLabel.setBounds(cutoffOvertoneSlider.getX(), cutoffOvertoneSlider.getY()-20, cutoffOvertoneSlider.getWidth(),cutoffOvertoneSlider.getTextBoxHeight() );
     attenuationLabel.setBounds(attenuationSlider.getX(), attenuationSlider.getY()-10, attenuationSlider.getWidth(),attenuationSlider.getTextBoxHeight() );
@@ -227,4 +252,6 @@ void CustomAudioEditor::resized()
     cycleCountToAddLabel.setBounds(cycleCountToAddSlider.getX(), cycleCountToAddSlider.getY()-20, cycleCountToAddSlider.getWidth(),cycleCountToAddSlider.getTextBoxHeight() );
     cycleCountToSubtractLabel.setBounds(cycleCountToSubtractSlider.getX(), cycleCountToSubtractSlider.getY()-20, cycleCountToSubtractSlider.getWidth(),cycleCountToSubtractSlider.getTextBoxHeight() );
     termsToAddPerCountLabel.setBounds(termsToAddPerCountSlider.getX(), termsToAddPerCountSlider.getY()-20, termsToAddPerCountSlider.getWidth(),termsToAddPerCountSlider.getTextBoxHeight() );
+    harmonicSeriesModeLabel.setBounds(harmonicSeriesModeComboBox.getX(), harmonicSeriesModeComboBox.getY()-40, harmonicSeriesModeComboBox.getWidth(),harmonicSeriesModeComboBox.getHeight() );
+    harmonicRatioLabel.setBounds(harmonicRatioSlider.getX(), harmonicRatioSlider.getY()-10, harmonicRatioSlider.getWidth(),harmonicRatioSlider.getTextBoxHeight() );
 }

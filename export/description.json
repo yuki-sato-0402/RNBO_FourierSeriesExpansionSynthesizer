@@ -234,6 +234,48 @@
     {
       "type": "ParameterTypeNumber",
       "index": 11,
+      "name": "harmonicRatio",
+      "paramId": "harmonicRatio",
+      "minimum": 0.1,
+      "maximum": 2,
+      "exponent": 1,
+      "steps": 0,
+      "initialValue": 1,
+      "isEnum": false,
+      "enumValues": [],
+      "displayName": "",
+      "unit": "",
+      "order": 0,
+      "displayorder": "-",
+      "debug": false,
+      "visible": true,
+      "signalIndex": null,
+      "ioType": "IOTypeUndefined"
+    },
+    {
+      "type": "ParameterTypeNumber",
+      "index": 12,
+      "name": "harmonicSeriesMode",
+      "paramId": "harmonicSeriesMode",
+      "minimum": 0,
+      "maximum": 1,
+      "exponent": 1,
+      "steps": 0,
+      "initialValue": 0,
+      "isEnum": false,
+      "enumValues": [],
+      "displayName": "",
+      "unit": "",
+      "order": 0,
+      "displayorder": "-",
+      "debug": false,
+      "visible": true,
+      "signalIndex": null,
+      "ioType": "IOTypeUndefined"
+    },
+    {
+      "type": "ParameterTypeNumber",
+      "index": 13,
       "name": "PosNegSync",
       "paramId": "PosNegSync",
       "minimum": 0,
@@ -254,7 +296,7 @@
     },
     {
       "type": "ParameterTypeNumber",
-      "index": 12,
+      "index": 14,
       "name": "termsToAddPerCount",
       "paramId": "termsToAddPerCount",
       "minimum": 1,
@@ -275,7 +317,7 @@
     },
     {
       "type": "ParameterTypeNumber",
-      "index": 13,
+      "index": 15,
       "name": "cycleCountToSubtract",
       "paramId": "cycleCountToSubtract",
       "minimum": 0,
@@ -296,7 +338,7 @@
     },
     {
       "type": "ParameterTypeNumber",
-      "index": 14,
+      "index": 16,
       "name": "cycleCountToAdd",
       "paramId": "cycleCountToAdd",
       "minimum": 0,
@@ -316,11 +358,11 @@
       "ioType": "IOTypeUndefined"
     }
   ],
-  "numParameters": 15,
+  "numParameters": 17,
   "numSignalInParameters": 0,
   "numSignalOutParameters": 0,
   "numInputChannels": 0,
-  "numOutputChannels": 2,
+  "numOutputChannels": 3,
   "numMidiInputPorts": 1,
   "numMidiOutputPorts": 0,
   "transportUsed": false,
@@ -344,6 +386,12 @@
       "type": "signal",
       "index": 2,
       "tag": "out2",
+      "meta": ""
+    },
+    {
+      "type": "signal",
+      "index": 3,
+      "tag": "out3",
       "meta": ""
     }
   ],

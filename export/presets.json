@@ -21,10 +21,10 @@
         "value": 2
       },
       "cycleCountToAdd": {
-        "value": 1
+        "value": 5
       },
       "cycleCountToSubtract": {
-        "value": 1
+        "value": 5
       },
       "decay": {
         "value": 100
@@ -32,8 +32,14 @@
       "filterOnOff": {
         "value": 0
       },
-      "ocillator": {
+      "harmonicRatio": {
         "value": 1
+      },
+      "harmonicSeriesMode": {
+        "value": 0
+      },
+      "ocillator": {
+        "value": 3
       },
       "release": {
         "value": 1000
