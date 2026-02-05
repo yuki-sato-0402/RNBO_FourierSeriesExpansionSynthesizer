@@ -10,11 +10,15 @@ Built from the [rnbo.example.juce](https://github.com/Cycling74/rnbo.example.juc
 For *Getting Started*, please refer to the original repository. Also included in this repository is the C++ program output from RNBO in `export/`. And Max patch is included in `patches/`.
 
 ## Demonstration
-[Youtube<img width="948" height="474" alt="Screenshot 2025-12-31 at 0 54 25" src="https://github.com/user-attachments/assets/1b1709cb-944d-46c3-812a-b120dc05177f" />](https://youtu.be/j06Tomvv8Is?si=DjHv-vsxLdNXmIkf)
-
-
+[Youtube<img width="1144" height="716" alt="Screenshot 2026-02-05 at 22 16 03" src="https://github.com/user-attachments/assets/d86b4108-d3ca-4d50-aa24-77cbcaf8cde5" />](https://youtu.be/pF7NdjODk2U?si=9unfsuFFlacz6mqC)
 
 ## Parameter explanation
+- **harmonicSeriesMode** :  You can select linear mode or exponential mode for the harmonic series. When the harmonic series is considered as a sequence, the linear mode is an arithmetic progression, and the exponential mode is a geometric progression. Linear mode is more like a timbre, while exponential mode is more like a temperament.
+
+- **harmonicRatio** : You can control the stretching of harmonics. Let $`f_n`$ denote the frequency of the $`n`$ th harmonic and $`f_0`$ the fundamental frequency.    
+In the linear mode, the frequency is given by $` f_n = f_0 \times (1 + (n - 1) \times harmonicRatio)`$  
+In the exponential mode, the frequency is given by $` f_n = f_0 \times harmonicRatio^{n-1}`$
+
 - **ocillator** : You can choose from three oscillator types: triangle wave, square wave, and sawtooth wave.
 
 - **terms** : You can control the number of sine waves to be combined.
