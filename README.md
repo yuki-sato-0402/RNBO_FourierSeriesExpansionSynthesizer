@@ -1,13 +1,16 @@
 # RNBO_FourierSeriesExpansionSynthesizer
-This is a Synthesiser based on the approximation to triangular, square and sawtooth waves by Fourier series expansion. by RNBO (Max Msp).  
 
-This system features the ability to adjust parameters independently for the positive and negative portions of the waveform.   
-It also allows the number of terms (the number of sine waves to be combined) to be changed per cycle.
+**A Fourier Series Expansion Additive Synthesizer plugin (VST3 / AU / Standalone).**
 
-I have also arranged the code to use the [AudioProcessorValueTreeState](https://docs.juce.com/master/classAudioProcessorValueTreeState.html).
-Built from the [rnbo.example.juce](https://github.com/Cycling74/rnbo.example.juce).  
+This is a Synthesiser based on the approximation to triangular, square and sawtooth waves by Fourier series expansion, built using **RNBO (Max/MSP)** and the **JUCE** framework.  
 
-For *Getting Started*, please refer to the original repository. Also included in this repository is the C++ program output from RNBO in `export/`. And Max patch is included in `patches/`.
+## Key Features
+- **Multi-Format Support**: Works as a **VST3 plugin, AU (Audio Unit) plugin, and Standalone application**.
+- **Independent Control**: Adjust parameters independently for the positive and negative portions of the waveform.
+- **Dynamic Terms**: Change the number of sine wave terms per cycle.
+- **JUCE Integration**: Uses `AudioProcessorValueTreeState` for robust parameter management and DAW automation.
+
+Built from the [rnbo.example.juce](https://github.com/Cycling74/rnbo.example.juce) template.
 
 ## Demonstration
 [Youtube<img width="1144" height="716" alt="Screenshot 2026-02-05 at 22 16 03" src="https://github.com/user-attachments/assets/d86b4108-d3ca-4d50-aa24-77cbcaf8cde5" />](https://youtu.be/pF7NdjODk2U?si=9unfsuFFlacz6mqC)
