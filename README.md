@@ -10,7 +10,8 @@ This is a Synthesiser based on the approximation to triangular, square and sawto
 - **Dynamic Terms**: Change the number of sine wave terms per cycle.
 - **JUCE Integration**: Uses `AudioProcessorValueTreeState` for robust parameter management and DAW automation.
 
-Built from the [rnbo.example.juce](https://github.com/Cycling74/rnbo.example.juce) template.
+Built from the [rnbo.example.juce](https://github.com/Cycling74/rnbo.example.juce) template.   
+The C++ source exported from RNBO is in `export/`, and the original Max patch is in `patches/`.
 
 ## Demonstration
 [Youtube<img width="1144" height="716" alt="Screenshot 2026-02-05 at 22 16 03" src="https://github.com/user-attachments/assets/d86b4108-d3ca-4d50-aa24-77cbcaf8cde5" />](https://youtu.be/pF7NdjODk2U?si=9unfsuFFlacz6mqC)
