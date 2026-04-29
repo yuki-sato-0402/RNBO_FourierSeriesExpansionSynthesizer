@@ -22,7 +22,7 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     
     addAndMakeVisible(filterButton);
     filterButton.setButtonText("filter On Off");
-    button1Attachment.reset (new ButtonAttachment (valueTreeState, "filterOnOff", filterButton));
+    filterButtonAttachment.reset (new ButtonAttachment (valueTreeState, "filterOnOff", filterButton));
     filterButton.setLookAndFeel(&midnightLookAndFeel);
     
     addAndMakeVisible(cutoffOvertoneSlider);
@@ -87,7 +87,7 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
 
     addAndMakeVisible(posNegSyncButton);
     posNegSyncButton.setButtonText("PosNegSync");
-    button1Attachment.reset (new ButtonAttachment (valueTreeState, "PosNegSync", posNegSyncButton));
+    posNegSyncAttachment.reset (new ButtonAttachment (valueTreeState, "PosNegSync", posNegSyncButton));
     posNegSyncButton.setLookAndFeel(&midnightLookAndFeel);  
     posNegSyncButton.onClick = [this]() {
     if(posNegSyncButton.getToggleState()) {

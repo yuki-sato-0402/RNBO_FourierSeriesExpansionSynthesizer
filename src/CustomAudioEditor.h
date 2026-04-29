@@ -9,6 +9,7 @@ public:
     void paint (Graphics& g) override;
     void resized() override; 
     typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+    typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
     typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
    
 private:
@@ -65,15 +66,16 @@ private:
     std::unique_ptr<SliderAttachment> sustainSliderAttachment;
     std::unique_ptr<SliderAttachment> releaseSliderAttachment;
     std::unique_ptr<SliderAttachment> ampSliderAttachment;
-    std::unique_ptr<ButtonAttachment> button1Attachment;
+    std::unique_ptr<ButtonAttachment> filterButtonAttachment;
+    std::unique_ptr<ButtonAttachment> posNegSyncAttachment;
     std::unique_ptr<ButtonAttachment> posButtonAttachment;
     std::unique_ptr<ButtonAttachment> negButtonAttachment;
     std::unique_ptr<SliderAttachment> cycleCountToAddSliderAttachment;
     std::unique_ptr<SliderAttachment> cycleCountToSubtractSliderAttachment;
     std::unique_ptr<SliderAttachment> termsToAddPerCountSliderAttachment;
     std::unique_ptr<SliderAttachment> harmonicRatioSliderAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> ocillatorComboBoxAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> harmonicSeriesModeComboBoxAttachment;
+    std::unique_ptr<ComboBoxAttachment> ocillatorComboBoxAttachment;
+    std::unique_ptr<ComboBoxAttachment> harmonicSeriesModeComboBoxAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomAudioEditor)
 };
