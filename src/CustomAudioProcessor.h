@@ -40,12 +40,6 @@ private:
     juce::AudioProcessorValueTreeState parameters;  
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomAudioProcessor)
 
-    double _lastBPM = -1.0;
-    int _lastTimeSigNumerator = 0;
-    int _lastTimeSigDenominator = 0;
-    double _lastPpqPosition = -1.0;
-    bool _lastIsPlaying = false;
-    
     RNBO::TimeConverter preProcess(juce::MidiBuffer& midiMessages);
     void postProcess(RNBO::TimeConverter& timeConverter, juce::MidiBuffer& midiMessages);
     std::unordered_map<juce::String, RNBO::ParameterIndex> apvtsParamIdToRnboParamIndex;

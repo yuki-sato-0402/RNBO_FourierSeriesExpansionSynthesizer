@@ -4,7 +4,7 @@
 		"appversion" : 		{
 			"major" : 8,
 			"minor" : 6,
-			"revision" : 2,
+			"revision" : 5,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
@@ -256,7 +256,7 @@
 			}
 , 			{
 				"box" : 				{
-					"attr" : "ocillator",
+					"attr" : "oscillator",
 					"fontsize" : 16.623593797506839,
 					"id" : "obj-12",
 					"maxclass" : "attrui",
@@ -314,13 +314,13 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 6,
-							"revision" : 2,
+							"revision" : 5,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "rnbo",
-						"rect" : [ 134.0, 91.0, 383.0, 711.0 ],
+						"rect" : [ 17.0, -896.0, 275.0, 711.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -369,8 +369,8 @@
 									"patching_rect" : [ 106.0, 650.0, 43.0, 23.0 ],
 									"rnbo_classname" : "out~",
 									"rnbo_extra_attributes" : 									{
-										"meta" : "",
-										"comment" : ""
+										"comment" : "",
+										"meta" : ""
 									}
 ,
 									"rnbo_serial" : 1,
@@ -469,8 +469,8 @@
 									"patching_rect" : [ 57.0, 650.0, 43.0, 23.0 ],
 									"rnbo_classname" : "out~",
 									"rnbo_extra_attributes" : 									{
-										"meta" : "",
-										"comment" : ""
+										"comment" : "",
+										"meta" : ""
 									}
 ,
 									"rnbo_serial" : 2,
@@ -628,19 +628,19 @@
 									"patching_rect" : [ 496.0, 393.0, 275.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 1,
@@ -1130,19 +1130,19 @@
 									"patching_rect" : [ 496.0, 320.0, 294.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 2,
@@ -1661,8 +1661,8 @@
 									"rnbo_classname" : "delay~",
 									"rnbo_extra_attributes" : 									{
 										"ramp" : 50.0,
-										"maxdelayms" : 0.0,
-										"interp" : "linear"
+										"interp" : "linear",
+										"maxdelayms" : 0.0
 									}
 ,
 									"rnbo_serial" : 1,
@@ -1716,8 +1716,8 @@
 									"rnbo_classname" : "delay~",
 									"rnbo_extra_attributes" : 									{
 										"ramp" : 50.0,
-										"maxdelayms" : 0.0,
-										"interp" : "linear"
+										"interp" : "linear",
+										"maxdelayms" : 0.0
 									}
 ,
 									"rnbo_serial" : 2,
@@ -1997,19 +1997,19 @@
 									"patching_rect" : [ 496.0, 237.0, 248.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 3,
@@ -2499,19 +2499,19 @@
 									"patching_rect" : [ 496.0, 149.0, 302.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 4,
@@ -3001,19 +3001,19 @@
 									"patching_rect" : [ 496.0, 82.0, 304.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 5,
@@ -3503,19 +3503,19 @@
 									"patching_rect" : [ 496.0, 9.0, 284.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 6,
@@ -4028,19 +4028,19 @@
 									"patching_rect" : [ 215.0, 636.0, 223.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 7,
@@ -4704,19 +4704,19 @@
 									"patching_rect" : [ 216.0, 601.0, 221.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 8,
@@ -5167,19 +5167,19 @@
 									"patching_rect" : [ 217.0, 569.0, 270.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 9,
@@ -5611,19 +5611,19 @@
 									"patching_rect" : [ 217.0, 500.0, 249.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 10,
@@ -6055,19 +6055,19 @@
 									"patching_rect" : [ 215.0, 465.0, 257.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 11,
@@ -6499,19 +6499,19 @@
 									"patching_rect" : [ 215.0, 424.0, 252.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 12,
@@ -6991,8 +6991,8 @@
 									"patching_rect" : [ 12.0, 650.0, 43.0, 23.0 ],
 									"rnbo_classname" : "out~",
 									"rnbo_extra_attributes" : 									{
-										"meta" : "",
-										"comment" : ""
+										"comment" : "",
+										"meta" : ""
 									}
 ,
 									"rnbo_serial" : 3,
@@ -7089,9 +7089,9 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 215.0, 392.0, 103.0, 23.0 ],
+									"patching_rect" : [ 215.0, 392.0, 108.0, 23.0 ],
 									"rnbo_classname" : "setparam",
-									"rnbo_serial" : 8,
+									"rnbo_serial" : 13,
 									"rnbo_uniqueid" : "setparam_obj-14",
 									"rnboinfo" : 									{
 										"needsInstanceInfo" : 1,
@@ -7136,7 +7136,7 @@
 										"changesPatcherIO" : 0
 									}
 ,
-									"text" : "setparam ocillator"
+									"text" : "setparam oscillator"
 								}
 
 							}
@@ -7147,26 +7147,26 @@
 									"numinlets" : 2,
 									"numoutlets" : 2,
 									"outlettype" : [ "", "" ],
-									"patching_rect" : [ 215.0, 356.0, 234.0, 23.0 ],
+									"patching_rect" : [ 215.0, 356.0, 239.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
-									"rnbo_serial" : 13,
-									"rnbo_uniqueid" : "ocillator",
+									"rnbo_serial" : 18,
+									"rnbo_uniqueid" : "oscillator",
 									"rnboinfo" : 									{
 										"needsInstanceInfo" : 1,
 										"argnames" : 										{
@@ -7579,8 +7579,8 @@
 										"changesPatcherIO" : 0
 									}
 ,
-									"text" : "param ocillator @min 1. @max 3. @value 1.",
-									"varname" : "ocillator"
+									"text" : "param oscillator @min 1. @max 3. @value 1.",
+									"varname" : "oscillator"
 								}
 
 							}
@@ -7652,19 +7652,19 @@
 									"patching_rect" : [ 216.0, 211.0, 266.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 14,
@@ -8154,19 +8154,19 @@
 									"patching_rect" : [ 216.0, 144.0, 272.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 15,
@@ -8656,19 +8656,19 @@
 									"patching_rect" : [ 216.0, 77.0, 242.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 16,
@@ -9173,19 +9173,19 @@
 									"patching_rect" : [ 216.0, 9.0, 220.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"displayorder" : "-",
+										"steps" : 0.0,
 										"preset" : 1,
+										"displayorder" : "-",
+										"enum" : "",
+										"sendinit" : 1,
+										"ctlin" : 0.0,
 										"exponent" : 1.0,
 										"meta" : "",
-										"ctlin" : 0.0,
 										"tonormalized" : "",
 										"unit" : "",
 										"order" : "0",
 										"displayname" : "",
-										"fromnormalized" : "",
-										"steps" : 0.0,
-										"enum" : "",
-										"sendinit" : 1
+										"fromnormalized" : ""
 									}
 ,
 									"rnbo_serial" : 17,
@@ -9615,7 +9615,7 @@
 											"appversion" : 											{
 												"major" : 8,
 												"minor" : 6,
-												"revision" : 2,
+												"revision" : 5,
 												"architecture" : "x64",
 												"modernui" : 1
 											}
@@ -9686,23 +9686,23 @@
 , 												{
 													"box" : 													{
 														"maxclass" : "codebox",
-														"fontsize" : 12.0,
 														"numoutlets" : 2,
-														"patching_rect" : [ 11.0, 37.0, 780.0, 639.0 ],
 														"fontname" : "<Monospaced>",
+														"patching_rect" : [ 11.0, 37.0, 780.0, 639.0 ],
 														"outlettype" : [ "", "" ],
 														"fontface" : 0,
 														"id" : "obj-5",
+														"fontsize" : 12.0,
 														"numinlets" : 1,
-														"code" : "changeCycleNumber(periodSamps, sampleCount, manageParam, cycleCountToAdd, \r\n\tcycleCountToSubtract, termsToAddPerCount){\r\n\tcycleCount = wrap(sampleCount, 0, periodSamps  * (cycleCountToAdd + cycleCountToSubtract));\r\n\tcycleCount = int(cycleCount / periodSamps) + 1;\r\n\r\n\tposTerms, negTerms = 0;\r\n\tif(cycleCountToAdd != 0 && cycleCount <= cycleCountToAdd){\r\n\t\tposTerms = peek(manageParam, 0) + cycleCount * termsToAddPerCount;\r\n\t\tnegTerms = peek(manageParam, 5) + cycleCount * termsToAddPerCount;\r\n\t}else if(cycleCountToAdd != 0 && cycleCount > cycleCountToAdd){\r\n\t\ttotalAddedTerms = cycleCountToAdd * termsToAddPerCount;\r\n\t\ttermsToSubtractPerCount = totalAddedTerms / cycleCountToSubtract;\r\n\t\tcountForSubtract = cycleCount - cycleCountToAdd;\r\n\t\taddedTerms =  int(totalAddedTerms - (termsToSubtractPerCount * countForSubtract));\r\n\t\tif(posTerms <= 0){\r\n\t   \t\tposTerms = 1;\r\n\t\t}\r\n\t\tif(negTerms <= 0){\r\n\t  \t\tnegTerms = 1;\r\n\t\t}\r\n\t\tposTerms = peek(manageParam, 0) + addedTerms;\t\r\n\t\tnegTerms = peek(manageParam, 5) + addedTerms;\t\r\n\t}else{\r\n\t\tposTerms = peek(manageParam, 0);\r\n\t\tnegTerms = peek(manageParam, 5);\r\n\t}\t\r\n\t\r\n\treturn posTerms, negTerms;\r\n\t\r\n}\r\n\r\n\r\nmySquare(n1){\r\n\tamp_factor1 = 4/(pi * n1);\r\n\treturn amp_factor1;\r\n}\r\n\r\nmyTriangle(n2){\r\n\tamp_factor2 = 8/(pow(pi, 2)*pow(n2, 2));\r\n    phase_factor2 = pow(-1, div(n2-1, 2));\r\n\treturn amp_factor2 * phase_factor2;\r\n}\r\n\r\nmySawtooth(n3){\r\n\tamp_factor3  = 2/(pi*n3);\r\n    phase_factor3 = pow(-1,n3+1);\r\n\treturn amp_factor3 * phase_factor3;\r\n}\r\n\r\nfourierSeriesCalculation(currentFreq, index, FilterOnOff, CutoffOvertone, \r\n\t\t\t\t Attenuation, Ocillator){\r\n\t\r\n\tFactors = 1;\r\n\tAmp_filter = 1;\r\n\tif(Ocillator == 1){\r\n    \tif((index % 2) == 1){\r\n      \t\tFactors = 4/(pi * index);\r\n\t\t}else{\r\n\t  \t\tFactors = 0;\r\n\t\t}\t\t\r\n  \t}else if(Ocillator == 2){\r\n\t\tif((index % 2) == 1){\r\n      \t\tFactors = myTriangle(index);\r\n\t\t}else{\r\n\t  \t\tFactors = 0;\r\n\t\t}\r\n  \t}else{\r\n    \tFactors = mySawtooth(index);\r\n  \t}\r\n\r\n  \tif(FilterOnOff == 1){\r\n  \t\tif(index >= CutoffOvertone){\r\n\t  \t\tn_overtone = (index - CutoffOvertone + 1) * Attenuation;\r\n\t  \t\tAmp_filter= 1/n_overtone;\r\n    \t}\r\n  \t}\r\n\r\n  \tif(currentFreq > samplerate / 2){\r\n\t\tFactors = 0;\r\n  \t}\r\n\r\n  \treturn Factors * Amp_filter;\r\n}\r\n\r\n\r\nprocessSynthesis(index, currentFreq, posWave, negWave, posTerms, negTerms, \r\n\t\t\t\t step, phaseStore, phaseReset, posFilterOnOff, posCutoffOvertone, \r\n\t\t\t\t posAttenuation, posOcillator, negFilterOnOff, negCutoffOvertone, \r\n\t\t\t\t negAttenuation, negOcillator , phaseStoreCh){\r\n\t\r\n\tlastPhase = peek(phaseStore, index - 1, phaseStoreCh);\n    phaseToAdv = twopi * currentFreq * step;\n    newPhase = wrap(lastPhase + phaseToAdv, 0, twopi) * phaseReset;\t\r\n    poke(phaseStore, newPhase, index - 1, phaseStoreCh);\r\n\t\t\n    sine_wave = sin(newPhase);\r\n\tif(index <= posTerms){\r\n\t\tposWave += sine_wave * fourierSeriesCalculation(currentFreq, index, posFilterOnOff, \r\n             posCutoffOvertone, posAttenuation, posOcillator);\r\n\r\n\t}\r\n\t\r\n\tif(index <= negTerms){\t\r\n\t\tnegWave += sine_wave * fourierSeriesCalculation(currentFreq, index, negFilterOnOff, \r\n             negCutoffOvertone, negAttenuation, negOcillator);\r\n\r\n\t}\r\n\t\r\n\treturn posWave, negWave;\r\n}\r\n\r\nParam terms(0);\r\nParam filterOnOff(0);\r\nParam cutoffOvertone(0);\r\nParam attenuation(0);\r\nParam ocillator(0);\r\nParam PosNeg(0);\r\nParam PosNegSync(0);\r\nParam cycleCountToAdd(0);//Over n cycles, transform terms into x\r\nParam cycleCountToSubtract(0);\r\nParam termsToAddPerCount(0);\r\nParam harmonicSeriesMode(0);\r\nParam harmonicRatio(0);\r\nHistory sampleCount(0);\r\nData phaseStore(40, 2);\r\nData manageParam(10);\r\n\r\nif(PosNeg == 1){\r\n\tpoke(manageParam, terms, 0);\r\n\tpoke(manageParam, filterOnOff, 1);\r\n\tpoke(manageParam, cutoffOvertone, 2);\r\n\tpoke(manageParam, attenuation, 3);\r\n\tpoke(manageParam, ocillator, 4);\r\n}else{\r\n\tpoke(manageParam, terms, 5);\r\n\tpoke(manageParam, filterOnOff, 6);\r\n\tpoke(manageParam, cutoffOvertone, 7);\r\n\tpoke(manageParam, attenuation, 8);\r\n\tpoke(manageParam, ocillator, 9);\r\n}\r\n\r\nif(PosNegSync == 1){\r\n\tpoke(manageParam, terms, 0); poke(manageParam, terms, 5); \r\n\tpoke(manageParam, filterOnOff, 1); poke(manageParam, filterOnOff, 6);\r\n\tpoke(manageParam, cutoffOvertone, 2); poke(manageParam, cutoffOvertone, 7);\r\n\tpoke(manageParam, attenuation, 3); poke(manageParam, attenuation, 8);\r\n\tpoke(manageParam, ocillator, 4); poke(manageParam, ocillator, 9);\r\n}\r\n\r\nposTerms = peek(manageParam, 0);\r\nposFilterOnOff = peek(manageParam, 1);\r\nposCutoffOvertone = peek(manageParam, 2);\r\nposAttenuation = peek(manageParam, 3);\r\nposOcillator = peek(manageParam, 4);\r\nnegTerms = peek(manageParam, 5);\r\nnegFilterOnOff = peek(manageParam, 6);\r\nnegCutoffOvertone = peek(manageParam, 7);\r\nnegAttenuation = peek(manageParam, 8);\r\nnegOcillator = peek(manageParam, 9);\r\n\r\n\r\n\r\nif(change(cycleCountToAdd) != 0 || change(cycleCountToSubtract) != 0\r\n || change(terms) != 0 ){\r\n\tsampleCount = 0;\r\n}\r\n\r\nperiodSamps1 = samplerate / mtof(in1);\r\nperiodSamps2 = samplerate / 1;\r\nsampleCount += 1;\r\n\r\nposTerms1, negTerms1 = changeCycleNumber(periodSamps1, sampleCount, manageParam, \r\n\t\t\t\t\t   cycleCountToAdd, cycleCountToSubtract, termsToAddPerCount);\r\n\r\nposTerms2, negTerms2 = changeCycleNumber(periodSamps2, sampleCount, manageParam, \r\n\t\t\t\t\t   cycleCountToAdd, cycleCountToSubtract, termsToAddPerCount);\r\n\r\nmaxTerms1 = max(posTerms1, negTerms1);\r\nmaxTerms2 = max(posTerms2, negTerms2);\r\nmaxTerms =  max(maxTerms1, maxTerms2);\r\n\r\nposWave1, negWave1, currentFreq1, posWave2, negWave2, currentFreq2 = 0;\r\n\r\nstep = 1 / samplerate;\r\nphaseReset1 = 1; \r\nphaseReset2 = 1;\r\n\r\nfor(i=1; i<=maxTerms; i+=1){\r\n\tif(change(terms) != 0  || change(maxTerms1) || change(harmonicRatio) || \r\n\t   change(harmonicSeriesMode)){\r\n\t\tphaseReset1 = 0;\r\n\t}\r\n\t\r\n\tif(change(terms) != 0  || change(maxTerms2) || change(harmonicRatio) || \r\n\t   change(harmonicSeriesMode)){\r\n\t   phaseReset2 = 0;\r\n\t}\r\n\r\n\t\r\n\tif(harmonicSeriesMode == 0){\r\n\t\tcurrentFreq1 = mtof(in1) * (1 + (i - 1) * harmonicRatio);\r\n\t\tcurrentFreq2 = 1 * (1 + (i - 1) * harmonicRatio);\r\n\t}else{\r\n\t\tcurrentFreq1 = mtof(in1) * pow(harmonicRatio, i - 1);\r\n\t\tcurrentFreq2 = 1 * pow(harmonicRatio, i - 1);\r\n\t}\r\n\t//int(mtof(in1))\r\n\tposWave1 , negWave1 = processSynthesis(i, currentFreq1, posWave1, negWave1, posTerms1, negTerms1,\r\n\t\t\t\t\t\t\t    step, phaseStore, phaseReset1, posFilterOnOff, \r\n             \t\t\t\t\tposCutoffOvertone, posAttenuation, posOcillator, negFilterOnOff, \r\n             \t\t\t\t    negCutoffOvertone, negAttenuation, negOcillator, 0);\r\n\r\n\tposWave2 , negWave2 = processSynthesis(i, currentFreq2, posWave2, negWave2, posTerms2, negTerms2,\r\n\t\t\t\t\t\t\t    step, phaseStore, phaseReset2, posFilterOnOff, \r\n            \t\t\t\t\tposCutoffOvertone, posAttenuation, posOcillator, negFilterOnOff, \r\n             \t\t\t\t    negCutoffOvertone, negAttenuation, negOcillator, 1);\r\n     \r\n}\r\n\r\n\r\nif(posWave1 >= 0){\r\n\tnegWave1 *= 0;\r\n}else{\r\n\tposWave1 *= 0;\r\n}\r\n\r\nif(posWave2 >= 0){\r\n\tnegWave2 *= 0;\r\n}else{\r\n\tposWave2 *= 0;\r\n}\r\n\r\nSynthesizedWave1 = negWave1 + posWave1;\r\n\r\nSynthesizedWave2 = negWave2 + posWave2;\r\n\r\n\r\nout1 = clip(SynthesizedWave1 * 0.7, -1, 1);\r\nout2 = clip(SynthesizedWave2 * 0.7, -1, 1);"
+														"code" : "changeCycleNumber(periodSamps, sampleCount, manageParam, cycleCountToAdd, \r\n\tcycleCountToSubtract, termsToAddPerCount){\r\n\tcycleCount = wrap(sampleCount, 0, periodSamps  * (cycleCountToAdd + cycleCountToSubtract));\r\n\tcycleCount = int(cycleCount / periodSamps) + 1;\r\n\r\n\tposTerms, negTerms = 0;\r\n\tif(cycleCountToAdd != 0 && cycleCount <= cycleCountToAdd){\r\n\t\tposTerms = peek(manageParam, 0) + cycleCount * termsToAddPerCount;\r\n\t\tnegTerms = peek(manageParam, 5) + cycleCount * termsToAddPerCount;\r\n\t}else if(cycleCountToAdd != 0 && cycleCount > cycleCountToAdd){\r\n\t\ttotalAddedTerms = cycleCountToAdd * termsToAddPerCount;\r\n\t\ttermsToSubtractPerCount = totalAddedTerms / cycleCountToSubtract;\r\n\t\tcountForSubtract = cycleCount - cycleCountToAdd;\r\n\t\taddedTerms =  int(totalAddedTerms - (termsToSubtractPerCount * countForSubtract));\r\n\t\tif(posTerms <= 0){\r\n\t   \t\tposTerms = 1;\r\n\t\t}\r\n\t\tif(negTerms <= 0){\r\n\t  \t\tnegTerms = 1;\r\n\t\t}\r\n\t\tposTerms = peek(manageParam, 0) + addedTerms;\t\r\n\t\tnegTerms = peek(manageParam, 5) + addedTerms;\t\r\n\t}else{\r\n\t\tposTerms = peek(manageParam, 0);\r\n\t\tnegTerms = peek(manageParam, 5);\r\n\t}\t\r\n\t\r\n\treturn posTerms, negTerms;\r\n\t\r\n}\r\n\r\n\r\nmySquare(n1){\r\n\tamp_factor1 = 4/(pi * n1);\r\n\treturn amp_factor1;\r\n}\r\n\r\nmyTriangle(n2){\r\n\tamp_factor2 = 8/(pow(pi, 2)*pow(n2, 2));\r\n    phase_factor2 = pow(-1, div(n2-1, 2));\r\n\treturn amp_factor2 * phase_factor2;\r\n}\r\n\r\nmySawtooth(n3){\r\n\tamp_factor3  = 2/(pi*n3);\r\n    phase_factor3 = pow(-1,n3+1);\r\n\treturn amp_factor3 * phase_factor3;\r\n}\r\n\r\nfourierSeriesCalculation(currentFreq, index, FilterOnOff, CutoffOvertone, \r\n\t\t\t\t Attenuation, Oscillator){\r\n\t\r\n\tFactors = 1;\r\n\tAmp_filter = 1;\r\n\tif(Oscillator == 1){\r\n    \tif((index % 2) == 1){\r\n      \t\tFactors = 4/(pi * index);\r\n\t\t}else{\r\n\t  \t\tFactors = 0;\r\n\t\t}\t\t\r\n  \t}else if(Oscillator == 2){\r\n\t\tif((index % 2) == 1){\r\n      \t\tFactors = myTriangle(index);\r\n\t\t}else{\r\n\t  \t\tFactors = 0;\r\n\t\t}\r\n  \t}else{\r\n    \tFactors = mySawtooth(index);\r\n  \t}\r\n\r\n  \tif(FilterOnOff == 1){\r\n  \t\tif(index >= CutoffOvertone){\r\n\t  \t\tn_overtone = (index - CutoffOvertone + 1) * Attenuation;\r\n\t  \t\tAmp_filter= 1/n_overtone;\r\n    \t}\r\n  \t}\r\n\r\n  \tif(currentFreq > samplerate / 2){\r\n\t\tFactors = 0;\r\n  \t}\r\n\r\n  \treturn Factors * Amp_filter;\r\n}\r\n\r\n\r\nprocessSynthesis(index, currentFreq, posWave, negWave, posTerms, negTerms, \r\n\t\t\t\t step, phaseStore, phaseReset, posFilterOnOff, posCutoffOvertone, \r\n\t\t\t\t posAttenuation, posOscillator, negFilterOnOff, negCutoffOvertone, \r\n\t\t\t\t negAttenuation, negOscillator , phaseStoreCh){\r\n\t\r\n\tlastPhase = peek(phaseStore, index - 1, phaseStoreCh);\n    phaseToAdv = twopi * currentFreq * step;\n    newPhase = wrap(lastPhase + phaseToAdv, 0, twopi) * phaseReset;\t\r\n    poke(phaseStore, newPhase, index - 1, phaseStoreCh);\r\n\t\t\n    sine_wave = sin(newPhase);\r\n\tif(index <= posTerms){\r\n\t\tposWave += sine_wave * fourierSeriesCalculation(currentFreq, index, posFilterOnOff, \r\n             posCutoffOvertone, posAttenuation, posOscillator);\r\n\r\n\t}\r\n\t\r\n\tif(index <= negTerms){\t\r\n\t\tnegWave += sine_wave * fourierSeriesCalculation(currentFreq, index, negFilterOnOff, \r\n             negCutoffOvertone, negAttenuation, negOscillator);\r\n\r\n\t}\r\n\t\r\n\treturn posWave, negWave;\r\n}\r\n\r\nParam terms(0);\r\nParam filterOnOff(0);\r\nParam cutoffOvertone(0);\r\nParam attenuation(0);\r\nParam oscillator(0);\r\nParam PosNeg(0);\r\nParam PosNegSync(0);\r\nParam cycleCountToAdd(0);//Over n cycles, transform terms into x\r\nParam cycleCountToSubtract(0);\r\nParam termsToAddPerCount(0);\r\nParam harmonicSeriesMode(0);\r\nParam harmonicRatio(0);\r\nHistory sampleCount(0);\r\nData phaseStore(40, 2);\r\nData manageParam(10);\r\n\r\nif(PosNeg == 1){\r\n\tpoke(manageParam, terms, 0);\r\n\tpoke(manageParam, filterOnOff, 1);\r\n\tpoke(manageParam, cutoffOvertone, 2);\r\n\tpoke(manageParam, attenuation, 3);\r\n\tpoke(manageParam, oscillator, 4);\r\n}else{\r\n\tpoke(manageParam, terms, 5);\r\n\tpoke(manageParam, filterOnOff, 6);\r\n\tpoke(manageParam, cutoffOvertone, 7);\r\n\tpoke(manageParam, attenuation, 8);\r\n\tpoke(manageParam, oscillator, 9);\r\n}\r\n\r\nif(PosNegSync == 1){\r\n\tpoke(manageParam, terms, 0); poke(manageParam, terms, 5); \r\n\tpoke(manageParam, filterOnOff, 1); poke(manageParam, filterOnOff, 6);\r\n\tpoke(manageParam, cutoffOvertone, 2); poke(manageParam, cutoffOvertone, 7);\r\n\tpoke(manageParam, attenuation, 3); poke(manageParam, attenuation, 8);\r\n\tpoke(manageParam, oscillator, 4); poke(manageParam, oscillator, 9);\r\n}\r\n\r\nposTerms = peek(manageParam, 0);\r\nposFilterOnOff = peek(manageParam, 1);\r\nposCutoffOvertone = peek(manageParam, 2);\r\nposAttenuation = peek(manageParam, 3);\r\nposOscillator = peek(manageParam, 4);\r\nnegTerms = peek(manageParam, 5);\r\nnegFilterOnOff = peek(manageParam, 6);\r\nnegCutoffOvertone = peek(manageParam, 7);\r\nnegAttenuation = peek(manageParam, 8);\r\nnegOscillator = peek(manageParam, 9);\r\n\r\n\r\n\r\nif(change(cycleCountToAdd) != 0 || change(cycleCountToSubtract) != 0\r\n || change(terms) != 0 ){\r\n\tsampleCount = 0;\r\n}\r\n\r\nperiodSamps1 = samplerate / mtof(in1);\r\nperiodSamps2 = samplerate / 1;\r\nsampleCount += 1;\r\n\r\nposTerms1, negTerms1 = changeCycleNumber(periodSamps1, sampleCount, manageParam, \r\n\t\t\t\t\t   cycleCountToAdd, cycleCountToSubtract, termsToAddPerCount);\r\n\r\nposTerms2, negTerms2 = changeCycleNumber(periodSamps2, sampleCount, manageParam, \r\n\t\t\t\t\t   cycleCountToAdd, cycleCountToSubtract, termsToAddPerCount);\r\n\r\nmaxTerms1 = max(posTerms1, negTerms1);\r\nmaxTerms2 = max(posTerms2, negTerms2);\r\nmaxTerms =  max(maxTerms1, maxTerms2);\r\n\r\nposWave1, negWave1, currentFreq1, posWave2, negWave2, currentFreq2 = 0;\r\n\r\nstep = 1 / samplerate;\r\nphaseReset1 = 1; \r\nphaseReset2 = 1;\r\n\r\nfor(i=1; i<=maxTerms; i+=1){\r\n\tif(change(terms) != 0  || change(maxTerms1) || change(harmonicRatio) || \r\n\t   change(harmonicSeriesMode)){\r\n\t\tphaseReset1 = 0;\r\n\t}\r\n\t\r\n\tif(change(terms) != 0  || change(maxTerms2) || change(harmonicRatio) || \r\n\t   change(harmonicSeriesMode)){\r\n\t   phaseReset2 = 0;\r\n\t}\r\n\r\n\t\r\n\tif(harmonicSeriesMode == 0){\r\n\t\tcurrentFreq1 = mtof(in1) * (1 + (i - 1) * harmonicRatio);\r\n\t\tcurrentFreq2 = 1 * (1 + (i - 1) * harmonicRatio);\r\n\t}else{\r\n\t\tcurrentFreq1 = mtof(in1) * pow(harmonicRatio, i - 1);\r\n\t\tcurrentFreq2 = 1 * pow(harmonicRatio, i - 1);\r\n\t}\r\n\t//int(mtof(in1))\r\n\tposWave1 , negWave1 = processSynthesis(i, currentFreq1, posWave1, negWave1, posTerms1, negTerms1,\r\n\t\t\t\t\t\t\t    step, phaseStore, phaseReset1, posFilterOnOff, \r\n             \t\t\t\t\tposCutoffOvertone, posAttenuation, posOscillator, negFilterOnOff, \r\n             \t\t\t\t    negCutoffOvertone, negAttenuation, negOscillator, 0);\r\n\r\n\tposWave2 , negWave2 = processSynthesis(i, currentFreq2, posWave2, negWave2, posTerms2, negTerms2,\r\n\t\t\t\t\t\t\t    step, phaseStore, phaseReset2, posFilterOnOff, \r\n            \t\t\t\t\tposCutoffOvertone, posAttenuation, posOscillator, negFilterOnOff, \r\n             \t\t\t\t    negCutoffOvertone, negAttenuation, negOscillator, 1);\r\n     \r\n}\r\n\r\n\r\nif(posWave1 >= 0){\r\n\tnegWave1 *= 0;\r\n}else{\r\n\tposWave1 *= 0;\r\n}\r\n\r\nif(posWave2 >= 0){\r\n\tnegWave2 *= 0;\r\n}else{\r\n\tposWave2 *= 0;\r\n}\r\n\r\nSynthesizedWave1 = negWave1 + posWave1;\r\n\r\nSynthesizedWave2 = negWave2 + posWave2;\r\n\r\n\r\nout1 = clip(SynthesizedWave1 * 0.7, -1, 1);\r\nout2 = clip(SynthesizedWave2 * 0.7, -1, 1);"
 													}
 
 												}
  ],
 											"lines" : [ 												{
 													"patchline" : 													{
-														"source" : [ "obj-5", 1 ],
-														"destination" : [ "obj-1", 0 ]
+														"source" : [ "obj-5", 0 ],
+														"destination" : [ "obj-6", 0 ]
 													}
 
 												}
@@ -9715,8 +9715,8 @@
 												}
 , 												{
 													"patchline" : 													{
-														"source" : [ "obj-5", 0 ],
-														"destination" : [ "obj-6", 0 ]
+														"source" : [ "obj-5", 1 ],
+														"destination" : [ "obj-1", 0 ]
 													}
 
 												}
@@ -10291,44 +10291,8 @@
 ,
 					"patching_rect" : [ 5.0, 520.0, 68.0, 22.0 ],
 					"rnboattrcache" : 					{
-						"release" : 						{
-							"label" : "release",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"attack" : 						{
-							"label" : "attack",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
 						"attenuation" : 						{
 							"label" : "attenuation",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"terms" : 						{
-							"label" : "terms",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"cutoffOvertone" : 						{
-							"label" : "cutoffOvertone",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"harmonicRatio" : 						{
-							"label" : "harmonicRatio",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"PosNeg" : 						{
-							"label" : "PosNeg",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
@@ -10339,14 +10303,20 @@
 							"parsestring" : ""
 						}
 ,
-						"harmonicSeriesMode" : 						{
-							"label" : "harmonicSeriesMode",
+						"decay" : 						{
+							"label" : "decay",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
 ,
-						"cycleCountToSubtract" : 						{
-							"label" : "cycleCountToSubtract",
+						"release" : 						{
+							"label" : "release",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"harmonicRatio" : 						{
+							"label" : "harmonicRatio",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
@@ -10363,14 +10333,14 @@
 							"parsestring" : ""
 						}
 ,
-						"amp" : 						{
-							"label" : "amp",
+						"terms" : 						{
+							"label" : "terms",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
 ,
-						"decay" : 						{
-							"label" : "decay",
+						"harmonicSeriesMode" : 						{
+							"label" : "harmonicSeriesMode",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
@@ -10381,14 +10351,44 @@
 							"parsestring" : ""
 						}
 ,
+						"attack" : 						{
+							"label" : "attack",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"PosNeg" : 						{
+							"label" : "PosNeg",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"amp" : 						{
+							"label" : "amp",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"cutoffOvertone" : 						{
+							"label" : "cutoffOvertone",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"cycleCountToSubtract" : 						{
+							"label" : "cycleCountToSubtract",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
 						"termsToAddPerCount" : 						{
 							"label" : "termsToAddPerCount",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
 ,
-						"ocillator" : 						{
-							"label" : "ocillator",
+						"oscillator" : 						{
+							"label" : "oscillator",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
@@ -10435,12 +10435,8 @@
 								"value" : 1.0
 							}
 ,
-							"sustain" : 							{
-								"value" : 80.0
-							}
-,
 							"terms" : 							{
-								"value" : 1.0
+								"value" : 4.0
 							}
 ,
 							"PosNeg" : 							{
@@ -10448,10 +10444,6 @@
 							}
 ,
 							"attenuation" : 							{
-								"value" : 1.0
-							}
-,
-							"ocillator" : 							{
 								"value" : 1.0
 							}
 ,
@@ -10491,6 +10483,14 @@
 							"decay" : 							{
 								"value" : 100.0
 							}
+,
+							"sustain" : 							{
+								"value" : 80.0
+							}
+,
+							"oscillator" : 							{
+								"value" : 1.0
+							}
 
 						}
 ,
@@ -10518,12 +10518,8 @@
 											"value" : 1.0
 										}
 ,
-										"sustain" : 										{
-											"value" : 80.0
-										}
-,
 										"terms" : 										{
-											"value" : 1.0
+											"value" : 4.0
 										}
 ,
 										"PosNeg" : 										{
@@ -10531,10 +10527,6 @@
 										}
 ,
 										"attenuation" : 										{
-											"value" : 1.0
-										}
-,
-										"ocillator" : 										{
 											"value" : 1.0
 										}
 ,
@@ -10573,6 +10565,14 @@
 ,
 										"decay" : 										{
 											"value" : 100.0
+										}
+,
+										"sustain" : 										{
+											"value" : 80.0
+										}
+,
+										"oscillator" : 										{
+											"value" : 1.0
 										}
 
 									}

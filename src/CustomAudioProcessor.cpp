@@ -134,43 +134,6 @@ void CustomAudioProcessor::parameterChanged(const juce::String& parameterID, flo
 
 RNBO::TimeConverter CustomAudioProcessor::preProcess(juce::MidiBuffer& midiMessages) {
 	RNBO::MillisecondTime time = rnboObject.getCurrentTime();
-	{
-		AudioPlayHead* playhead = getPlayHead();
-		if (playhead) {
-			auto info = playhead->getPosition();
-			if (info) {
-				auto bpm = info->getBpm();
-				if (bpm && !juce::approximatelyEqual (*bpm, _lastBPM)){
-					_lastBPM = *bpm;
-					RNBO::TempoEvent event(time, _lastBPM);
-					rnboObject.scheduleEvent(event);
-				}
-
-				auto timesig = info->getTimeSignature();
-				if (timesig && (timesig->numerator != _lastTimeSigNumerator || timesig->denominator != _lastTimeSigDenominator)) {
-					_lastTimeSigNumerator = timesig->numerator;
-					_lastTimeSigDenominator = timesig->denominator;
-					RNBO::TimeSignatureEvent event(time, _lastTimeSigNumerator, _lastTimeSigDenominator);
-					rnboObject.scheduleEvent(event);
-				}
-
-				auto ppqPos = info->getPpqPosition();
-				if (ppqPos && !juce::approximatelyEqual (*ppqPos, _lastPpqPosition)) {
-					_lastPpqPosition = *ppqPos;
-					RNBO::BeatTimeEvent event(time, _lastPpqPosition);
-					rnboObject.scheduleEvent(event);
-				}
-
-				auto playing = info->getIsPlaying();
-				if (playing != _lastIsPlaying) {
-					_lastIsPlaying = playing;
-					RNBO::TransportEvent event(time, _lastIsPlaying ? RNBO::TransportState::RUNNING : RNBO::TransportState::STOPPED);
-					rnboObject.scheduleEvent(event);
-				}
-			}
-		}
-	}
-
     RNBO::TimeConverter timeConverter(rnboObject.getSampleRate(), time);
 
 	// fill midi input 

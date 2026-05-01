@@ -66,8 +66,8 @@
     {
       "type": "ParameterTypeNumber",
       "index": 3,
-      "name": "ocillator",
-      "paramId": "ocillator",
+      "name": "oscillator",
+      "paramId": "oscillator",
       "minimum": 1,
       "maximum": 3,
       "exponent": 1,
@@ -400,7 +400,7 @@
     "architecture": "x64",
     "filename": "FourieSeriesRnbo.maxpat",
     "rnboobjname": "rnbomatic",
-    "maxversion": "8.6.2",
+    "maxversion": "8.6.5",
     "rnboversion": "1.4.2",
     "name": "untitled"
   }

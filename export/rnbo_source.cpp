@@ -153,7 +153,7 @@ void process(
         this->gen_01_filterOnOff,
         this->gen_01_cutoffOvertone,
         this->gen_01_attenuation,
-        this->gen_01_ocillator,
+        this->gen_01_oscillator,
         this->gen_01_PosNeg,
         this->gen_01_PosNegSync,
         this->gen_01_cycleCountToAdd,
@@ -380,7 +380,7 @@ void getPreset(PatcherStateInterface& preset) {
     this->param_01_getPresetValue(getSubState(preset, "PosNeg"));
     this->param_02_getPresetValue(getSubState(preset, "decay"));
     this->param_03_getPresetValue(getSubState(preset, "attack"));
-    this->param_04_getPresetValue(getSubState(preset, "ocillator"));
+    this->param_04_getPresetValue(getSubState(preset, "oscillator"));
     this->param_05_getPresetValue(getSubState(preset, "amp"));
     this->param_06_getPresetValue(getSubState(preset, "attenuation"));
     this->param_07_getPresetValue(getSubState(preset, "cutoffOvertone"));
@@ -401,7 +401,7 @@ void setPreset(MillisecondTime time, PatcherStateInterface& preset) {
     this->param_01_setPresetValue(getSubState(preset, "PosNeg"));
     this->param_02_setPresetValue(getSubState(preset, "decay"));
     this->param_03_setPresetValue(getSubState(preset, "attack"));
-    this->param_04_setPresetValue(getSubState(preset, "ocillator"));
+    this->param_04_setPresetValue(getSubState(preset, "oscillator"));
     this->param_05_setPresetValue(getSubState(preset, "amp"));
     this->param_06_setPresetValue(getSubState(preset, "attenuation"));
     this->param_07_setPresetValue(getSubState(preset, "cutoffOvertone"));
@@ -626,7 +626,7 @@ ConstCharPointer getParameterName(ParameterIndex index) const {
         }
     case 3:
         {
-        return "ocillator";
+        return "oscillator";
         }
     case 4:
         {
@@ -703,7 +703,7 @@ ConstCharPointer getParameterId(ParameterIndex index) const {
         }
     case 3:
         {
-        return "ocillator";
+        return "oscillator";
         }
     case 4:
         {
@@ -1880,7 +1880,7 @@ void param_04_value_set(number v) {
         this->param_04_lastValue = this->param_04_value;
     }
 
-    this->gen_01_ocillator_set(v);
+    this->gen_01_oscillator_set(v);
 }
 
 void param_05_value_set(number v) {
@@ -2387,8 +2387,8 @@ number param_04_value_constrain(number v) const {
     return v;
 }
 
-void gen_01_ocillator_set(number v) {
-    this->gen_01_ocillator = v;
+void gen_01_oscillator_set(number v) {
+    this->gen_01_oscillator = v;
 }
 
 number param_05_value_constrain(number v) const {
@@ -3494,7 +3494,7 @@ void gen_01_perform(
     number filterOnOff,
     number cutoffOvertone,
     number attenuation,
-    number ocillator,
+    number oscillator,
     number PosNeg,
     number PosNegSync,
     number cycleCountToAdd,
@@ -3515,13 +3515,13 @@ void gen_01_perform(
             this->poke_default(this->gen_01_manageParam, filterOnOff, 1, 0, 0);
             this->poke_default(this->gen_01_manageParam, cutoffOvertone, 2, 0, 0);
             this->poke_default(this->gen_01_manageParam, attenuation, 3, 0, 0);
-            this->poke_default(this->gen_01_manageParam, ocillator, 4, 0, 0);
+            this->poke_default(this->gen_01_manageParam, oscillator, 4, 0, 0);
         } else {
             this->poke_default(this->gen_01_manageParam, terms, 5, 0, 0);
             this->poke_default(this->gen_01_manageParam, filterOnOff, 6, 0, 0);
             this->poke_default(this->gen_01_manageParam, cutoffOvertone, 7, 0, 0);
             this->poke_default(this->gen_01_manageParam, attenuation, 8, 0, 0);
-            this->poke_default(this->gen_01_manageParam, ocillator, 9, 0, 0);
+            this->poke_default(this->gen_01_manageParam, oscillator, 9, 0, 0);
         }
 
         if (PosNegSync == 1) {
@@ -3533,8 +3533,8 @@ void gen_01_perform(
             this->poke_default(this->gen_01_manageParam, cutoffOvertone, 7, 0, 0);
             this->poke_default(this->gen_01_manageParam, attenuation, 3, 0, 0);
             this->poke_default(this->gen_01_manageParam, attenuation, 8, 0, 0);
-            this->poke_default(this->gen_01_manageParam, ocillator, 4, 0, 0);
-            this->poke_default(this->gen_01_manageParam, ocillator, 9, 0, 0);
+            this->poke_default(this->gen_01_manageParam, oscillator, 4, 0, 0);
+            this->poke_default(this->gen_01_manageParam, oscillator, 9, 0, 0);
         }
 
         number posFilterOnOff = 0;
@@ -3546,9 +3546,9 @@ void gen_01_perform(
         number posAttenuation = 0;
         auto result_2 = this->peek_default(this->gen_01_manageParam, 3, 0);
         posAttenuation = result_2[0];
-        number posOcillator = 0;
+        number posOscillator = 0;
         auto result_3 = this->peek_default(this->gen_01_manageParam, 4, 0);
-        posOcillator = result_3[0];
+        posOscillator = result_3[0];
         number negFilterOnOff = 0;
         auto result_4 = this->peek_default(this->gen_01_manageParam, 6, 0);
         negFilterOnOff = result_4[0];
@@ -3558,9 +3558,9 @@ void gen_01_perform(
         number negAttenuation = 0;
         auto result_6 = this->peek_default(this->gen_01_manageParam, 8, 0);
         negAttenuation = result_6[0];
-        number negOcillator = 0;
+        number negOscillator = 0;
         auto result_7 = this->peek_default(this->gen_01_manageParam, 9, 0);
-        negOcillator = result_7[0];
+        negOscillator = result_7[0];
 
         if (this->gen_01_change_8_next(cycleCountToAdd) != 0 || this->gen_01_change_9_next(cycleCountToSubtract) != 0 || this->gen_01_change_10_next(terms) != 0) {
             __gen_01_sampleCount_value = 0;
@@ -3756,11 +3756,11 @@ void gen_01_perform(
 
             {
                 auto phaseStoreCh_99 = 0;
-                auto negOcillator_98 = negOcillator;
+                auto negOscillator_98 = negOscillator;
                 auto negAttenuation_97 = negAttenuation;
                 auto negCutoffOvertone_96 = negCutoffOvertone;
                 auto negFilterOnOff_95 = negFilterOnOff;
-                auto posOcillator_94 = posOcillator;
+                auto posOscillator_94 = posOscillator;
                 auto posAttenuation_93 = posAttenuation;
                 auto posCutoffOvertone_92 = posCutoffOvertone;
                 auto posFilterOnOff_91 = posFilterOnOff;
@@ -3785,7 +3785,7 @@ void gen_01_perform(
                     number fourierSeriesCalculation_104 = 0;
 
                     {
-                        auto Ocillator_110 = posOcillator_94;
+                        auto Oscillator_110 = posOscillator_94;
                         auto Attenuation_109 = posAttenuation_93;
                         auto CutoffOvertone_108 = posCutoffOvertone_92;
                         auto FilterOnOff_107 = posFilterOnOff_91;
@@ -3794,13 +3794,13 @@ void gen_01_perform(
                         number Factors_111 = 1;
                         number Amp_filter_112 = 1;
 
-                        if (Ocillator_110 == 1) {
+                        if (Oscillator_110 == 1) {
                             if (this->safemod(index_106, 2) == 1) {
                                 Factors_111 = (3.14159265358979323846 * index_106 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_106));
                             } else {
                                 Factors_111 = 0;
                             }
-                        } else if (Ocillator_110 == 2) {
+                        } else if (Oscillator_110 == 2) {
                             if (this->safemod(index_106, 2) == 1) {
                                 number myTriangle_113 = 0;
 
@@ -3849,7 +3849,7 @@ void gen_01_perform(
                     number fourierSeriesCalculation_122 = 0;
 
                     {
-                        auto Ocillator_128 = negOcillator_98;
+                        auto Oscillator_128 = negOscillator_98;
                         auto Attenuation_127 = negAttenuation_97;
                         auto CutoffOvertone_126 = negCutoffOvertone_96;
                         auto FilterOnOff_125 = negFilterOnOff_95;
@@ -3858,13 +3858,13 @@ void gen_01_perform(
                         number Factors_129 = 1;
                         number Amp_filter_130 = 1;
 
-                        if (Ocillator_128 == 1) {
+                        if (Oscillator_128 == 1) {
                             if (this->safemod(index_124, 2) == 1) {
                                 Factors_129 = (3.14159265358979323846 * index_124 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_124));
                             } else {
                                 Factors_129 = 0;
                             }
-                        } else if (Ocillator_128 == 2) {
+                        } else if (Oscillator_128 == 2) {
                             if (this->safemod(index_124, 2) == 1) {
                                 number myTriangle_131 = 0;
 
@@ -3921,11 +3921,11 @@ void gen_01_perform(
 
             {
                 auto phaseStoreCh_159 = 1;
-                auto negOcillator_158 = negOcillator;
+                auto negOscillator_158 = negOscillator;
                 auto negAttenuation_157 = negAttenuation;
                 auto negCutoffOvertone_156 = negCutoffOvertone;
                 auto negFilterOnOff_155 = negFilterOnOff;
-                auto posOcillator_154 = posOcillator;
+                auto posOscillator_154 = posOscillator;
                 auto posAttenuation_153 = posAttenuation;
                 auto posCutoffOvertone_152 = posCutoffOvertone;
                 auto posFilterOnOff_151 = posFilterOnOff;
@@ -3950,7 +3950,7 @@ void gen_01_perform(
                     number fourierSeriesCalculation_164 = 0;
 
                     {
-                        auto Ocillator_170 = posOcillator_154;
+                        auto Oscillator_170 = posOscillator_154;
                         auto Attenuation_169 = posAttenuation_153;
                         auto CutoffOvertone_168 = posCutoffOvertone_152;
                         auto FilterOnOff_167 = posFilterOnOff_151;
@@ -3959,13 +3959,13 @@ void gen_01_perform(
                         number Factors_171 = 1;
                         number Amp_filter_172 = 1;
 
-                        if (Ocillator_170 == 1) {
+                        if (Oscillator_170 == 1) {
                             if (this->safemod(index_166, 2) == 1) {
                                 Factors_171 = (3.14159265358979323846 * index_166 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_166));
                             } else {
                                 Factors_171 = 0;
                             }
-                        } else if (Ocillator_170 == 2) {
+                        } else if (Oscillator_170 == 2) {
                             if (this->safemod(index_166, 2) == 1) {
                                 number myTriangle_173 = 0;
 
@@ -4014,7 +4014,7 @@ void gen_01_perform(
                     number fourierSeriesCalculation_182 = 0;
 
                     {
-                        auto Ocillator_188 = negOcillator_158;
+                        auto Oscillator_188 = negOscillator_158;
                         auto Attenuation_187 = negAttenuation_157;
                         auto CutoffOvertone_186 = negCutoffOvertone_156;
                         auto FilterOnOff_185 = negFilterOnOff_155;
@@ -4023,13 +4023,13 @@ void gen_01_perform(
                         number Factors_189 = 1;
                         number Amp_filter_190 = 1;
 
-                        if (Ocillator_188 == 1) {
+                        if (Oscillator_188 == 1) {
                             if (this->safemod(index_184, 2) == 1) {
                                 Factors_189 = (3.14159265358979323846 * index_184 == 0. ? 0. : (number)4 / (3.14159265358979323846 * index_184));
                             } else {
                                 Factors_189 = 0;
                             }
-                        } else if (Ocillator_188 == 2) {
+                        } else if (Oscillator_188 == 2) {
                             if (this->safemod(index_184, 2) == 1) {
                                 number myTriangle_191 = 0;
 
@@ -4099,8 +4099,8 @@ void gen_01_perform(
         number SynthesizedWave2_201 = negWave2_65 + posWave2_64;
         number expr_10_202 = (SynthesizedWave1_200 * 0.7 > 1 ? 1 : (SynthesizedWave1_200 * 0.7 < -1 ? -1 : SynthesizedWave1_200 * 0.7));
         number expr_11_203 = (SynthesizedWave2_201 * 0.7 > 1 ? 1 : (SynthesizedWave2_201 * 0.7 < -1 ? -1 : SynthesizedWave2_201 * 0.7));
-        out2[(Index)i0] = expr_11_203;
         out1[(Index)i0] = expr_10_202;
+        out2[(Index)i0] = expr_11_203;
     }
 
     this->gen_01_sampleCount_value = __gen_01_sampleCount_value;
@@ -5412,7 +5412,7 @@ void assign_defaults()
     gen_01_filterOnOff = 0;
     gen_01_cutoffOvertone = 0;
     gen_01_attenuation = 0;
-    gen_01_ocillator = 0;
+    gen_01_oscillator = 0;
     gen_01_PosNeg = 0;
     gen_01_PosNegSync = 0;
     gen_01_cycleCountToAdd = 0;
@@ -5758,7 +5758,7 @@ void assign_defaults()
     number gen_01_filterOnOff;
     number gen_01_cutoffOvertone;
     number gen_01_attenuation;
-    number gen_01_ocillator;
+    number gen_01_oscillator;
     number gen_01_PosNeg;
     number gen_01_PosNegSync;
     number gen_01_cycleCountToAdd;
