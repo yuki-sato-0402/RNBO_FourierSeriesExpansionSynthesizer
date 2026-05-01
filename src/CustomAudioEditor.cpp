@@ -45,16 +45,16 @@ CustomAudioEditor::CustomAudioEditor (CustomAudioProcessor& p, juce::AudioProces
     attenuationLabel.setText ("attenuation", juce::dontSendNotification);
     attenuationLabel.setJustificationType(juce::Justification::centred);
 
-    addAndMakeVisible(ocillatorComboBox);
-    ocillatorComboBox.addItem("Square", 1);
-    ocillatorComboBox.addItem("Triangle", 2);
-    ocillatorComboBox.addItem("Sawtooth", 3); 
-    ocillatorComboBox.setSelectedItemIndex(0);
-    ocillatorComboBoxAttachment.reset (new juce::AudioProcessorValueTreeState::ComboBoxAttachment (valueTreeState, "ocillator", ocillatorComboBox));
-    ocillatorComboBox.setLookAndFeel(&midnightLookAndFeel);    
-    addAndMakeVisible(ocillatorLabel);
-    ocillatorLabel.setText ("ocillator", juce::dontSendNotification);
-    ocillatorLabel.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(oscillatorComboBox);
+    oscillatorComboBox.addItem("Square", 1);
+    oscillatorComboBox.addItem("Triangle", 2);
+    oscillatorComboBox.addItem("Sawtooth", 3); 
+    oscillatorComboBox.setSelectedItemIndex(0);
+    oscillatorComboBoxAttachment.reset (new juce::AudioProcessorValueTreeState::ComboBoxAttachment (valueTreeState, "oscillator", oscillatorComboBox));
+    oscillatorComboBox.setLookAndFeel(&midnightLookAndFeel);    
+    addAndMakeVisible(oscillatorLabel);
+    oscillatorLabel.setText ("oscillator", juce::dontSendNotification);
+    oscillatorLabel.setJustificationType(juce::Justification::centred);
 
 
         // --- PosNeg UI ---
@@ -221,8 +221,8 @@ void CustomAudioEditor::resized()
     harmonicRatioSlider.setBounds(harmonicSeriesModeComboBox.getRight() + padding, padding,  componentWidth2 , componentHeight);
     audioProcessor.myVisualiser.setBounds(harmonicRatioSlider.getRight() + padding, padding,  componentWidth2 * 3 , componentHeight);
 
-    ocillatorComboBox.setBounds(padding,  harmonicRatioSlider.getBottom() + padding + (componentHeight / 4), componentWidth2,  componentHeight / 2);
-    termsSlider.setBounds(ocillatorComboBox.getRight() + padding, harmonicRatioSlider.getBottom() + padding + (componentHeight / 4),  componentWidth2 , componentHeight  / 2);
+    oscillatorComboBox.setBounds(padding,  harmonicRatioSlider.getBottom() + padding + (componentHeight / 4), componentWidth2,  componentHeight / 2);
+    termsSlider.setBounds(oscillatorComboBox.getRight() + padding, harmonicRatioSlider.getBottom() + padding + (componentHeight / 4),  componentWidth2 , componentHeight  / 2);
     filterButton.setBounds(termsSlider.getRight() + padding, harmonicRatioSlider.getBottom() + padding, componentWidth2, componentHeight);
     cutoffOvertoneSlider.setBounds( filterButton.getRight() + padding, harmonicRatioSlider.getBottom() + padding + (componentHeight / 4), componentWidth2 , componentHeight / 2);
     attenuationSlider.setBounds(cutoffOvertoneSlider.getRight() + padding, harmonicRatioSlider.getBottom() + padding, componentWidth2,  componentHeight);
@@ -240,7 +240,7 @@ void CustomAudioEditor::resized()
     sustainSlider.setBounds(decaySlider.getRight() + padding, termsToAddPerCountSlider.getBottom() + padding + (componentHeight / 4), componentWidth2, componentHeight);
     releaseSlider.setBounds(sustainSlider.getRight() + padding, termsToAddPerCountSlider.getBottom() + padding + (componentHeight / 4), componentWidth2, componentHeight);
 
-    ocillatorLabel.setBounds(ocillatorComboBox.getX(), ocillatorComboBox.getY()-40, ocillatorComboBox.getWidth(),ocillatorComboBox.getHeight() );
+    oscillatorLabel.setBounds(oscillatorComboBox.getX(), oscillatorComboBox.getY()-40, oscillatorComboBox.getWidth(),oscillatorComboBox.getHeight() );
     termsLabel.setBounds(termsSlider.getX(), termsSlider.getY()-20, termsSlider.getWidth(),termsSlider.getTextBoxHeight() );
     cutoffOvertoneLabel.setBounds(cutoffOvertoneSlider.getX(), cutoffOvertoneSlider.getY()-20, cutoffOvertoneSlider.getWidth(),cutoffOvertoneSlider.getTextBoxHeight() );
     attenuationLabel.setBounds(attenuationSlider.getX(), attenuationSlider.getY()-10, attenuationSlider.getWidth(),attenuationSlider.getTextBoxHeight() );

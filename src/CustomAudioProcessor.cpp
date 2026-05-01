@@ -15,7 +15,7 @@ CustomAudioProcessor::CustomAudioProcessor()
         juce::NormalisableRange<float>(2, 40, 1, 1), 2),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "attenuation",  1}, "attenuation",
         juce::NormalisableRange<float>(1.f, 100.f, 0.01f, 1.f),1.f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "ocillator",  1}, "ocillator",
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "oscillator",  1}, "oscillator",
         juce::NormalisableRange<float>(1, 3, 1, 1), 1),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "attack",  1}, "attack",
         juce::NormalisableRange<float>(1.f, 1000.f, 0.01f, 1.f), 10.f),

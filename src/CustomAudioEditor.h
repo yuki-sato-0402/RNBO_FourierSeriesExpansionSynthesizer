@@ -35,14 +35,14 @@ private:
    
     juce::ToggleButton filterButton; 
     juce::ToggleButton posNegSyncButton;
-    juce::ComboBox ocillatorComboBox;
+    juce::ComboBox oscillatorComboBox;
     juce::ComboBox harmonicSeriesModeComboBox;
     juce::TextButton posButton;
     juce::TextButton negButton;
     
 
 
-    juce::Label  ocillatorLabel;
+    juce::Label  oscillatorLabel;
     juce::Label  termsLabel;
     juce::Label  cutoffOvertoneLabel;
     juce::Label  attenuationLabel;
@@ -74,7 +74,7 @@ private:
     std::unique_ptr<SliderAttachment> cycleCountToSubtractSliderAttachment;
     std::unique_ptr<SliderAttachment> termsToAddPerCountSliderAttachment;
     std::unique_ptr<SliderAttachment> harmonicRatioSliderAttachment;
-    std::unique_ptr<ComboBoxAttachment> ocillatorComboBoxAttachment;
+    std::unique_ptr<ComboBoxAttachment> oscillatorComboBoxAttachment;
     std::unique_ptr<ComboBoxAttachment> harmonicSeriesModeComboBoxAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomAudioEditor)
